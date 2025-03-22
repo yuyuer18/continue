@@ -51,13 +51,13 @@ describe("GUI Test", () => {
       const description = await GUISelectors.getDescription(view);
 
       expect(await description.getText()).has.string(
-        "Log in to quickly build your first custom AI code assistant",
+        "登录后快速创建您的第一个自定义 AI 代码助手，编程历史将存储在云端。",
       );
     }).timeout(DEFAULT_TIMEOUT.XL);
 
     // We no longer have a quick start button
     it.skip(
-      "should display tutorial card after accepting onboarding quick start",
+      "在接受快速入门引导后应显示教程卡片。",
       async () => {
         // Get paragraph with text Best
         const bestTab = await GUISelectors.getOnboardingTabButton(view, "Best");

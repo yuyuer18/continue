@@ -17,7 +17,7 @@ keywords:
 
 ![Continue Logo](/img/intro.png)
 
-**Continue 是 [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue) 和 [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension) 中领先的开源 AI 代码助手**
+**Continue 是 [VS Code](https://marketplace.visualstudio.com/items?itemName=Amarsoft.kodemate-ai) 和 [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension) 中领先的开源 AI 代码助手**
 
 - [聊天](chat/how-to-use-it.md) 在侧边栏中理解和迭代代码
 - [自动补全](autocomplete/how-to-use-it.md) 在你输入时获取行内代码建议

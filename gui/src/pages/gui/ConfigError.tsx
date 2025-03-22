@@ -1,8 +1,8 @@
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useLocation, useNavigate } from "react-router-dom";
 import HeaderButtonWithToolTip from "../../components/gui/HeaderButtonWithToolTip";
-import { ROUTES } from "../../util/navigation";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useAppSelector } from "../../redux/hooks";
+import { ROUTES } from "../../util/navigation";
 
 const ConfigErrorIndicator = () => {
   const configError = useAppSelector((store) => store.config.configError);
@@ -22,7 +22,7 @@ const ConfigErrorIndicator = () => {
   return (
     <HeaderButtonWithToolTip
       tooltipPlacement="top-end"
-      text="Config error"
+      text="配置错误"
       onClick={onClickError}
     >
       <ExclamationTriangleIcon className="h-4 w-4 text-red-600" />

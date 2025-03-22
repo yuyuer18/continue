@@ -1,26 +1,26 @@
 {
-  "name": "kodemate-ai",
+  "name": "KodeMate-AI",
   "icon": "media/icon.png",
   "author": "Amarsoft Dev, Inc",
   "version": "1.1.13",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuyuer18/continue"
+    "url": "https://github.com/continuedev/continue"
   },
   "extensionKind": [
     "ui",
     "workspace"
   ],
   "bugs": {
-    "url": "https://github.com/yuyuer18/continue/issues",
-    "email": "pmc@amarsoft.com"
+    "url": "https://home.amarsoft.com",
+    "email": "pmc@amarsoft.comc@amarsoft.com"
   },
-  "homepage": "https://continue.dev",
-  "qna": "https://github.com/yuyuer18/continue/issues/new/choose",
+  "homepage": "https://www.amarsoft.com",
+  "qna": "https://github.com/continuedev/continue/issues/new/choose",
   "license": "Apache-2.0",
   "displayName": "KodeMate AI+",
   "pricing": "Free",
-  "description": "上海安硕AI编程Visual Studio Code插件",
+  "description": "安硕Ai助手",
   "publisher": "Amarsoft",
   "engines": {
     "vscode": "^1.70.0",
@@ -85,7 +85,7 @@
       }
     ],
     "configuration": {
-      "title": "Continue",
+      "title": "KodeMateAI+",
       "properties": {
         "continue.telemetryEnabled": {
           "type": "boolean",
@@ -97,20 +97,25 @@
           "default": false,
           "markdownDescription": "Enable Continue for teams beta features. To sign in, click the gear icon to go to the settings page, and click Sign In."
         },
+        "continue.enableContinueHub": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Continue Hub (internal)"
+        },
         "continue.showInlineTip": {
           "type": "boolean",
           "default": true,
-          "description": "Show inline suggestion to use the Continue keyboard shortcuts (e.g. \"Cmd/Ctrl L to select code, Cmd/Ctrl I to edit\")."
+          "description": "显示使用键盘快捷键的内联建议（例如 \"Cmd/Ctrl L 选择代码，Cmd/Ctrl I 编辑\"）."
         },
         "continue.disableQuickFix": {
           "type": "boolean",
           "default": false,
-          "description": "Disable the quick fix feature."
+          "description": "禁用快速修复功能."
         },
         "continue.enableQuickActions": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable the experimental Quick Actions feature. Read our walkthrough to learn about configuration and how to share feedback: [continue.dev › Walkthrough: Quick Actions (experimental)](https://docs.continue.dev/features/quick-actions)"
+          "markdownDescription": "启用实验性快速操作功能"
         },
         "continue.enableTabAutocomplete": {
           "type": "boolean",
@@ -120,12 +125,12 @@
         "continue.pauseTabAutocompleteOnBattery": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Pause Continue's tab autocomplete feature when your battery is low."
+          "markdownDescription": "当您的电池电量不足时，暂停选项卡自动完成功能。"
         },
         "continue.pauseCodebaseIndexOnStart": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Pause Continue's codebase index on start."
+          "markdownDescription": "在启动时暂停代码库索引。"
         },
         "continue.remoteConfigServerUrl": {
           "type": "string",
@@ -185,13 +190,13 @@
       {
         "command": "continue.focusContinueInput",
         "category": "Continue",
-        "title": "增加高亮代码到上下文并清除对话框",
+        "title": "将选中代码添加到上下文并清除聊天",
         "group": "Continue"
       },
       {
         "command": "continue.focusContinueInputWithoutClear",
         "category": "Continue",
-        "title": "增加高亮代码到上下文",
+        "title": "将选中代码添加到上下文",
         "group": "Continue"
       },
       {
@@ -203,13 +208,13 @@
       {
         "command": "continue.exitEditMode",
         "category": "Continue",
-        "title": "退出编辑模型",
+        "title": "退出编辑模式",
         "group": "Continue"
       },
       {
         "command": "continue.toggleFullScreen",
         "category": "Continue",
-        "title": "打开新窗口",
+        "title": "在新窗口打开",
         "icon": "$(link-external)",
         "group": "Continue"
       },
@@ -242,20 +247,20 @@
       {
         "command": "continue.viewHistory",
         "category": "Continue",
-        "title": "会话历史",
+        "title": "历史会话",
         "icon": "$(history)",
         "group": "Continue"
       },
       {
         "command": "continue.viewLogs",
         "category": "Continue",
-        "title": "View History",
+        "title": "历史会话",
         "group": "Continue"
       },
       {
         "command": "continue.navigateTo",
         "category": "Continue",
-        "title": "Navigate to a path",
+        "title": "导航到路径",
         "group": "Continue"
       },
       {
@@ -268,25 +273,25 @@
       {
         "command": "continue.writeCommentsForCode",
         "category": "Continue",
-        "title": "Write Comments for this Code",
+        "title": "为此代码编写注释",
         "group": "Continue"
       },
       {
         "command": "continue.writeDocstringForCode",
         "category": "Continue",
-        "title": "Write a Docstring for this Code",
+        "title": "为此代码编写文档",
         "group": "Continue"
       },
       {
         "command": "continue.fixCode",
         "category": "Continue",
-        "title": "Fix this Code",
+        "title": "修复此BUG",
         "group": "Continue"
       },
       {
         "command": "continue.optimizeCode",
         "category": "Continue",
-        "title": "Optimize this Code",
+        "title": "优化此代码",
         "group": "Continue"
       },
       {
@@ -420,7 +425,7 @@
     "submenus": [
       {
         "id": "Amarsoft.kodemate-aiSubMenu",
-        "label": "KodeMateAi"
+        "label": "KodeMateAI"
       }
     ],
     "menus": {
@@ -457,33 +462,33 @@
       "Amarsoft.kodemate-aiSubMenu": [
         {
           "command": "continue.focusContinueInputWithoutClear",
-          "group": "Continue",
+          "group": "KodeMateAI",
           "when": "editorHasSelection"
         },
         {
           "command": "continue.writeCommentsForCode",
-          "group": "Continue",
-          "when": "editorHasSelection && !editorReadonly"
+          "group": "KodeMateAI",
+          "when": "editorHasSelection"
         },
         {
           "command": "continue.writeDocstringForCode",
-          "group": "Continue",
-          "when": "editorHasSelection && !editorReadonly"
+          "group": "KodeMateAI",
+          "when": "editorHasSelection"
         },
         {
           "command": "continue.fixCode",
-          "group": "Continue",
-          "when": "editorHasSelection && !editorReadonly"
+          "group": "KodeMateAI",
+          "when": "editorHasSelection"
         },
         {
           "command": "continue.optimizeCode",
-          "group": "Continue",
-          "when": "editorHasSelection && !editorReadonly"
+          "group": "KodeMateAI",
+          "when": "editorHasSelection"
         },
         {
           "command": "continue.fixGrammar",
-          "group": "Continue",
-          "when": "editorHasSelection && editorLangId == 'markdown' && !editorReadonly"
+          "group": "KodeMateAI",
+          "when": "editorHasSelection && editorLangId == 'markdown'"
         }
       ],
       "explorer/context": [
@@ -542,7 +547,7 @@
       "activitybar": [
         {
           "id": "continue",
-          "title": "KodeMateAi+",
+          "title": "KodeMateAI+",
           "icon": "media/sidebar-icon.png"
         }
       ]
@@ -552,7 +557,7 @@
         {
           "type": "webview",
           "id": "Amarsoft.kodemate-aiGUIView",
-          "name": "KodeMateAi+",
+          "name": "KodeMateAI+",
           "icon": "media/sidebar-icon.png",
           "visibility": "visible"
         }

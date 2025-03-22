@@ -139,7 +139,7 @@ function InputToolbar(props: InputToolbarProps) {
                       }}
                     />
                     <ToolTip id="image-tooltip" place="top-middle">
-                      Attach an image
+                      上传图片
                     </ToolTip>
                   </HoverItem>
                 </>
@@ -152,7 +152,7 @@ function InputToolbar(props: InputToolbarProps) {
                 />
 
                 <ToolTip id="add-context-item-tooltip" place="top-middle">
-                  Add context (files, docs, urls, etc.)
+                  增加上下文 (files, docs, urls, etc.)
                 </ToolTip>
               </HoverItem>
             )}
@@ -185,7 +185,7 @@ function InputToolbar(props: InputToolbarProps) {
                     {getMetaKeyLabel()}⏎ @codebase
                   </span>
                   <ToolTip id="add-codebase-context-tooltip" place="top-end">
-                    Submit with the codebase as context ({getMetaKeyLabel()}⏎)
+                    使用代码库codebase作为上下文提交对话 ({getMetaKeyLabel()}⏎)
                   </ToolTip>
                 </HoverItem>
               )}
@@ -205,7 +205,7 @@ function InputToolbar(props: InputToolbarProps) {
               }}
             >
               <span>
-                <i>Esc</i> to exit
+                <i>Esc</i> 退出编辑模式
               </span>
             </HoverItem>
           )}

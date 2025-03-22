@@ -74,12 +74,12 @@ function Stats() {
         }}
       >
         <ArrowLeftIcon className="ml-4 inline-block h-3 w-3 cursor-pointer" />
-        <span className="m-2 inline-block text-base font-bold">More</span>
+        <span className="m-2 inline-block text-base font-bold">更多</span>
       </div>
 
       <div className="p-2">
         <div className="flex items-center gap-2">
-          <h2 className="ml-2">Tokens per Day</h2>
+          <h2 className="ml-2">每日Tokens数</h2>
           <CopyIconButton
             text={generateTable(
               ([["Day", "Generated Tokens", "Prompt Tokens"]] as any).concat(
@@ -95,9 +95,9 @@ function Stats() {
         <table className="w-full border-collapse">
           <thead>
             <Tr>
-              <Th>Day</Th>
-              <Th>Generated Tokens</Th>
-              <Th>Prompt Tokens</Th>
+              <Th>日期</Th>
+              <Th>生成Tokens</Th>
+              <Th>提示Tokens</Th>
             </Tr>
           </thead>
           <tbody>
@@ -112,7 +112,7 @@ function Stats() {
         </table>
 
         <div className="flex items-center gap-2">
-          <h2 className="ml-2">Tokens per Model</h2>
+          <h2 className="ml-2">每个模型Tokens数</h2>
           <CopyIconButton
             text={generateTable(
               ([["Model", "Generated Tokens", "Prompt Tokens"]] as any).concat(
@@ -128,9 +128,9 @@ function Stats() {
         <table className="w-full border-collapse">
           <thead>
             <Tr>
-              <Th>Model</Th>
-              <Th>Generated Tokens</Th>
-              <Th>Prompt Tokens</Th>
+              <Th>模型</Th>
+              <Th>生成Tokens</Th>
+              <Th>提示Tokens</Th>
             </Tr>
           </thead>
           <tbody>

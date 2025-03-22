@@ -4,7 +4,7 @@ import { AssistantUnrolled } from "@continuedev/config-yaml";
 export const defaultConfigYaml: AssistantUnrolled = {
   models: [],
   context: [],
-  name: "Local Assistant",
+  name: "本地配置",
   version: "1.0.0",
   schema: "v1",
 };
@@ -12,7 +12,7 @@ export const defaultConfigYaml: AssistantUnrolled = {
 export const defaultConfigYamlJetBrains: AssistantUnrolled = {
   models: [],
   context: [],
-  name: "Local Assistant",
+  name: "本地配置",
   version: "1.0.0",
   schema: "v1",
 };

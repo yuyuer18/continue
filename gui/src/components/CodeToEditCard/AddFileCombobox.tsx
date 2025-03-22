@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { useSubmenuContextProviders } from "../../context/SubmenuContextProviders";
 import { Combobox } from "@headlessui/react";
-import FileIcon from "../FileIcon";
-import { useAppSelector } from "../../redux/hooks";
 import { ContextSubmenuItemWithProvider } from "core";
+import { useEffect, useRef, useState } from "react";
+import { useSubmenuContextProviders } from "../../context/SubmenuContextProviders";
+import { useAppSelector } from "../../redux/hooks";
+import FileIcon from "../FileIcon";
 
 export interface AddFileComboboxProps {
   onSelect: (filepaths: string[]) => void | Promise<void>;
@@ -38,8 +38,8 @@ export default function AddFileCombobox({
     query === ""
       ? remainingFiles
       : remainingFiles.filter((file) =>
-          file.title.toLowerCase().includes(query.toLowerCase()),
-        );
+        file.title.toLowerCase().includes(query.toLowerCase()),
+      );
 
   return (
     <div className="pb-2 pl-3.5 pr-2">
@@ -67,7 +67,7 @@ export default function AddFileCombobox({
               }}
               className="bg-vsc-background border-lightgray text-vsc-foreground box-border w-full rounded border border-solid py-0.5 pl-2 focus:outline-none"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Type to search files..."
+              placeholder="搜索文件"
               onKeyDown={(e) => {
                 if (e.key === "Escape" && !open) {
                   void onEscape();
@@ -82,10 +82,9 @@ export default function AddFileCombobox({
                     key={file.id}
                     value={file}
                     className={({ active }) =>
-                      `relative flex w-full cursor-pointer px-2 py-1 text-left text-xs ${
-                        active
-                          ? "bg-list-active text-list-active-foreground"
-                          : ""
+                      `relative flex w-full cursor-pointer px-2 py-1 text-left text-xs ${active
+                        ? "bg-list-active text-list-active-foreground"
+                        : ""
                       }`
                     }
                   >
@@ -101,9 +100,8 @@ export default function AddFileCombobox({
                         </div>
 
                         <span
-                          className={`text-lightgray max-w-[30%] truncate ${
-                            active || selected ? "visible" : "invisible"
-                          } group-hover:visible`}
+                          className={`text-lightgray max-w-[30%] truncate ${active || selected ? "visible" : "invisible"
+                            } group-hover:visible`}
                         >
                           {file.description}
                         </span>
@@ -113,7 +111,7 @@ export default function AddFileCombobox({
                 ))
               ) : (
                 <div className="text-list-active-foreground px-2 py-1 text-xs">
-                  No results
+                  无匹配文件
                 </div>
               )}
             </Combobox.Options>

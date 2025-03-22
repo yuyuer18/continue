@@ -66,12 +66,12 @@ export function RulesPreview() {
   return (
     <div className="space-y-4">
       <h2 className="mb-4 text-lg font-semibold text-gray-200">
-        Assistant Rules
+        规则预览
       </h2>
 
       {mergedRules.length === 0 ? (
         <div className="rounded-lg bg-[#1e1e1e] p-6">
-          <p className="italic text-gray-400">No rules defined yet</p>
+          <p className="italic text-gray-400">未定义规则</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -87,7 +87,7 @@ export function RulesPreview() {
                       profileId: undefined,
                     })
                   }
-                  title="Locally Defined Rule"
+                  title="本地规则"
                 />
               );
             }

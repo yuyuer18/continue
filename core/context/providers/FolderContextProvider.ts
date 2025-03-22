@@ -17,7 +17,7 @@ class FolderContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "folder",
     displayTitle: "Folder",
-    description: "Type to search",
+    description: "输入搜索",
     type: "submenu",
     dependsOnIndexing: true,
   };

@@ -4,54 +4,43 @@
 
 </div>
 
-<h1 align="center">Continue</h1>
+<h1 align="center">Kodemate AI+ 安硕AI编程辅助插件</h1>
 
 <div align="center">
 
-**[Continue](https://docs.continue.dev) enables to developers create, share, and use custom AI code assistants with our open-source [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue) extension and [hub of models, rules, prompts, docs, and other building blocks](https://hub.continue.dev)**
+**[Kodemate AI](https://home.amarsoft.com) 通过该编程工具，开发人员能够创建、共享和使用自定义 AI 代码进行编程。Kodemate AI  提示了 [VS Code](https://marketplace.visualstudio.com/) 插件  [集模型、规则、提示词、文档及其他构建模块于一体的编程中心]**
 
 </div>
 
 <div align="center">
 
-<a target="_blank" href="https://opensource.org/licenses/Apache-2.0" style="background:none">
-    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" style="height: 22px;" />
-</a>
-<a target="_blank" href="https://docs.continue.dev" style="background:none">
-    <img src="https://img.shields.io/badge/continue_docs-%23BE1B55" style="height: 22px;" />
-</a>
-<a target="_blank" href="https://discord.gg/vapESyrFmJ" style="background:none">
-    <img src="https://img.shields.io/badge/discord-join-continue.svg?labelColor=191937&color=6F6FF7&logo=discord" style="height: 22px;" />
-</a>
-
 <p></p>
 
-## Chat
+## 对话
 
-[Chat](https://continue.dev/docs/chat/how-to-use-it) makes it easy to ask for help from an LLM without needing to leave the IDE
+[Chat]   在 开发工具中 中，通过 快捷键唤起 或 侧边栏对话窗口，开发者无需切换至浏览器或其他应用，即可直接向 大型语言模型（LLM） 发起自然语言请求，即时获取代码解释、调试建议、功能生成 等智能辅助。
+
 
 ![chat](docs/static/img/chat.gif)
 
-## Autocomplete
+## 自动完成
 
-[Autocomplete](https://continue.dev/docs/autocomplete/how-to-use-it) provides inline code suggestions as you type
+[自动完成] 边输入边提供内联代码建议,基于大型语言模型（LLM）的上下文理解，在用户输入代码时，通过侧边栏浮窗或代码行内插形式，实时推荐符合当前逻辑的代码片段，支持Tab 键快速插入或鼠标点击选择 **。”**
 
-![autocomplete](docs/static/img/autocomplete.gif)
+![自动完成](docs/static/img/autocomplete.gif)
 
-## Edit
+## 编辑
 
-[Edit](https://continue.dev/docs/edit/how-to-use-it) is a convenient way to modify code without leaving your current file
+[Edit] 作为 IDE 原生集成功能，它支持通过 快捷键唤起内联编辑器、右键菜单快速操作 或 自然语言指令，在不离开当前代码文件的前提下，实现变量重命名、函数重构、错误修复等常见代码修改操作，同时提供修改预览和版本回滚支持。
+
 
 ![edit](docs/static/img/edit.gif)
 
 ## Actions
 
-[Actions](https://continue.dev/docs/actions/how-to-use-it) are shortcuts for common use cases.
+[Actions]  预定义快捷键（像 Ctrl/Cmd + [数字]、Alt + 方向键 这类）或 自定义快捷操作，能为 代码编写、调试、重构 等高频开发场景提供一键式解决方案，让开发者无需记忆复杂命令或鼠标操作，就能快速完成代码格式化、函数跳转、版本提交等任务。
 
 ![actions](docs/static/img/actions.gif)
 
 </div>
-
-## License
-
-[Apache 2.0 © 2023-2024 Continue Dev, Inc.](./LICENSE)
+ 

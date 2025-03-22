@@ -6,7 +6,7 @@ keywords: [llama, meta, togetherai, novita, ollama, replicate]
 
 Continue 让使用最新的开元模型编码变得简单，包括整个 Llama 3.1 家族模型。
 
-如果你还没有安装 Continue ，你可以安装 [VS Code 在这里](https://marketplace.visualstudio.com/items?itemName=Continue.continue) 或者 [JetBrains 在这里](https://plugins.jetbrains.com/plugin/22707-continue) 。对于更通用的定制 Continue 的信息，查看 [我们的定制文档](../overview.md) 。
+如果你还没有安装 Continue ，你可以安装 [VS Code 在这里](https://marketplace.visualstudio.com/items?itemName=Amarsoft.kodemate-ai) 或者 [JetBrains 在这里](https://plugins.jetbrains.com/plugin/22707-continue) 。对于更通用的定制 Continue 的信息，查看 [我们的定制文档](../overview.md) 。
 
 下面，我们分享一些最简单的配置和运行，基于你的使用情况。
 

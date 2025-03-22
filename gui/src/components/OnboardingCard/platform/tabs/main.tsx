@@ -58,28 +58,30 @@ export default function MainTab({
       ) : onboardingCard.activeTab === "ExistingUserHubIntro" ? (
         <>
           <p className="xs:w-3/4 w-full text-sm">
-            You can now browse and create custom AI code assistants at{" "}
-            <code>hub.continue.dev</code>
+            可以定制你的AI助手 {" "}
+            <code>home.amarsoft.com</code>
           </p>
 
           <Button
             onClick={onGetStarted}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
-            Get started
+            开始使用
           </Button>
         </>
       ) : (
         <>
           <p className="xs:w-3/4 w-full text-sm">
-            Log in to quickly build your first custom AI code assistant
+            欢迎使用安硕AI编程助手Kodemate AI
           </p>
 
           <Button
             onClick={onGetStarted}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
-            Get started
+            {/* Get started */}
+            开始使用
+
           </Button>
         </>
       )}
@@ -87,14 +89,14 @@ export default function MainTab({
       {onboardingCard.activeTab === "ExistingUserHubIntro" ? (
         <ButtonSubtext onClick={() => onboardingCard.close(isDialog)}>
           <div className="mt-4 flex cursor-pointer items-center justify-center gap-1">
-            <span>Or, use Continue as usual</span>
+            <span>或者，使用本地模型</span>
             <ChevronRightIcon className="h-3 w-3" />
           </div>
         </ButtonSubtext>
       ) : (
         <ButtonSubtext onClick={onRemainLocal}>
           <div className="mt-4 flex cursor-pointer items-center justify-center gap-1">
-            <span>Or, remain local</span>
+            <span>或者，使用本地模型</span>
             <ChevronRightIcon className="h-3 w-3" />
           </div>
         </ButtonSubtext>

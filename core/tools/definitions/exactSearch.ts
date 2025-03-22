@@ -3,12 +3,12 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const exactSearchTool: Tool = {
   type: "function",
-  displayTitle: "Exact Search",
-  wouldLikeTo: 'search for "{{{ query }}}" in the repository',
+  displayTitle: "精准搜索",
+  wouldLikeTo: '在仓库中搜索 "{{{ query }}}" ',
   readonly: true,
   function: {
     name: BuiltInToolNames.ExactSearch,
-    description: "Perform an exact search over the repository using ripgrep.",
+    description: "使用 ripgrep 在仓库中执行精准搜索.",
     parameters: {
       type: "object",
       required: ["query"],

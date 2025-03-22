@@ -1,9 +1,9 @@
+import { Listbox } from "@headlessui/react";
+import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useContext, useRef } from "react";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
-import { ChevronDownIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { Listbox } from "@headlessui/react";
-import { addCodeToEdit } from "../../redux/slices/sessionSlice";
 import { useAppDispatch } from "../../redux/hooks";
+import { addCodeToEdit } from "../../redux/slices/sessionSlice";
 
 export interface AddFileButtonProps {
   onClick: () => void;
@@ -43,7 +43,7 @@ export default function AddFileButton({ onClick }: AddFileButtonProps) {
           >
             <PlusIcon className="text-vsc-foreground inline h-2.5 w-2.5 brightness-75" />
             <span className="text-vsc-foreground text-[10px] brightness-75">
-              Add file
+              添加文件
             </span>
           </div>
 
@@ -57,7 +57,7 @@ export default function AddFileButton({ onClick }: AddFileButtonProps) {
             value="addAllFiles"
             className="text-vsc-foreground block w-full cursor-pointer px-2 py-1 text-left text-[10px] brightness-75 hover:brightness-125"
           >
-            Add all open files
+            添加所有打开的文件
           </Listbox.Option>
         </Listbox.Options>
       </div>

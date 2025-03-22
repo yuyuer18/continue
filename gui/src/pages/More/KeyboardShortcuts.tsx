@@ -4,8 +4,8 @@ import {
   lightGray,
   vscForeground,
 } from "../../components";
-import { getPlatform, isJetBrains } from "../../util";
 import { ToolTip } from "../../components/gui/Tooltip";
+import { getPlatform, isJetBrains } from "../../util";
 
 const GridDiv = styled.div`
   display: grid;
@@ -78,69 +78,69 @@ const vscodeShortcuts: KeyboardShortcutProps[] = [
   {
     mac: "⌘ '",
     windows: "⌃ '",
-    description: "Toggle Selected Model",
+    description: "切换模型",
   },
   {
     mac: "⌘ I",
     windows: "⌃ I",
-    description: "Edit highlighted code",
+    description: "编辑高亮代码",
   },
   {
     mac: "⌘ L",
     windows: "⌃ L",
     description:
-      "New Chat / New Chat With Selected Code / Close Continue Sidebar If Chat Already In Focus",
+      "新聊天 / 使用选定代码的新聊天 / 关闭 侧边栏如果聊天已经聚焦",
   },
   {
     mac: "⌘ ⌫",
     windows: "⌃ ⌫",
-    description: "Cancel response",
+    description: "取消响应",
   },
   {
     mac: "⌘ ⇧ I",
     windows: "⌃ ⇧ I",
-    description: "Toggle inline edit focus",
+    description: "切换内联编辑焦点",
   },
   {
     mac: "⌘ ⇧ L",
     windows: "⌃ ⇧ L",
     description:
-      "Focus Current Chat / Add Selected Code To Current Chat / Close Continue Sidebar If Chat Already In Focus",
+      "聚焦当前聊天 / 将所选代码添加到当前聊天 / 关闭侧边栏",
   },
   {
     mac: "⌘ ⇧ R",
     windows: "⌃ ⇧ R",
-    description: "Debug Terminal",
+    description: "调试终端",
   },
   {
     mac: "⌘ ⇧ ⌫",
     windows: "⌃ ⇧ ⌫",
-    description: "Reject Diff",
+    description: "拒绝代码差异",
   },
   {
     mac: "⌘ ⇧ ⏎",
     windows: "⌃ ⇧ ⏎",
-    description: "Accept Diff",
+    description: "接受代码差异",
   },
   {
     mac: "⌥ ⌘ N",
     windows: "Alt ⌃ N",
-    description: "Reject Top Change in Diff",
+    description: "拒绝顶部差异更改",
   },
   {
     mac: "⌥ ⌘ Y",
     windows: "Alt ⌃ Y",
-    description: "Accept Top Change in Diff",
+    description: "接受顶部差异更改",
   },
   {
     mac: "⌘ K ⌘ A",
     windows: "⌃ K ⌃ A",
-    description: "Toggle Autocomplete Enabled",
+    description: "切换自动补全启用状态",
   },
   {
     mac: "⌘ K ⌘ M",
     windows: "⌃ K ⌃ M",
-    description: "Toggle Full Screen",
+    description: "切换全屏",
   },
 ];
 
@@ -148,54 +148,54 @@ const jetbrainsShortcuts: KeyboardShortcutProps[] = [
   {
     mac: "⌘ '",
     windows: "⌃ '",
-    description: "Toggle Selected Model",
+    description: "切换模型",
   },
   {
     mac: "⌘ I",
     windows: "⌃ I",
-    description: "Edit highlighted code",
+    description: "编辑高亮代码",
   },
   {
     mac: "⌘ J",
     windows: "⌃ J",
     description:
-      "New Chat / New Chat With Selected Code / Close Continue Sidebar If Chat Already In Focus",
+      "新对话(使用所选代码)/ 关闭侧边栏",
   },
   {
     mac: "⌘ ⌫",
     windows: "⌃ ⌫",
-    description: "Cancel response",
+    description: "取消响应",
   },
   {
     mac: "⌘ ⇧ I",
     windows: "⌃ ⇧ I",
-    description: "Toggle inline edit focus",
+    description: "切换内联编辑焦点",
   },
   {
     mac: "⌘ ⇧ J",
     windows: "⌃ ⇧ J",
     description:
-      "Focus Current Chat / Add Selected Code To Current Chat / Close Continue Sidebar If Chat Already In Focus",
+      "聚焦当前聊天 / 将所选代码添加到当前聊天 / 关闭侧边栏",
   },
   {
     mac: "⌘ ⇧ ⌫",
     windows: "⌃ ⇧ ⌫",
-    description: "Reject Diff",
+    description: "拒绝代码差异",
   },
   {
     mac: "⌘ ⇧ ⏎",
     windows: "⌃ ⇧ ⏎",
-    description: "Accept Diff",
+    description: "接受代码差异",
   },
   {
     mac: "⌥ ⇧ J",
     windows: "Alt ⇧ J",
-    description: "Quick Input",
+    description: "快速聚焦当前聊天",
   },
   {
     mac: "⌥ ⌘ J",
     windows: "Alt ⌃ J",
-    description: "Toggle Sidebar",
+    description: "关闭当前聊天",
   },
 ];
 

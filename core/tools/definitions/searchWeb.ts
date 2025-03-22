@@ -4,7 +4,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const searchWebTool: Tool = {
   type: "function",
-  displayTitle: "Search Web",
+  displayTitle: "搜索Web网页",
   wouldLikeTo: 'search the web for "{{{ query }}}"',
   readonly: true,
   function: {

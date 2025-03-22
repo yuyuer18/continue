@@ -1,14 +1,13 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { ContextItemWithId, InputModifiers } from "core";
-import { useDispatch } from "react-redux";
+import { useMemo } from "react";
 import styled, { keyframes } from "styled-components";
 import { defaultBorderRadius, vscBackground } from "..";
+import { useAppSelector } from "../../redux/hooks";
 import { selectSlashCommandComboBoxInputs } from "../../redux/selectors";
 import ContextItemsPeek from "./ContextItemsPeek";
-import TipTapEditor from "./TipTapEditor";
-import { useAppSelector } from "../../redux/hooks";
 import { ToolbarOptions } from "./InputToolbar";
-import { useMemo } from "react";
+import TipTapEditor from "./TipTapEditor";
 
 interface ContinueInputBoxProps {
   isEditMode?: boolean;
@@ -100,17 +99,17 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = props.isEditMode ? "edit" : "chat";
   const placeholder = props.isEditMode
-    ? "Describe how to modify the code - use '#' to add files"
+    ? "请描述如何修改问津 - 可使用 '#' 增加文件"
     : undefined;
 
   const toolbarOptions: ToolbarOptions = props.isEditMode
     ? {
-        hideAddContext: false,
-        hideImageUpload: false,
-        hideUseCodebase: true,
-        hideSelectModel: false,
-        enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
-      }
+      hideAddContext: false,
+      hideImageUpload: false,
+      hideUseCodebase: true,
+      hideSelectModel: false,
+      enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
+    }
     : {};
 
   return (

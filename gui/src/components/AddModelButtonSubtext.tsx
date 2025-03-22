@@ -7,7 +7,7 @@ function AddModelButtonSubtext() {
 
   return (
     <ButtonSubtext>
-      This will update your{" "}
+      将更新{" "}
       <span
         className="cursor-pointer underline"
         onClick={() =>
@@ -16,7 +16,7 @@ function AddModelButtonSubtext() {
           })
         }
       >
-        config file
+        config 文件
       </span>
     </ButtonSubtext>
   );

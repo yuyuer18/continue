@@ -366,17 +366,17 @@ async function downloadSqliteBinary(target) {
   rimrafSync("../../core/node_modules/sqlite3/build");
   const downloadUrl = {
     "darwin-arm64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v6-darwin-arm64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v6-darwin-arm64.tar.gz",
     "linux-arm64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v3-linux-arm64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v3-linux-arm64.tar.gz",
     "win32-arm64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v6-win32-arm64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v6-win32-arm64.tar.gz",
     "linux-x64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v3-linux-x64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v3-linux-x64.tar.gz",
     "darwin-x64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v6-darwin-x64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v6-darwin-x64.tar.gz",
     "win32-x64":
-      "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v3-win32-x64.tar.gz",
+      "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v3-win32-x64.tar.gz",
   }[target];
   execCmdSync(
     `curl -L -o ../../core/node_modules/sqlite3/build.tar.gz ${downloadUrl}`,
@@ -412,17 +412,17 @@ async function downloadRipgrepBinary(target) {
   4;
   const downloadUrl = {
     "darwin-arm64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-aarch64-apple-darwin.tar.gz",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-aarch64-apple-darwin.tar.gz",
     "linux-arm64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-aarch64-unknown-linux-gnu.tar.gz",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-aarch64-unknown-linux-gnu.tar.gz",
     "win32-arm64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-aarch64-pc-windows-msvc.zip",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-aarch64-pc-windows-msvc.zip",
     "linux-x64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-x86_64-unknown-linux-musl.tar.gz",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-x86_64-unknown-linux-musl.tar.gz",
     "darwin-x64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-x86_64-apple-darwin.tar.gz",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-x86_64-apple-darwin.tar.gz",
     "win32-x64":
-      "https://github.com/microsoft/ripgrep-prebuilt/releases/download/v13.0.0-10/ripgrep-v13.0.0-10-x86_64-pc-windows-msvc.zip",
+      "http://192.168.60.53:7080/ripgrep-v13.0.0-10-x86_64-pc-windows-msvc.zip",
   }[target];
 
   if (target.startsWith("win")) {

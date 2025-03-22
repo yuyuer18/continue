@@ -19,7 +19,7 @@ class DocsContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "docs",
     displayTitle: "Docs",
-    description: "Type to search docs",
+    description: "搜索文档",
     type: "submenu",
     // Todo: consider a different renderInline so that when multiple docs are referenced in one message,
     // Or the doc has an odd name unrelated to the content
@@ -128,12 +128,12 @@ class DocsContextProvider extends BaseContextProvider {
           icon: favicon,
           name: chunk.filepath.includes("/tree/main") // For display of GitHub files
             ? chunk.filepath
-                .split("/")
-                .slice(1)
-                .join("/")
-                .split("/tree/main/")
-                .slice(1)
-                .join("/")
+              .split("/")
+              .slice(1)
+              .join("/")
+              .split("/tree/main/")
+              .slice(1)
+              .join("/")
             : chunk.otherMetadata?.title || chunk.filepath,
           description: chunk.filepath,
           content: chunk.content,

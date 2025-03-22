@@ -4,7 +4,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const viewDiffTool: Tool = {
   type: "function",
-  displayTitle: "View Diff",
+  displayTitle: "查看差异",
   wouldLikeTo: "view a diff",
   readonly: true,
   function: {

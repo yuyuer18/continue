@@ -3,13 +3,13 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const createNewFileTool: Tool = {
   type: "function",
-  displayTitle: "Create New File",
+  displayTitle: "创建新文件",
   wouldLikeTo: "create a new file",
   readonly: false,
   function: {
     name: BuiltInToolNames.CreateNewFile,
     description:
-      "Create a new file. Only use this when a file doesn't exist and should be created",
+      "创建新文件。仅在文件不存在且需要创建时使用此操作。",
     parameters: {
       type: "object",
       required: ["filepath", "contents"],
@@ -17,11 +17,11 @@ export const createNewFileTool: Tool = {
         filepath: {
           type: "string",
           description:
-            "The path where the new file should be created, relative to the root of the workspace",
+            "文件创建位置填相对路径，从工作区根目录算起（别写全路径）",
         },
         contents: {
           type: "string",
-          description: "The contents to write to the new file",
+          description: "写到新文件中的文件",
         },
       },
     },

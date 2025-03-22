@@ -3,13 +3,13 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const readFileTool: Tool = {
   type: "function",
-  displayTitle: "Read File",
+  displayTitle: "读取文件",
   wouldLikeTo: "read {{{ filepath }}}",
   readonly: true,
   function: {
     name: BuiltInToolNames.ReadFile,
     description:
-      "Use this tool if you need to view the contents of an existing file.",
+      "使用这个工具可以查看存在文件的内容",
     parameters: {
       type: "object",
       required: ["filepath"],

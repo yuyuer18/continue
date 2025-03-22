@@ -6,7 +6,7 @@ export function convertConfigJsonToConfigYaml(
   configJson: SerializedContinueConfig,
 ): AssistantUnrolled {
   return {
-    name: "Local Assistant",
+    name: "本地配置",
     version: "1.0.0",
     schema: "v1",
     models: [

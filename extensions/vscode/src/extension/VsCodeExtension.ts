@@ -7,18 +7,18 @@ import { Core } from "core/core";
 import { FromCoreProtocol, ToCoreProtocol } from "core/protocol";
 import { InProcessMessenger } from "core/protocol/messenger";
 import {
-  getConfigJsonPath,
-  getConfigTsPath,
-  getConfigYamlPath,
+    getConfigJsonPath,
+    getConfigTsPath,
+    getConfigYamlPath,
 } from "core/util/paths";
 import { v4 as uuidv4 } from "uuid";
 import * as vscode from "vscode";
 
 import { ContinueCompletionProvider } from "../autocomplete/completionProvider";
 import {
-  monitorBatteryChanges,
-  setupStatusBar,
-  StatusBarStatus,
+    monitorBatteryChanges,
+    setupStatusBar,
+    StatusBarStatus,
 } from "../autocomplete/statusBar";
 import { registerAllCommands } from "../commands";
 import { ContinueGUIWebviewViewProvider } from "../ContinueGUIWebviewViewProvider";
@@ -30,8 +30,8 @@ import { QuickEdit } from "../quickEdit/QuickEditQuickPick";
 import { setupRemoteConfigSync } from "../stubs/activation";
 import { UriEventHandler } from "../stubs/uriHandler";
 import {
-  getControlPlaneSessionInfo,
-  WorkOsAuthProvider,
+    getControlPlaneSessionInfo,
+    WorkOsAuthProvider,
 } from "../stubs/WorkOsAuthProvider";
 import { Battery } from "../util/battery";
 import { FileSearch } from "../util/FileSearch";
@@ -96,7 +96,7 @@ export class VsCodeExtension {
     // Sidebar
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
-        "continue.continueGUIView",
+        "Amarsoft.kodemate-aiGUIView",
         this.sidebar,
         {
           webviewOptions: { retainContextWhenHidden: true },

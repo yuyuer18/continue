@@ -174,13 +174,13 @@ function AddDocsDialog() {
   return (
     <div className="px-2 pt-4 sm:px-4">
       <div className="">
-        <h1 className="mb-0 hidden sm:block">Add documentation</h1>
-        <h1 className="sm:hidden">Add docs</h1>
+        <h1 className="mb-0 hidden sm:block">增加文档索引</h1>
+        <h1 className="sm:hidden">增加文档</h1>
         <p className="m-0 mt-2 p-0 text-stone-500">
-          For the @docs context provider
+          通过添加文档索引@docs，您可以在代码编辑器中搜索文档
         </p>
         {!!sortedDocsSuggestions.length && (
-          <p className="m-0 mb-1 mt-4 p-0 font-semibold">Suggestions</p>
+          <p className="m-0 mb-1 mt-4 p-0 font-semibold">建议的库</p>
         )}
         <div className="border-lightgray max-h-[145px] overflow-y-scroll rounded-sm py-1 pr-2">
           {sortedDocsSuggestions.map((docsResult) => {
@@ -203,7 +203,7 @@ function AddDocsDialog() {
                         className="text-lightgray h-3 w-3"
                       />
                       <ToolTip id={id + "-edit"} place="bottom">
-                        This may not be a docs page
+                        这可能不是一个有效的文档链接
                       </ToolTip>
                     </div>
                   ) : (
@@ -223,7 +223,7 @@ function AddDocsDialog() {
                 <div>
                   {error || !details?.docsLink ? (
                     <span className="text-lightgray italic">
-                      No docs link found
+                      未找到文档链接
                     </span>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -265,22 +265,21 @@ function AddDocsDialog() {
             <div className="flex flex-row gap-2">
               <label className="flex min-w-16 basis-1/4 flex-col gap-1">
                 <div className="flex flex-row items-center gap-1">
-                  <span>Title</span>
+                  <span>标题</span>
                   <div>
                     <InformationCircleIcon
                       data-tooltip-id={"add-docs-form-title"}
                       className="text-lightgray h-3.5 w-3.5 select-none"
                     />
                     <ToolTip id={"add-docs-form-title"} place="top">
-                      The title that will be displayed to users in the `@docs`
-                      submenu
+                      这标题将显示给用户在`@docs`子菜单中
                     </ToolTip>
                   </div>
                 </div>
 
                 <Input
                   type="text"
-                  placeholder="Title"
+                  placeholder="请输入标题"
                   value={title}
                   ref={titleRef}
                   onChange={(e) => setTitle(e.target.value)}
@@ -290,7 +289,7 @@ function AddDocsDialog() {
               <label className="flex basis-3/4 flex-col gap-1">
                 <div className="flex flex-row items-center gap-1">
                   <span className="lines lines-1 whitespace-nowrap">
-                    Start URL
+                    URL地址
                   </span>
                   <div>
                     <InformationCircleIcon
@@ -298,8 +297,7 @@ function AddDocsDialog() {
                       className="text-lightgray h-3.5 w-3.5 select-none"
                     />
                     <ToolTip id={"add-docs-form-url"} place="top">
-                      The starting location to begin crawling the documentation
-                      site
+                      这是文档的URL地址
                     </ToolTip>
                   </div>
                 </div>
@@ -323,7 +321,7 @@ function AddDocsDialog() {
                 disabled={!isFormValid}
                 type="submit"
               >
-                Add
+                添加
               </SecondaryButton>
             </div>
           </form>
@@ -336,7 +334,7 @@ function AddDocsDialog() {
           {docsIndexingStatuses.length ? (
             <p className="mt-2 flex flex-row items-center gap-1 p-0 px-1 text-xs text-stone-500">
               <CheckIcon className="h-3 w-3" />
-              It is safe to close this form while indexing
+              在索引期间，可以关闭此窗口
             </p>
           ) : null}
         </div>

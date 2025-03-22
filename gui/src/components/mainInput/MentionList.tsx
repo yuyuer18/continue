@@ -212,7 +212,7 @@ const MentionList = forwardRef((props: MentionListProps, ref) => {
     const items = [...props.items];
     if (subMenuTitle === "Type to search docs") {
       items.push({
-        title: "Add Docs",
+        title: "增加文档源Doc",
         type: "action",
         action: () => {
           dispatch(setShowDialog(true));
@@ -230,7 +230,7 @@ const MentionList = forwardRef((props: MentionListProps, ref) => {
       });
     } else if (subMenuTitle === ".prompt files") {
       items.push({
-        title: "New .prompt file",
+        title: "新建 .prompt 文件",
         type: "action",
         action: () => {
           ideMessenger.post("config/newPromptFile", undefined);
@@ -244,7 +244,7 @@ const MentionList = forwardRef((props: MentionListProps, ref) => {
           }
           props.onClose(); // Escape the mention list after creating a new prompt file
         },
-        description: "Create a new .prompt file",
+        description: "创建 .prompt 文件",
       });
     }
     setLoadingSubmenuItem(items.find((item) => item.id === "loading"));

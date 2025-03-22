@@ -33,7 +33,7 @@ export default class LocalProfileLoader implements IProfileLoader {
       iconUrl: "",
       title: overrideAssistantFile?.path
         ? getUriPathBasename(overrideAssistantFile.path)
-        : "Local Assistant",
+        : "本地配置",
       errors: undefined,
       uri:
         overrideAssistantFile?.path ??
@@ -72,5 +72,5 @@ export default class LocalProfileLoader implements IProfileLoader {
     return result;
   }
 
-  setIsActive(isActive: boolean): void {}
+  setIsActive(isActive: boolean): void { }
 }

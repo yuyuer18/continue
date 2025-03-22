@@ -332,7 +332,7 @@ export function Chat() {
     <>
       {showPageHeader && (
         <PageHeader
-          title={isInEditMode ? "Edit Mode" : ""}
+          title={isInEditMode ? "编辑模型" : ""}
           onTitleClick={
             isInEditMode
               ? async () => {
@@ -460,7 +460,7 @@ export function Chat() {
                 ideMessenger.post("tts/kill", undefined);
               }}
             >
-              ■ Stop TTS
+              ■ 停止朗读
             </StopButton>
           )}
           {isStreaming && (
@@ -511,7 +511,7 @@ export function Chat() {
                     className="flex items-center gap-2"
                   >
                     <ArrowLeftIcon className="h-3 w-3" />
-                    Last Session
+                    上一会话
                   </NewSessionButton>
                 </div>
               )}

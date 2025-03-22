@@ -8,13 +8,13 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { lightGray, vscForeground } from "../..";
 import { useAppSelector } from "../../../redux/hooks";
+import { selectIsInEditMode } from "../../../redux/slices/sessionSlice";
 import { toggleUseTools } from "../../../redux/slices/uiSlice";
 import { ToolTip } from "../../gui/Tooltip";
 import InfoHover from "../../InfoHover";
 import HoverItem from "./HoverItem";
 import PopoverTransition from "./PopoverTransition";
 import ToolDropdownItem from "./ToolDropdownItem";
-import { selectIsInEditMode } from "../../../redux/slices/sessionSlice";
 
 interface ToolDropdownProps {
   disabled: boolean;
@@ -70,8 +70,8 @@ export default function ToolDropdown(props: ToolDropdownProps) {
         {isDisabled && (
           <ToolTip id="tools-tooltip" place="top-middle">
             {isInEditMode
-              ? "Tool use not supported in edit mode"
-              : "This model does not support tool use"}
+              ? "编辑模式下无法使用工具"
+              : "此模型不支持使用工具"}
           </ToolTip>
         )}
         {!useTools && !isDisabled && (
@@ -82,7 +82,7 @@ export default function ToolDropdown(props: ToolDropdownProps) {
 
         {useTools && !isDisabled && (
           <>
-            <span className="hidden align-top sm:flex">Tools</span>
+            <span className="hidden align-top sm:flex">工具</span>
 
             <div className="relative">
               <Listbox
@@ -121,7 +121,7 @@ export default function ToolDropdown(props: ToolDropdownProps) {
                               borderBottom: `1px solid ${lightGray}`,
                             }}
                           >
-                            Tool policies{" "}
+                            工具使用策略{" "}
                             <InfoHover
                               id={"tool-policies"}
                               size={"3"}
@@ -132,21 +132,21 @@ export default function ToolDropdown(props: ToolDropdownProps) {
                                 >
                                   <p>
                                     <span className="text-green-500">
-                                      Automatic:
+                                      自动完成:
                                     </span>{" "}
-                                    Can be used without asking
+                                    不询问即可使用
                                   </p>
                                   <p>
                                     <span className="text-yellow-500">
-                                      Allowed:
+                                      询问：
                                     </span>{" "}
-                                    Will ask before using
+                                      应用前需要确认
                                   </p>
                                   <p>
                                     <span className="text-red-500">
-                                      Disabled:
+                                      禁止使用：
                                     </span>{" "}
-                                    Cannot be used
+                                    无法使用
                                   </p>
                                 </div>
                               }

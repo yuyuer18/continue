@@ -16,18 +16,18 @@ import { getExtensionUri, openEditorAndRevealRange } from "./util/vscode";
 import { VsCodeWebviewProtocol } from "./webviewProtocol";
 
 import type {
-  ContinueRcJson,
-  FileStatsMap,
-  FileType,
-  IDE,
-  IdeInfo,
-  IdeSettings,
-  IndexTag,
-  Location,
-  Problem,
-  RangeInFile,
-  TerminalOptions,
-  Thread,
+    ContinueRcJson,
+    FileStatsMap,
+    FileType,
+    IDE,
+    IdeInfo,
+    IdeSettings,
+    IndexTag,
+    Location,
+    Problem,
+    RangeInFile,
+    TerminalOptions,
+    Thread,
 } from "core";
 
 class VsCodeIde implements IDE {
@@ -147,7 +147,7 @@ class VsCodeIde implements IDE {
           .then(async (selection) => {
             if (selection === "Use API key / local model") {
               await vscode.commands.executeCommand(
-                "continue.continueGUIView.focus",
+                "Amarsoft.kodemate-aiGUIView.focus",
               );
               (await this.vscodeWebviewProtocolPromise).request(
                 "openOnboardingCard",
@@ -294,7 +294,7 @@ class VsCodeIde implements IDE {
       version: vscode.version,
       remoteName: vscode.env.remoteName || "local",
       extensionVersion:
-        vscode.extensions.getExtension("continue.continue")?.packageJSON
+        vscode.extensions.getExtension("Amarsoft.kodemate-ai")?.packageJSON
           .version,
     });
   }

@@ -355,12 +355,12 @@ const isMacTarget = target?.startsWith("darwin");
     rimrafSync("../../core/node_modules/sqlite3/build");
     const downloadUrl = {
       "darwin-arm64":
-        "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v6-darwin-arm64.tar.gz",
+        "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v6-darwin-arm64.tar.gz",
       "linux-arm64":
-        "https://github.com/TryGhost/node-sqlite3/releases/download/v5.1.7/sqlite3-v5.1.7-napi-v3-linux-arm64.tar.gz",
+        "http://192.168.60.53:7080/sqlite3-v5.1.7-napi-v3-linux-arm64.tar.gz",
       // node-sqlite3 doesn't have a pre-built binary for win32-arm64
       "win32-arm64":
-        "https://continue-server-binaries.s3.us-west-1.amazonaws.com/win32-arm64/node_sqlite3.tar.gz",
+        "http://192.168.60.53:7080/node_sqlite3.tar.gz",
     }[target];
     execCmdSync(
       `curl -L -o ../../core/node_modules/sqlite3/build.tar.gz ${downloadUrl}`,
@@ -373,7 +373,7 @@ const isMacTarget = target?.startsWith("darwin");
     rimrafSync("node_modules/@esbuild");
     fs.mkdirSync("node_modules/@esbuild", { recursive: true });
     execCmdSync(
-      `curl -o node_modules/@esbuild/esbuild.zip https://continue-server-binaries.s3.us-west-1.amazonaws.com/${target}/esbuild.zip`,
+      `curl -o node_modules/@esbuild/esbuild.zip http://192.168.60.53:7080/${target}/esbuild.zip`,
     );
     execCmdSync(`cd node_modules/@esbuild && unzip esbuild.zip`);
     fs.unlinkSync("node_modules/@esbuild/esbuild.zip");
@@ -472,12 +472,11 @@ const isMacTarget = target?.startsWith("darwin");
 
     // onnx runtime bindngs
     `bin/napi-v3/${os}/${arch}/onnxruntime_binding.node`,
-    `bin/napi-v3/${os}/${arch}/${
-      isMacTarget
-        ? "libonnxruntime.1.14.0.dylib"
-        : isLinuxTarget
-          ? "libonnxruntime.so.1.14.0"
-          : "onnxruntime.dll"
+    `bin/napi-v3/${os}/${arch}/${isMacTarget
+      ? "libonnxruntime.1.14.0.dylib"
+      : isLinuxTarget
+        ? "libonnxruntime.so.1.14.0"
+        : "onnxruntime.dll"
     }`,
 
     // Code/styling for the sidebar
@@ -510,13 +509,11 @@ const isMacTarget = target?.startsWith("darwin");
     "out/build/Release/node_sqlite3.node",
 
     // out/node_modules (to be accessed by extension.js)
-    `out/node_modules/@vscode/ripgrep/bin/rg${exe}`,
-    `out/node_modules/@esbuild/${
-      target === "win32-arm64"
-        ? "esbuild.exe"
-        : target === "win32-x64"
-          ? "win32-x64/esbuild.exe"
-          : `${target}/bin/esbuild`
+    `out/node_modules/@esbuild/${target === "win32-arm64"
+      ? "esbuild.exe"
+      : target === "win32-x64"
+        ? "win32-x64/esbuild.exe"
+        : `${target}/bin/esbuild`
     }`,
     `out/node_modules/@lancedb/vectordb-${target}${isWinTarget ? "-msvc" : ""}${isLinuxTarget ? "-gnu" : ""}/index.node`,
     `out/node_modules/esbuild/lib/main.js`,

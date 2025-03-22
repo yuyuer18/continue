@@ -50,13 +50,13 @@ function ToolDropdownItem(props: ToolDropdownItemProps) {
       </span>
       <div className="flex cursor-pointer gap-2 pr-4">
         {(settings === "allowedWithPermission" || settings === undefined) && (
-          <span className="text-yellow-500">Allowed</span>
+          <span className="text-yellow-500">询问</span>
         )}
         {settings === "allowedWithoutPermission" && (
-          <span className="text-green-500">Automatic</span>
+          <span className="text-green-500">自动完成</span>
         )}
         {settings === "disabled" && (
-          <span className="text-red-500">Disabled</span>
+          <span className="text-red-500">禁止使用</span>
         )}
       </div>
     </div>

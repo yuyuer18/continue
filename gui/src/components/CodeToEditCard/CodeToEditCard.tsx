@@ -1,16 +1,16 @@
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import type { CodeToEdit } from "core";
 import { useContext, useState } from "react";
 import { useDispatch } from "react-redux";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
-import CodeToEditListItem from "./CodeToEditListItem";
-import type { CodeToEdit } from "core";
-import AddFileButton from "./AddFileButton";
-import AddFileCombobox from "./AddFileCombobox";
-import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useAppSelector } from "../../redux/hooks";
 import {
   addCodeToEdit,
   removeCodeToEdit,
 } from "../../redux/slices/sessionSlice";
+import AddFileButton from "./AddFileButton";
+import AddFileCombobox from "./AddFileCombobox";
+import CodeToEditListItem from "./CodeToEditListItem";
 
 export default function CodeToEditCard() {
   const dispatch = useDispatch();
@@ -20,10 +20,10 @@ export default function CodeToEditCard() {
 
   const title =
     codeToEdit.length === 0
-      ? "Code to edit"
+      ? "待编辑代码"
       : codeToEdit.length === 1
-        ? "Code to edit (1 item)"
-        : `Code to edit (${codeToEdit.length} items)`;
+        ? "待编辑代码 (1 个)"
+        : `待编辑代码 (${codeToEdit.length} 个)`;
 
   function onDelete(rif: CodeToEdit) {
     dispatch(removeCodeToEdit(rif));

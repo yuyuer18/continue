@@ -114,7 +114,7 @@ export default function Reasoning(props: ReasoningProps) {
           {isThinking ? (
             <ThinkingText>Thinking</ThinkingText>
           ) : (
-            `Thought for ${reasoningTime}`
+            `思考 ${reasoningTime}`
           )}
           {open ? (
             <ChevronUpIcon className="h-3 w-3" />

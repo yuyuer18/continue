@@ -4,7 +4,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const viewRepoMapTool: Tool = {
   type: "function",
-  displayTitle: "View Repo Map",
+  displayTitle: "查看仓库地图",
   wouldLikeTo: "view the repository map",
   readonly: true,
   function: {

@@ -99,7 +99,7 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
       <div>
         <Cog8ToothIcon className="h-4 w-4" />
       </div>
-      <span>Open Assistant configuration</span>
+      <span>打开助手配置</span>
     </SecondaryButton>
   );
 
@@ -137,7 +137,7 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
             )}
           </li>
           <li>
-            <span>Model/deployment not found</span>
+            <span>未找到模型/部署</span>
             {selectedModel && (
               <>
                 <span>{` for: `}</span>
@@ -159,13 +159,13 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
           selectedProfile &&
           !isLocalProfile(selectedProfile) && (
             <div className="flex flex-col gap-1">
-              <span>{`If your hub secret values may have changed, refresh your assistants`}</span>
+              <span>{`如果您的hub机密值可能已更改，请刷新您的助手`}</span>
               <SecondaryButton onClick={handleRefreshProfiles}>
                 Refresh assistant secrets
               </SecondaryButton>
             </div>
           )}
-        <span>{`It's possible that your API key is invalid.`}</span>
+        <span>{`API 密钥可能无效.`}</span>
         <div className="flex flex-row flex-wrap gap-2">
           {checkKeysButton}
           {configButton}
@@ -177,7 +177,7 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
   if (statusCode === 403) {
     errorContent = (
       <div className="flex flex-col gap-2">
-        <span>{`Likely cause: not authorized to access the model deployment.`}</span>
+        <span>{`可能原因：访问模型部署未授权.`}</span>
         <div className="flex flex-row flex-wrap gap-2">
           {checkKeysButton}
           {configButton}
@@ -193,7 +193,7 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
   ) {
     errorContent = (
       <div className="flex flex-col gap-2">
-        <span>{`Most likely, the provider's server(s) are overloaded and streaming was interrupted. Try again later`}</span>
+        <span>{`最有可能的是，提供商的服务器过载并且流式传输被中断。稍后再试`}</span>
         {selectedModel ? (
           <span>
             {`Provider: `}

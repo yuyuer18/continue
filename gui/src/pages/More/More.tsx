@@ -31,26 +31,25 @@ function MorePage() {
       <PageHeader
         showBorder
         onTitleClick={() => navigate("/")}
-        title="Chat"
+        title="对话"
         rightContent={<AccountButton />}
       />
 
       <div className="gap-2 divide-x-0 divide-y-2 divide-solid divide-zinc-700 px-4">
         <div className="py-5">
           <div>
-            <h3 className="mx-auto mb-1 mt-0 text-xl">@codebase index</h3>
+            <h3 className="mx-auto mb-1 mt-0 text-xl">@代码库索引</h3>
             <span className="w-3/4 text-xs text-stone-500">
-              Local embeddings of your codebase
+              本地代码库索引的状态
             </span>
           </div>
           {disableIndexing ? (
             <div className="pb-2 pt-5">
               <p className="py-1 text-center font-semibold">
-                Indexing is disabled
+                索引处于禁用状态
               </p>
               <p className="text-lightgray cursor-pointer text-center text-xs">
-                Open settings and toggle <code>Disable Indexing</code> to
-                re-enable
+                打开助手配置并切换 <code>禁用索引</code> 以重新启用
               </p>
             </div>
           ) : (
@@ -67,48 +66,48 @@ function MorePage() {
         </div>
 
         <div className="py-5">
-          <h3 className="mb-4 mt-0 text-xl">Help center</h3>
+          <h3 className="mb-4 mt-0 text-xl">帮助中心</h3>
           <div className="-mx-4 flex flex-col">
             <MoreHelpRow
-              title="Documentation"
-              description="Learn how to configure and use Continue"
+              title="文档"
+              description="学习如何配置使用Kodemate AI"
               Icon={ArrowTopRightOnSquareIcon}
               onClick={() =>
-                ideMessenger.post("openUrl", "https://docs.continue.dev/")
+                ideMessenger.post("openUrl", "https://home.amarsoft.com/")
               }
             />
 
             <MoreHelpRow
-              title="Have an issue?"
-              description="Let us know on GitHub and we'll do our best to resolve it"
+              title="使用有问题?"
+              description="打开EIP进行产品问题登记，我们会尽最大努力解决这个问题。"
               Icon={ArrowTopRightOnSquareIcon}
               onClick={() =>
                 ideMessenger.post(
                   "openUrl",
-                  "https://github.com/continuedev/continue/issues/new/choose",
+                  "https://home.amarsoft.com",
                 )
               }
             />
 
             <MoreHelpRow
-              title="Join the community!"
-              description="Join us on Discord to stay up-to-date on the latest developments"
+              title="加入我们!"
+              description="加入我们的团队，了解最新的Kodemate AI发展"
               Icon={ArrowTopRightOnSquareIcon}
               onClick={() =>
-                ideMessenger.post("openUrl", "https://discord.gg/vapESyrFmJ")
+                ideMessenger.post("openUrl", "https://home.amarsoft.com/")
               }
             />
 
             <MoreHelpRow
-              title="Token usage"
-              description="Daily token usage across models"
+              title="Token 使用量"
+              description="模型的每日使用情况"
               Icon={TableCellsIcon}
               onClick={() => navigate("/stats")}
             />
 
             <MoreHelpRow
-              title="Quickstart"
-              description="Reopen the quickstart and tutorial file"
+              title="快速开始"
+              description="重新打开快速入门和教程文件"
               Icon={DocumentArrowUpIcon}
               onClick={async () => {
                 navigate("/");
@@ -127,7 +126,7 @@ function MorePage() {
         </div>
 
         <div>
-          <h3 className="mx-auto mb-1 text-lg">Keyboard shortcuts</h3>
+          <h3 className="mx-auto mb-1 text-lg">键盘快捷键</h3>
           <KeyboardShortcuts />
         </div>
       </div>

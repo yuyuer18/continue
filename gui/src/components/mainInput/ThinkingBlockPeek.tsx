@@ -129,7 +129,7 @@ function ThinkingBlockPeek({
               ) : redactedThinking ? (
                 "Redacted Thinking"
               ) : (
-                "Thought" +
+                "思考" +
                 (elapsedTime ? ` for ${elapsedTime}` : "") +
                 (tokens ? ` (${tokens} tokens)` : "")
               )}

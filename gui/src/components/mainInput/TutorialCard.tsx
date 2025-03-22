@@ -46,9 +46,9 @@ export function TutorialCard({ onClose }: TutorialCardProps) {
                   ideMessenger.post("vscode/openMoveRightMarkdown", undefined)
                 }
               >
-                Move Chat panel to the right
+                将聊天面板移动到右侧
               </span>{" "}
-              for the cleanest experience
+              可以获得更好的体验
             </span>
           </li>
         )}
@@ -57,8 +57,7 @@ export function TutorialCard({ onClose }: TutorialCardProps) {
             <PencilSquareIcon className="h-4 w-4 pr-3 align-middle" />
           </div>
           <span>
-            Highlight code and press <Shortcut>meta I</Shortcut> to quickly make
-            natural language edits
+            选择代码，并按下 <Shortcut>meta I</Shortcut> 即可快速进行自然语言编辑。
           </span>
         </li>
         <li className="flex items-start">
@@ -66,8 +65,7 @@ export function TutorialCard({ onClose }: TutorialCardProps) {
             <ClipboardDocumentIcon className="h-4 w-4 pr-3 align-middle" />
           </div>
           <span>
-            Highlight code and press <Shortcut>meta L</Shortcut> to add it to
-            the chat window
+            选择代码，并按下 <Shortcut>meta L</Shortcut> 添加到对话窗口
           </span>
         </li>
         <li className="flex items-start">
@@ -75,7 +73,7 @@ export function TutorialCard({ onClose }: TutorialCardProps) {
             <Cog6ToothIcon className="h-4 w-4 pr-3 align-middle" />
           </div>
           <span>
-            Click the gear icon in the upper right to configure Continue
+            点击右侧的齿轮图标配置Kodemate AI
           </span>
         </li>
         <li className="flex items-start">
@@ -86,12 +84,12 @@ export function TutorialCard({ onClose }: TutorialCardProps) {
             <a
               className="cursor-pointer text-inherit underline hover:text-inherit"
               onClick={() =>
-                ideMessenger.post("openUrl", "https://docs.continue.dev")
+                ideMessenger.post("openUrl", "https://home.amarsoft.com")
               }
             >
-              Read our documentation
+              读文档
             </a>{" "}
-            to learn more
+            了解更多
           </span>
         </li>
       </ul>

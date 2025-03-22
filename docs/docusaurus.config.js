@@ -140,7 +140,7 @@ const config = {
             items: [
               {
                 label: "VS Code",
-                to: "https://marketplace.visualstudio.com/items?itemName=Continue.continue",
+                to: "https://marketplace.visualstudio.com/items?itemName=Amarsoft.kodemate-ai",
               },
               {
                 label: "JetBrains",

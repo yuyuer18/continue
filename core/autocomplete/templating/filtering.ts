@@ -1,8 +1,8 @@
 import { countTokens } from "../../llm/countTokens";
 import { SnippetPayload } from "../snippets";
 import {
-  AutocompleteCodeSnippet,
-  AutocompleteSnippet,
+    AutocompleteCodeSnippet,
+    AutocompleteSnippet,
 } from "../snippets/types";
 import { HelperVars } from "../util/HelperVars";
 
@@ -129,7 +129,7 @@ export const getSnippets = (
   // Exclude Continue's own output as it makes it super-hard for users to test the autocomplete feature
   // while looking at the prompts in the Continue's output
   prioritizedSnippets = prioritizedSnippets.filter((snippet) =>
-    !(snippet as AutocompleteCodeSnippet).filepath?.startsWith("output:extension-output-Continue.continue"));
+    !(snippet as AutocompleteCodeSnippet).filepath?.startsWith("output:extension-output-Amarsoft.kodemate-ai"));
 
   const finalSnippets = [];
   let remainingTokenCount = getRemainingTokenCount(helper);

@@ -3,7 +3,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const readCurrentlyOpenFileTool: Tool = {
   type: "function",
-  displayTitle: "Read Currently Open File",
+  displayTitle: "读取当前打开的问题",
   wouldLikeTo: "read the current file",
   readonly: true,
   function: {

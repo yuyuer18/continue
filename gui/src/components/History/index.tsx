@@ -3,10 +3,10 @@ import MiniSearch from "minisearch";
 import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Shortcut from '../gui/Shortcut';
 
-import { getFontSize, getMetaKeyLabel } from "../../util";
-import { HistoryTableRow } from "./HistoryTableRow";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useAppSelector } from "../../redux/hooks";
+import { getFontSize } from "../../util";
+import { HistoryTableRow } from "./HistoryTableRow";
 
 const parseDate = (date: string): Date => {
   let dateObj = new Date(date);
@@ -99,8 +99,7 @@ export function History() {
 
       {filteredAndSortedSessions.length === 0 && (
         <div className="m-4 text-center">
-          No past sessions found. To start a new session, either click the "+"
-          button or use the keyboard shortcut: <Shortcut>meta L</Shortcut>
+          未找到过去的会话。要开始新会话，请单击“+”按钮或使用键盘快捷键 <Shortcut>meta L</Shortcut>
         </div>
 
       )}
@@ -150,7 +149,7 @@ export function History() {
       </table>
       <br />
       <i className="ml-4 text-sm">
-        All session data is saved in ~/.continue/sessions
+        所有的会话数据都保存在 ~/.continue/sessions
       </i>
     </div>
   );

@@ -1,4 +1,4 @@
-import { BuildingOfficeIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { ProfileDescription } from "core/config/ConfigHandler";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,7 @@ import { selectProfileThunk } from "../../../redux/thunks/profileAndOrg";
 import { getFontSize, getMetaKeyLabel, isLocalProfile } from "../../../util";
 import { ROUTES } from "../../../util/navigation";
 import AssistantIcon from "./AssistantIcon";
-import { Divider, Option, OptionDiv } from "./shared";
+import { Divider, Option } from "./shared";
 
 interface AssistantSelectOptionsProps {
   onClose: () => void;
@@ -85,7 +85,7 @@ export function AssistantSelectOptions({
       </div>
 
       <div className="mt-auto w-full">
-        <OptionDiv
+        {/* <OptionDiv
           key={"new-assistant"}
           onClick={session ? onNewAssistant : () => login(false)}
         >
@@ -96,7 +96,7 @@ export function AssistantSelectOptions({
             <PlusIcon className="mr-2 h-4 w-4 flex-shrink-0" />
             New Assistant
           </div>
-        </OptionDiv>
+        </OptionDiv> */}
 
         <Divider className="!my-0" />
 

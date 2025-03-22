@@ -7,14 +7,14 @@ import AddModelButtonSubtext from "../components/AddModelButtonSubtext";
 import Alert from "../components/gui/Alert";
 import ModelSelectionListbox from "../components/modelSelection/ModelSelectionListbox";
 import { IdeMessengerContext } from "../context/IdeMessenger";
+import { completionParamsInputs } from "../pages/AddNewModel/configs/completionParamsInputs";
+import { DisplayInfo } from "../pages/AddNewModel/configs/models";
 import {
   ProviderInfo,
   providers,
 } from "../pages/AddNewModel/configs/providers";
-import { FREE_TRIAL_LIMIT_REQUESTS, hasPassedFTL } from "../util/freeTrial";
-import { completionParamsInputs } from "../pages/AddNewModel/configs/completionParamsInputs";
 import { setDefaultModel } from "../redux/slices/configSlice";
-import { DisplayInfo } from "../pages/AddNewModel/configs/models";
+import { FREE_TRIAL_LIMIT_REQUESTS, hasPassedFTL } from "../util/freeTrial";
 
 interface QuickModelSetupProps {
   onDone: () => void;
@@ -129,7 +129,7 @@ function AddModelForm({
     <FormProvider {...formMethods}>
       <form onSubmit={formMethods.handleSubmit(onSubmit)}>
         <div className="mx-auto max-w-md p-6">
-          <h1 className="mb-0 text-center text-2xl">Add Chat model</h1>
+          <h1 className="mb-0 text-center text-2xl">新增对话模型</h1>
           {!hideFreeTrialLimitMessage && hasPassedFTL() && (
             <p className="text-sm text-gray-400">
               You've reached the free trial limit of {FREE_TRIAL_LIMIT_REQUESTS}{" "}
@@ -147,7 +147,7 @@ function AddModelForm({
 
           <div className="my-8 flex flex-col gap-6">
             <div>
-              <label className="block text-sm font-medium">Provider</label>
+              <label className="block text-sm font-medium">模型提供者</label>
               <ModelSelectionListbox
                 selectedProvider={selectedProvider}
                 setSelectedProvider={(val: DisplayInfo) => {
@@ -162,23 +162,23 @@ function AddModelForm({
                 otherOptions={otherProviders}
               />
               <InputSubtext className="mb-0">
-                Don't see your provider?{" "}
+                没找到你需要的模型提供者?{" "}
                 <a
                   className="cursor-pointer text-inherit underline hover:text-inherit"
                   onClick={() =>
                     ideMessenger.post("openUrl", MODEL_PROVIDERS_URL)
                   }
                 >
-                  Click here
+                  点击这里
                 </a>{" "}
-                to view the full list
+                查看更多
               </InputSubtext>
             </div>
 
             {selectedProvider.downloadUrl && (
               <div>
                 <label className="mb-1 block text-sm font-medium">
-                  Install provider
+                  安装指南
                 </label>
 
                 <StyledActionButton onClick={onClickDownloadProvider}>
@@ -191,7 +191,7 @@ function AddModelForm({
             )}
 
             <div>
-              <label className="block text-sm font-medium">Model</label>
+              <label className="block text-sm font-medium">模型</label>
               <ModelSelectionListbox
                 selectedProvider={selectedModel}
                 setSelectedProvider={(val: DisplayInfo) => {
@@ -221,8 +221,7 @@ function AddModelForm({
                 <Alert>
                   <p className="m-0 text-sm font-bold">Codestral API key</p>
                   <p className="m-0 mt-1">
-                    Note that codestral requires a different API key from other
-                    Mistral models
+                    请注意，codestral 需要与其他 API 密钥不同的 API 密钥
                   </p>
                 </Alert>
               </div>
@@ -232,7 +231,7 @@ function AddModelForm({
               <div>
                 <>
                   <label className="mb-1 block text-sm font-medium">
-                    API key
+                    API 密钥
                   </label>
                   <Input
                     id="apiKey"
@@ -252,9 +251,9 @@ function AddModelForm({
                         }
                       }}
                     >
-                      Click here
+                      点击这里
                     </a>{" "}
-                    to create a {selectedProvider.title} API key
+                    创建一个 {selectedProvider.title} API 密钥
                   </InputSubtext>
                 </>
               </div>
@@ -290,7 +289,7 @@ function AddModelForm({
 
           <div className="mt-4 w-full">
             <Button type="submit" className="w-full" disabled={isDisabled()}>
-              Connect
+             测试模型
             </Button>
             <AddModelButtonSubtext />
           </div>

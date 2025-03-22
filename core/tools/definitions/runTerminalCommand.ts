@@ -3,7 +3,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const runTerminalCommandTool: Tool = {
   type: "function",
-  displayTitle: "Run Terminal Command",
+  displayTitle: "运行终端命令",
   wouldLikeTo: "run a terminal command",
   readonly: false,
   function: {

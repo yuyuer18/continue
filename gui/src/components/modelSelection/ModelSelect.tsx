@@ -1,11 +1,11 @@
 import { Listbox } from "@headlessui/react";
 import {
+  CheckIcon,
   ChevronDownIcon,
   Cog6ToothIcon,
   CubeIcon,
   PlusIcon,
   TrashIcon,
-  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -322,7 +322,7 @@ function ModelSelect() {
         >
           <div className="flex max-w-[33vw] items-center gap-0.5 text-gray-400 transition-colors duration-200">
             <span className="truncate">
-              {modelSelectTitle(defaultModel) || "Select model"}{" "}
+              {modelSelectTitle(defaultModel) || "选择模型"}{" "}
             </span>
             <ChevronDownIcon
               className="h-3 w-3 flex-shrink-0"
@@ -361,7 +361,7 @@ function ModelSelect() {
                 >
                   <div className="flex items-center py-0.5">
                     <PlusIcon className="mr-2 h-4 w-4" />
-                    Add Chat model
+                    新增模型
                   </div>
                 </StyledListboxOption>
               </>
@@ -370,7 +370,7 @@ function ModelSelect() {
             <Divider className="!my-0" />
 
             <span className="block px-3 py-3" style={{ color: lightGray }}>
-              <Shortcut>meta '</Shortcut> to toggle model
+              <Shortcut>meta '</Shortcut> 切换模型
             </span>
           </div>
         </StyledListboxOptions>

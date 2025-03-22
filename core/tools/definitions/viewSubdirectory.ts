@@ -3,7 +3,7 @@ import { BuiltInToolNames } from "../builtIn";
 
 export const viewSubdirectoryTool: Tool = {
   type: "function",
-  displayTitle: "View Subdirectory",
+  displayTitle: "查看子目录",
   wouldLikeTo: 'view the contents of "{{{ directory_path }}}"',
   readonly: true,
   function: {
