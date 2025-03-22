@@ -2,3 +2,4 @@
 - extensions\vscode\scripts\prepackage.js
 - extensions\vscode\package.json
 - extensions\vscode\src\autocomplete\statusBar.ts
+- 9
