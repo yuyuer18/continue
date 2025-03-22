@@ -35,7 +35,7 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
   return (
     <div className="flex flex-col">
       <div className="flex max-w-[400px] flex-col gap-4 py-6">
-        <h2 className="mb-1 mt-0">Configuration</h2>
+        <h2 className="mb-1 mt-0">初始化配置</h2>
         {hubEnabled ? (
           // Hub: show org selector
           session && (
@@ -46,14 +46,14 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
           )
         ) : (
           // Continue for teams: show org text
-          <div>You are using Continue for Teams</div>
+          <div>正在使用团队模式</div>
         )}
 
         {profiles ? (
           <>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-1.5 text-sm">
-                <span className="text-lightgray">{`${hubEnabled ? "Assistant" : "Profile"}`}</span>
+                <span className="text-lightgray">{`${hubEnabled ? "配置方式" : "简介"}`}</span>
               </div>
               <Listbox value={selectedProfile?.id} onChange={changeProfileId}>
                 {({ open }) => (
@@ -64,7 +64,7 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
                           <AssistantIcon assistant={selectedProfile} />
                         )}
                         <span className="lines lines-1">
-                          {selectedProfile?.title ?? "No Assistant Selected"}
+                          {selectedProfile?.title ?? "未选择助手"}
                         </span>
                       </div>
                       <div className="pointer-events-none flex items-center">
@@ -116,7 +116,7 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
                           >
                             <PlusCircleIcon className="h-4 w-4" />
                             <span className="lines lines-1 flex items-center justify-between text-xs">
-                              Create new Assistant
+                              新建用户
                             </span>
                           </Listbox.Option>
                         )}
@@ -131,8 +131,8 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
                         >
                           <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                           {hubEnabled
-                            ? "Open Assistant configuration"
-                            : "View Workspace"}
+                            ? "打开配置"
+                            : "查看工作区"}
                         </span>
                       </div>
                     )}
@@ -142,7 +142,7 @@ export function AccountManagement({ hubEnabled }: { hubEnabled: boolean }) {
             </div>
           </>
         ) : (
-          <div>Loading...</div>
+          <div>正在加载...</div>
         )}
       </div>
     </div>

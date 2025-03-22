@@ -138,7 +138,7 @@ function ConfigPage() {
       <PageHeader
         showBorder
         onTitleClick={() => navigate("/")}
-        title="Chat"
+        title="对话"
         rightContent={<AccountButton />}
       />
 
@@ -148,26 +148,26 @@ function ConfigPage() {
         {/* Model Roles as a separate section */}
         <div className="flex flex-col">
           <div className="flex max-w-[400px] flex-col gap-4 py-6">
-            <h2 className="mb-1 mt-0">Model Roles</h2>
+            <h2 className="mb-1 mt-0">模型分类配置</h2>
             <div className="grid grid-cols-1 gap-x-3 gap-y-2 sm:grid-cols-[auto_1fr]">
               <ModelRoleSelector
-                displayName="Chat"
-                description="Used in the chat interface"
+                displayName="对话"
+                description="在对话中使用的模型"
                 models={config.modelsByRole.chat}
                 selectedModel={
                   selectedChatModel
                     ? {
-                        title: selectedChatModel.title,
-                        provider: selectedChatModel.provider,
-                        model: selectedChatModel.model,
-                      }
+                      title: selectedChatModel.title,
+                      provider: selectedChatModel.provider,
+                      model: selectedChatModel.model,
+                    }
                     : null
                 }
                 onSelect={(model) => handleChatModelSelection(model)}
               />
               <ModelRoleSelector
-                displayName="Autocomplete"
-                description="Used to generate code completion suggestions"
+                displayName="自动完成"
+                description="在代码块中使用的模型"
                 models={config.modelsByRole.autocomplete}
                 selectedModel={config.selectedModelByRole.autocomplete}
                 onSelect={(model) => handleRoleUpdate("autocomplete", model)}
@@ -175,30 +175,30 @@ function ConfigPage() {
               {/* Jetbrains has a model selector inline */}
               {!jetbrains && (
                 <ModelRoleSelector
-                  displayName="Edit"
-                  description="Used for inline edits"
+                  displayName="编辑"
+                  description="在编辑代码块时使用的模型"
                   models={config.modelsByRole.edit}
                   selectedModel={config.selectedModelByRole.edit}
                   onSelect={(model) => handleRoleUpdate("edit", model)}
                 />
               )}
               <ModelRoleSelector
-                displayName="Apply"
-                description="Used to apply generated codeblocks to files"
+                displayName="应用"
+                description="用于将生成的代码块应用于文件的模型"
                 models={config.modelsByRole.apply}
                 selectedModel={config.selectedModelByRole.apply}
                 onSelect={(model) => handleRoleUpdate("apply", model)}
               />
               <ModelRoleSelector
-                displayName="Embed"
-                description="Used to generate and query embeddings for the @codebase and @docs context providers"
+                displayName="嵌入"
+                description="用于为 @代码库和 @docs 上下文提供程序生成和查询嵌入"
                 models={config.modelsByRole.embed}
                 selectedModel={config.selectedModelByRole.embed}
                 onSelect={(model) => handleRoleUpdate("embed", model)}
               />
               <ModelRoleSelector
-                displayName="Rerank"
-                description="Used for reranking results from the @codebase and @docs context providers"
+                displayName="重新排序"
+                description="用于重新排序来自 @代码库和 @docs 上下文提供程序的查询结果"
                 models={config.modelsByRole.rerank}
                 selectedModel={config.selectedModelByRole.rerank}
                 onSelect={(model) => handleRoleUpdate("rerank", model)}
@@ -212,7 +212,7 @@ function ConfigPage() {
             <div className="flex max-w-[400px] flex-col">
               <div className="flex flex-col gap-4 py-6">
                 <div>
-                  <h2 className="mb-2 mt-0">User settings</h2>
+                  <h2 className="mb-2 mt-0">用户设置</h2>
                 </div>
 
                 <div className="flex flex-col gap-4">
@@ -223,7 +223,7 @@ function ConfigPage() {
                         showSessionTabs: !showSessionTabs,
                       })
                     }
-                    text="Show Session Tabs"
+                    text="显示会话选项卡"
                   />
                   <ToggleSwitch
                     isToggled={codeWrap}
@@ -232,7 +232,7 @@ function ConfigPage() {
                         codeWrap: !codeWrap,
                       })
                     }
-                    text="Wrap Codeblocks"
+                    text="包装代码块"
                   />
                   <ToggleSwitch
                     isToggled={displayRawMarkdown}
@@ -241,7 +241,7 @@ function ConfigPage() {
                         displayRawMarkdown: !displayRawMarkdown,
                       })
                     }
-                    text="Display Raw Markdown"
+                    text="显示原始 Markdown"
                   />
                   <ToggleSwitch
                     isToggled={allowAnonymousTelemetry}
@@ -250,7 +250,7 @@ function ConfigPage() {
                         allowAnonymousTelemetry: !allowAnonymousTelemetry,
                       })
                     }
-                    text="Allow Anonymous Telemetry"
+                    text="允许匿名遥测"
                   />
                   <ToggleSwitch
                     isToggled={disableIndexing}
@@ -259,7 +259,7 @@ function ConfigPage() {
                         disableIndexing: !disableIndexing,
                       })
                     }
-                    text="Disable Indexing"
+                    text="禁用索引"
                   />
 
                   <ToggleSwitch
@@ -269,7 +269,7 @@ function ConfigPage() {
                         disableSessionTitles: !disableSessionTitles,
                       })
                     }
-                    text="Disable Session Titles"
+                    text="禁用会话标题"
                   />
                   <ToggleSwitch
                     isToggled={readResponseTTS}
@@ -278,7 +278,7 @@ function ConfigPage() {
                         readResponseTTS: !readResponseTTS,
                       })
                     }
-                    text="Response Text to Speech"
+                    text="响应文本到语音"
                   />
 
                   <ToggleSwitch
@@ -288,7 +288,7 @@ function ConfigPage() {
                         showChatScrollbar: !showChatScrollbar,
                       })
                     }
-                    text="Show Chat Scrollbar"
+                    text="显示对话滚动条"
                   />
 
                   <ToggleSwitch
@@ -298,7 +298,7 @@ function ConfigPage() {
                         useAutocompleteCache: !useAutocompleteCache,
                       })
                     }
-                    text="Use Autocomplete Cache"
+                    text="使用自动完成缓存"
                   />
 
                   <ToggleSwitch
@@ -308,12 +308,12 @@ function ConfigPage() {
                         useChromiumForDocsCrawling: !useChromiumForDocsCrawling,
                       })
                     }
-                    text="Use Chromium for Docs Crawling"
+                    text="使用 Chromium 进行文档抓取"
                   />
 
                   <label className="flex items-center justify-between gap-3">
                     <span className="lines lines-1 text-left">
-                      Multiline Autocompletions
+                      多行自动完成
                     </span>
                     <Select
                       value={useAutocompleteMultilineCompletions}
@@ -324,14 +324,14 @@ function ConfigPage() {
                         })
                       }
                     >
-                      <option value="auto">Auto</option>
-                      <option value="always">Always</option>
-                      <option value="never">Never</option>
+                      <option value="auto">自动</option>
+                      <option value="always">一直</option>
+                      <option value="never">不需要</option>
                     </Select>
                   </label>
 
                   <label className="flex items-center justify-between gap-3">
-                    <span className="text-left">Font Size</span>
+                    <span className="text-left">字体大小</span>
                     <NumberInput
                       value={fontSize}
                       onChange={(val) =>
@@ -352,7 +352,7 @@ function ConfigPage() {
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span>Disable autocomplete in files</span>
+                      <span>在文件中禁用自动完成</span>
                       <div className="flex items-center gap-2">
                         <Input
                           value={formDisableAutocomplete}
@@ -363,7 +363,7 @@ function ConfigPage() {
                         />
                         <div className="flex h-full flex-col">
                           {formDisableAutocomplete !==
-                          disableAutocompleteInFiles ? (
+                            disableAutocompleteInFiles ? (
                             <>
                               <div
                                 onClick={handleDisableAutocompleteSubmit}
@@ -387,7 +387,7 @@ function ConfigPage() {
                       </div>
                     </div>
                     <span className="text-vsc-foreground-muted text-lightgray self-end text-xs">
-                      Comma-separated list of path matchers
+                      逗号分隔的路径匹配器列表
                     </span>
                   </form>
                 </div>

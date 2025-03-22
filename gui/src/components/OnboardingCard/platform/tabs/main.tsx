@@ -63,7 +63,7 @@ export default function MainTab({
           </p>
 
           <Button
-            onClick={onGetStarted}
+            onClick={() => onboardingCard.close(isDialog)}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
             开始使用
@@ -76,7 +76,7 @@ export default function MainTab({
           </p>
 
           <Button
-            onClick={onGetStarted}
+           onClick={() => onboardingCard.close(isDialog)}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
             {/* Get started */}

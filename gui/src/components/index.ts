@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { getFontSize, isJetBrains } from "../util";
+import { getFontSize } from "../util";
 
 export const VSC_INPUT_BACKGROUND_VAR = "--vscode-input-background";
 export const VSC_BACKGROUND_VAR = "--vscode-sideBar-background";
@@ -132,6 +132,7 @@ export const Button = styled.button`
 
 export const SecondaryButton = styled.button`
   padding: 6px 12px;
+  width: 120px;
   margin: 8px 0;
   border-radius: ${defaultBorderRadius};
 

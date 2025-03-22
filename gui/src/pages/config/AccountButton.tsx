@@ -10,7 +10,7 @@ export function AccountButton() {
 
   if (!session) {
     return (
-      <SecondaryButton onClick={() => login(false)}>Sign in</SecondaryButton>
+      <SecondaryButton>Kodemate AI</SecondaryButton>
     );
   }
 
@@ -38,7 +38,7 @@ export function AccountButton() {
               </span>
             </div>
             <SecondaryButton onClick={logout} className="w-full justify-center">
-              Sign out
+              退出登录
             </SecondaryButton>
           </div>
         </Popover.Panel>

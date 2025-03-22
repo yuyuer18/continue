@@ -1,10 +1,10 @@
-import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import {
   ChevronUpDownIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { type ModelDescription } from "core";
+import { Fragment } from "react";
 import { ToolTip } from "../../components/gui/Tooltip";
 
 interface ModelRoleSelectorProps {
@@ -45,10 +45,10 @@ const ModelRoleSelector = ({
               className={`border-vsc-input-border bg-vsc-background ${!!models.length ? "hover:bg-vsc-input-background cursor-pointer" : ""} text-vsc-foreground relative m-0 flex w-full items-center justify-between rounded-md border border-solid px-2 py-1 text-left`}
             >
               {models.length === 0 ? (
-                <span className="text-lightgray italic">{`No ${displayName} models${["Chat", "Apply", "Edit"].includes(displayName) ? ". Using chat model" : ""}`}</span>
+                <span className="text-lightgray italic">{`无 ${displayName} 模型 ${["Chat", "Apply", "Edit"].includes(displayName) ? ". Using chat model" : ""}`}</span>
               ) : (
                 <span className="lines lines-1">
-                  {selectedModel?.title ?? `Select ${displayName} model`}
+                  {selectedModel?.title ?? `选择 ${displayName} 模型`}
                 </span>
               )}
               {models.length ? (
