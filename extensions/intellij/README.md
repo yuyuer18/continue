@@ -1,43 +1,47 @@
 <!-- Plugin description -->
 
-<h1 align="center">Continue</h1>
+<h1 align="center">KodeMate AI+</h1>
 
 <div align="center">
 
-[**Continue**](https://docs.continue.dev) enables developers to create, share, and use custom AI code assistants with our open-source [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension) extension and [hub of models, rules, prompts, docs, and other building blocks](https://hub.continue.dev).
+[**KodeMate AI+**]() 是上海安硕信息技术股份有限公司的AI开发助手
+
+
+你可以连接任何模型和任何上下文信息，以便在集成开发环境（IDE）中构建自定义的自动补全和聊天体验。
 
 </div>
 
 <div align="center">
 
-## Chat
 
-[Chat](https://continue.dev/docs/chat/how-to-use-it) makes it easy to ask for help from an LLM without needing to leave the IDE.
+## 聊天功能
 
-You send it a task, including any relevant information, and it replies with the text / code most likely to complete the task. If it does not give you what you want, then you can send follow up messages to clarify and adjust its approach until the task is completed.
+[聊天功能]() 让你无需离开集成开发环境（IDE），就能轻松地向大语言模型（LLM）寻求帮助。
 
-## Autocomplete
+你向它发送一项任务，包括任何相关信息，它会回复最有可能完成该任务的文本或代码。如果它没有给出你想要的内容，那么你可以发送后续消息来阐明需求并调整它的处理方式，直到任务完成为止。
 
-[Autocomplete](https://continue.dev/docs/autocomplete/how-to-use-it) provides inline code suggestions as you type.
 
-To enable it, simply click the "Continue" button in the status bar at the bottom right of your IDE or ensure the "Enable Tab Autocomplete" option is checked in your IDE settings.
+## 自动补全功能
+[自动补全功能]() 会在输入代码时提供内联代码建议。
 
-## Edit
+要启用该功能，只需点击集成开发环境（IDE）右下角状态栏中的 “KodeMate AI+” 按钮，或者确保在集成开发环境（IDE）设置中勾选了 “启用制表符自动补全” 选项即可。
 
-[Edit](https://continue.dev/docs/edit/how-to-use-it) is a convenient way to modify code without leaving your current file.
 
-Highlight a block of code, describe your code changes, and a diff will be streamed inline to your file which you can accept or reject.
+## 编辑功能
+[编辑功能]() 是一种无需离开当前文件就能修改代码的便捷方式。
 
+选中一段代码，描述你要进行的代码更改，随后一个差异对比结果将内联显示在你的文件中，你可以选择接受或拒绝这些更改。
+
+## 快捷操作
+
+[快捷操作]() 是针对常见使用场景的快捷方式。
+
+例如，你可能想要审查代码、编写测试用例或添加文档字符串。
 ## Actions
 
-[Actions](https://continue.dev/docs/actions/how-to-use-it) are shortcuts for common use cases.
-
-For example, you might want to review code, write tests, or add a docstring.
 
 </div>
 
-## License
 
-[Apache 2.0 © 2023-2024 Continue Dev, Inc.](./LICENSE)
 
 <!-- Plugin description end -->
