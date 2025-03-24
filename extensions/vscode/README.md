@@ -6,13 +6,13 @@
 
 <h1 align="center">Kodemate AI+ 安硕AI编程辅助插件</h1>
 
-<div align="center">
+<div align="left">
 
 **[Kodemate AI](https://home.amarsoft.com) 通过该编程工具，开发人员能够创建、共享和使用自定义 AI 代码进行编程。Kodemate AI  提示了 [VS Code](https://marketplace.visualstudio.com/) 插件  [集模型、规则、提示词、文档及其他构建模块于一体的编程中心]**
 
 </div>
 
-<div align="center">
+<div align="left">
 
 <p></p>
 

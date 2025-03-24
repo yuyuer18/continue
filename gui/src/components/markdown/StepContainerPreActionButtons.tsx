@@ -1,22 +1,22 @@
-import { useContext, useRef, useState } from "react";
 import {
+  ArrowLeftEndOnRectangleIcon,
   CommandLineIcon,
   PlayIcon,
-  ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { defaultBorderRadius, vscEditorBackground } from "..";
-import { IdeMessengerContext } from "../../context/IdeMessenger";
-import { isJetBrains } from "../../util";
-import { isTerminalCodeBlock, getTerminalCommand } from "./utils";
-import HeaderButtonWithToolTip from "../gui/HeaderButtonWithToolTip";
-import { CopyIconButton } from "../gui/CopyIconButton";
+import { useContext, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { vscEditorBackground } from "..";
+import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useWebviewListener } from "../../hooks/useWebviewListener";
 import { useAppSelector } from "../../redux/hooks";
 import {
   selectDefaultModel,
   selectUIConfig,
 } from "../../redux/slices/configSlice";
+import { isJetBrains } from "../../util";
+import { CopyIconButton } from "../gui/CopyIconButton";
+import HeaderButtonWithToolTip from "../gui/HeaderButtonWithToolTip";
+import { getTerminalCommand, isTerminalCodeBlock } from "./utils";
 
 interface StepContainerPreActionButtonsProps {
   language: string | null;
@@ -96,7 +96,7 @@ export default function StepContainerPreActionButtons({
         >
           {shouldRunTerminalCmd && (
             <HeaderButtonWithToolTip
-              text="Run in terminal"
+              text="在terlmina终端运行"
               style={{ backgroundColor: vscEditorBackground }}
               onClick={onClickRunTerminal}
               tooltipPlacement={toolTipPlacement}
@@ -105,7 +105,7 @@ export default function StepContainerPreActionButtons({
             </HeaderButtonWithToolTip>
           )}
           <HeaderButtonWithToolTip
-            text="Apply"
+            text="应用到文件"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={onClickApply}
             tooltipPlacement={toolTipPlacement}
@@ -113,7 +113,7 @@ export default function StepContainerPreActionButtons({
             <PlayIcon className="h-4 w-4 text-gray-400" />
           </HeaderButtonWithToolTip>
           <HeaderButtonWithToolTip
-            text="Insert at cursor"
+            text="插入到光标处"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={() =>
               ideMessenger.post("insertAtCursor", { text: codeBlockContent })

@@ -2,34 +2,34 @@ import { IDE } from "../..";
 import { GlobalContext } from "../../util/GlobalContext";
 import { joinPathsToUri } from "../../util/uri";
 
-const FIRST_TIME_DEFAULT_PROMPT_FILE = `# This is an example ".prompt" file
-# It is used to define and reuse prompts within Continue
-# Each .prompt file can be accessed by typing "@prompts" in the Chat input
+const FIRST_TIME_DEFAULT_PROMPT_FILE = `这是一个示例 ".prompt" 文件
+# 它用于在 Kodemate AI 中定义和重用提示
+# 每个 .prompt 文件都可以通过在聊天输入框中输入 "@prompts" 来访问
 
-# A prompt file consists of two parts:
-# 1. Everything above the "---" is YAML. Here you can set "temperature", "description", and other options
-# 2. Everything below the "---" is the prompt body
+# 一个提示文件由两部分组成：
+# 1. "---" 以上的部分是 YAML 格式。在这里你可以设置 "temperature"（温度）、"description"（描述）和其他选项
+# 2. "---" 以下的部分是提示内容
 
-# If you do not want to set any options, you do not need to include the "---"
+# 如果你不想设置任何选项，则不需要包含 "---"
 
-# In the body, you can reference:
-# 1. Files, using either absolute or relative paths (based on the workspace root)
+# 在提示内容中，你可以引用：
+# 1. 文件，可以使用绝对路径或相对路径（基于工作区根目录）
   # @README.md
   # @src/test/test.py
   # @/Users/me/Desktop/my-project/src/test/test.py
-# 2. URLs, for example
+# 2. URL，例如
   # @https://example.com
-# 3. Context providers, for example
+# 3. 上下文提供者，例如
   # @currentFile
   # @os
   # @repo-map
 
-# To learn more, see the full .prompt file reference: https://docs.continue.dev/features/prompt-files
-name: Example
-description: Example prompt file
+# 要了解更多信息，请参阅完整的 .prompt 文件示例：
+名称：示例
+描述：示例提示文件
 ---
 
-Here is information about the current repo:
+以下是关于当前仓库的信息：
 
 @README.md`;
 

@@ -148,38 +148,38 @@
       {
         "command": "continue.applyCodeFromChat",
         "category": "Continue",
-        "title": "Apply code from chat",
+        "title": "使用代码",
         "group": "Continue"
       },
       {
         "command": "continue.acceptDiff",
         "category": "Continue",
-        "title": "Accept Diff",
+        "title": "接受差异",
         "group": "Continue"
       },
       {
         "command": "continue.rejectDiff",
         "category": "Continue",
-        "title": "Reject Diff",
+        "title": "拒绝差异",
         "group": "Continue",
         "icon": "$(stop)"
       },
       {
         "command": "continue.acceptVerticalDiffBlock",
         "category": "Continue",
-        "title": "Accept Vertical Diff Block",
+        "title": "接受垂直差异块",
         "group": "Continue"
       },
       {
         "command": "continue.rejectVerticalDiffBlock",
         "category": "Continue",
-        "title": "Reject Vertical Diff Block",
+        "title": "拒绝垂直差异块",
         "group": "Continue"
       },
       {
         "command": "continue.focusEdit",
         "category": "Continue",
-        "title": "Generate Code",
+        "title": "生成代码",
         "group": "Continue"
       },
       {
@@ -211,6 +211,13 @@
         "category": "Continue",
         "title": "打开新窗口",
         "icon": "$(link-external)",
+        "group": "Continue"
+      },
+      {
+        "command": "continue.a3Help",
+        "category": "Continue",
+        "title": "A3Cloud编程中心",
+        "icon": "$(file-code)",
         "group": "Continue"
       },
       {
@@ -249,13 +256,13 @@
       {
         "command": "continue.viewLogs",
         "category": "Continue",
-        "title": "View History",
+        "title": "查看对话历史",
         "group": "Continue"
       },
       {
         "command": "continue.navigateTo",
         "category": "Continue",
-        "title": "Navigate to a path",
+        "title": "跳转到",
         "group": "Continue"
       },
       {
@@ -268,61 +275,61 @@
       {
         "command": "continue.writeCommentsForCode",
         "category": "Continue",
-        "title": "Write Comments for this Code",
+        "title": "写代码注释",
         "group": "Continue"
       },
       {
         "command": "continue.writeDocstringForCode",
         "category": "Continue",
-        "title": "Write a Docstring for this Code",
+        "title": "写代码文档",
         "group": "Continue"
       },
       {
         "command": "continue.fixCode",
         "category": "Continue",
-        "title": "Fix this Code",
+        "title": "修复此代码",
         "group": "Continue"
       },
       {
         "command": "continue.optimizeCode",
         "category": "Continue",
-        "title": "Optimize this Code",
+        "title": "优化此代码",
         "group": "Continue"
       },
       {
         "command": "continue.fixGrammar",
         "category": "Continue",
-        "title": "Fix Grammar / Spelling",
+        "title": "修复语法 / 拼写",
         "group": "Continue"
       },
       {
         "command": "continue.codebaseForceReIndex",
         "category": "Continue",
-        "title": "Codebase Force Re-Index",
+        "title": "代码库强制重新索引",
         "group": "Continue"
       },
       {
         "command": "continue.rebuildCodebaseIndex",
         "category": "Continue",
-        "title": "Rebuild codebase index",
+        "title": "重建代码库索引",
         "group": "Continue"
       },
       {
         "command": "continue.docsIndex",
         "category": "Continue",
-        "title": "Docs Index",
+        "title": "文档索引",
         "group": "Continue"
       },
       {
         "command": "continue.docsReIndex",
         "category": "Continue",
-        "title": "Docs Force Re-Index",
+        "title": "文档强制重新索引",
         "group": "Continue"
       },
       {
         "command": "continue.focusContinueInput",
         "category": "Continue",
-        "title": "Focus Continue Chat",
+        "title": "焦点AI对话框",
         "group": "Continue"
       }
     ],
@@ -406,6 +413,12 @@
         "when": "!terminalFocus"
       },
       {
+        "command": "continue.a3Help",
+        "mac": "cmd+k cmd+m",
+        "key": "ctrl+k ctrl+m",
+        "when": "!terminalFocus"
+      },
+      {
         "command": "continue.toggleTabAutocompleteEnabled",
         "mac": "cmd+k cmd+a",
         "key": "ctrl+k ctrl+a",
@@ -436,6 +449,9 @@
         },
         {
           "command": "continue.toggleFullScreen"
+        },
+        {
+          "command": "continue.a3Help"
         },
         {
           "command": "continue.newSession"
@@ -505,6 +521,11 @@
         },
         {
           "command": "continue.toggleFullScreen",
+          "group": "navigation@3",
+          "when": "view == Amarsoft.kodemate-aiGUIView"
+        },
+        {
+          "command": "continue.a3Help",
           "group": "navigation@3",
           "when": "view == Amarsoft.kodemate-aiGUIView"
         },

@@ -2,10 +2,10 @@
 import * as os from "node:os";
 
 import {
-    ContextMenuConfig,
-    ILLM,
-    ModelInstaller,
-    RangeInFileWithContents,
+  ContextMenuConfig,
+  ILLM,
+  ModelInstaller,
+  RangeInFileWithContents,
 } from "core";
 import { CompletionProvider } from "core/autocomplete/CompletionProvider";
 import { ConfigHandler } from "core/config/ConfigHandler";
@@ -19,13 +19,13 @@ import readLastLines from "read-last-lines";
 import * as vscode from "vscode";
 
 import {
-    getAutocompleteStatusBarDescription,
-    getAutocompleteStatusBarTitle,
-    getStatusBarStatus,
-    getStatusBarStatusFromQuickPickItemLabel,
-    quickPickStatusText,
-    setupStatusBar,
-    StatusBarStatus,
+  getAutocompleteStatusBarDescription,
+  getAutocompleteStatusBarTitle,
+  getStatusBarStatus,
+  getStatusBarStatusFromQuickPickItemLabel,
+  quickPickStatusText,
+  setupStatusBar,
+  StatusBarStatus,
 } from "./autocomplete/statusBar";
 import { ContinueGUIWebviewViewProvider } from "./ContinueGUIWebviewViewProvider";
 
@@ -741,6 +741,9 @@ const getCommandsMap: (
       },
       "continue.viewHistory": () => {
         vscode.commands.executeCommand("continue.navigateTo", "/history", true);
+      },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3help", true);
       },
       "continue.focusContinueSessionId": async (
         sessionId: string | undefined,

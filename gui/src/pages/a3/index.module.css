@@ -1,0 +1,148 @@
+.container {
+  padding: 16px;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.card {
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
+  position: relative;
+  color: var(--vscode-editor-foreground);
+}
+
+.cardSelected {
+  background-color: var(--vscode-editor-selectionBackground);
+}
+
+.cardNormal {
+  background-color: var(--vscode-editor-background);
+}
+
+.cardTitle {
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  color: var(--vscode-editor-foreground);
+}
+
+.cardDescription {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: var(--vscode-descriptionForeground);
+}
+
+.buttonContainer {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+}
+
+.generateButton {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 2px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.promptFile {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.8em;
+}
+
+.inputContainer {
+  margin-top: 16px;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--vscode-editor-foreground);
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 2px;
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+}
+
+.tagContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tagButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--vscode-button-border);
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.tagButton:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.tagSelected {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+  bottom: 40px;
+  left: 12px;
+}
+
+.tag {
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 0.8em;
+}
+
+/* 添加清除按钮样式 */
+.clearButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--vscode-button-border);
+  background: var(--vscode-errorForeground);
+  color: var(--vscode-button-foreground);
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-left: auto;
+}
+
+.clearButton:hover {
+  opacity: 0.8;
+}

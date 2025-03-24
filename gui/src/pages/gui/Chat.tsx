@@ -129,12 +129,12 @@ function fallbackRender({ error, resetErrorBoundary }: any) {
       className="px-2"
       style={{ backgroundColor: vscBackground }}
     >
-      <p>Something went wrong:</p>
+      <p>出错了:</p>
       <pre style={{ color: "red" }}>{error.message}</pre>
       <pre style={{ color: lightGray }}>{error.stack}</pre>
 
       <div className="text-center">
-        <Button onClick={resetErrorBoundary}>Restart</Button>
+        <Button onClick={resetErrorBoundary}>重启</Button>
       </div>
     </div>
   );
