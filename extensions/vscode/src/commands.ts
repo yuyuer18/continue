@@ -284,6 +284,9 @@ async function processDiff(
   }
 
   await sidebar.webviewProtocol.request("exitEditMode", undefined);
+
+  // Save the file
+  await ide.saveFile(newOrCurrentUri);
 }
 
 function waitForSidebarReady(
@@ -1015,41 +1018,41 @@ const getCommandsMap: (
             LOCAL_DEV_DATA_VERSION,
           );
 
-          const lastLines = await readLastLines.read(completionsPath, 2);
-          client.sendFeedback(feedback, lastLines);
+        const lastLines = await readLastLines.read(completionsPath, 2);
+        client.sendFeedback(feedback, lastLines);
+      }
+    },
+    "continue.openMorePage": () => {
+      vscode.commands.executeCommand("continue.navigateTo", "/more", true);
+    },
+    "continue.navigateTo": (path: string, toggle: boolean) => {
+      sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
+      focusGUI();
+    },
+    "continue.startLocalOllama": () => {
+      startLocalOllama(ide);
+    },
+    "continue.installModel": async (
+      modelName: string,
+      llmProvider: ILLM | undefined,
+    ) => {
+      try {
+        if (!isModelInstaller(llmProvider)) {
+          const msg = llmProvider
+            ? `LLM provider '${llmProvider.providerName}' does not support installing models`
+            : "Missing LLM Provider";
+          throw new Error(msg);
         }
-      },
-      "continue.openMorePage": () => {
-        vscode.commands.executeCommand("continue.navigateTo", "/more", true);
-      },
-      "continue.navigateTo": (path: string, toggle: boolean) => {
-        sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
-        focusGUI();
-      },
-      "continue.startLocalOllama": () => {
-        startLocalOllama(ide);
-      },
-      "continue.installModel": async (
-        modelName: string,
-        llmProvider: ILLM | undefined,
-      ) => {
-        try {
-          if (!isModelInstaller(llmProvider)) {
-            const msg = llmProvider
-              ? `LLM provider '${llmProvider.providerName}' does not support installing models`
-              : "Missing LLM Provider";
-            throw new Error(msg);
-          }
-          await installModelWithProgress(modelName, llmProvider);
-        } catch (e) {
-          const message = e instanceof Error ? e.message : String(e);
-          vscode.window.showErrorMessage(
-            `Failed to install '${modelName}': ${message}`,
-          );
-        }
-      },
-    };
+        await installModelWithProgress(modelName, llmProvider);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        vscode.window.showErrorMessage(
+          `Failed to install '${modelName}': ${message}`,
+        );
+      }
+    },
   };
+};
 
 const registerCopyBufferSpy = (
   context: vscode.ExtensionContext,

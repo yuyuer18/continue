@@ -84,14 +84,20 @@ export default function StepContainerPreActionButtons({
       tabIndex={-1}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
-      className="bg-vsc-editor-background border-vsc-input-border relative my-2.5 rounded-md border-[1px] border-solid"
+      className="bg-vsc-editor-background relative my-2.5"
+      style={{
+        border: `1px solid ${vscCommandCenterInactiveBorder}`,
+        borderRadius: defaultBorderRadius,
+      }}
     >
       <div className="h-full w-full overflow-hidden rounded-md">{children}</div>
       {hovering && !isStreaming && (
         <div
-          className="bg-vsc-editor-background border-0.5 border-vsc-input-border z-100 absolute right-3 z-50 flex -translate-y-1/2 gap-1.5 rounded-md border border-solid px-1 py-0.5"
+          className="bg-vsc-editor-background z-100 absolute right-3 z-50 flex -translate-y-1/2 gap-1.5 px-1 py-0.5"
           style={{
             top: !isBottomToolbarPosition ? 0 : "100%",
+            border: `1px solid ${vscCommandCenterInactiveBorder}`,
+            borderRadius: defaultBorderRadius,
           }}
         >
           {shouldRunTerminalCmd && (

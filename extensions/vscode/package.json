@@ -2,7 +2,7 @@
   "name": "kodemate-ai",
   "icon": "media/icon.png",
   "author": "Amarsoft Dev, Inc",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
@@ -532,12 +532,7 @@
         {
           "command": "continue.openConfigPage",
           "group": "navigation@4",
-          "when": "view == Amarsoft.kodemate-aiGUIView"
-        },
-        {
-          "command": "continue.openMorePage",
-          "group": "navigation@6",
-          "when": "view == Amarsoft.kodemate-aiGUIView"
+          "when": "view == continue.continueGUIView"
         }
       ],
       "editor/title": [

@@ -3,15 +3,12 @@ import Layout from "./components/Layout";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
 import useSetup from "./hooks/useSetup";
-import A3Help from "./pages/a3"; // 添加这行
 import { AddNewModel, ConfigureProvider } from "./pages/AddNewModel";
 import ConfigPage from "./pages/config";
 import ConfigErrorPage from "./pages/config-error";
 import ErrorPage from "./pages/error";
 import Chat from "./pages/gui";
 import History from "./pages/history";
-import MigrationPage from "./pages/migration";
-import MorePage from "./pages/More";
 import Stats from "./pages/stats";
 import { ROUTES } from "./util/navigation";
 
@@ -46,24 +43,12 @@ const router = createMemoryRouter([
         element: <ConfigureProvider />,
       },
       {
-        path: "/more",
-        element: <MorePage />,
-      },
-      {
         path: ROUTES.CONFIG_ERROR,
         element: <ConfigErrorPage />,
       },
       {
         path: ROUTES.CONFIG,
         element: <ConfigPage />,
-      },
-      {
-        path: "/migration",
-        element: <MigrationPage />,
-      },
-      {
-        path: "/a3help", // 添加新路由
-        element: <A3Help />,
       },
     ],
   },
