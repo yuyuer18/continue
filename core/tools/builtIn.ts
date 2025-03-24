@@ -1,12 +1,12 @@
 export enum BuiltInToolNames {
-  ReadFile = "builtin_read_file",
-  ReadCurrentlyOpenFile = "builtin_read_currently_open_file",
-  CreateNewFile = "builtin_create_new_file",
-  RunTerminalCommand = "builtin_run_terminal_command",
-  ViewSubdirectory = "builtin_view_subdirectory",
-  ViewRepoMap = "builtin_view_repo_map",
-  ExactSearch = "builtin_exact_search",
-  SearchWeb = "builtin_search_web",
-  ViewDiff = "builtin_view_diff",
+  ReadFile = "读取文件",
+  ReadCurrentlyOpenFile = "读取打开文件",
+  CreateNewFile = "创建新文件",
+  RunTerminalCommand = "运行终端命令",
+  ViewSubdirectory = "查看子目录",
+  ViewRepoMap = "查看仓库地图",
+  ExactSearch = "精确搜索",
+  SearchWeb = "搜索网页",
+  ViewDiff = "查看代码差异",
 }
 export const BUILT_IN_GROUP_NAME = "Built-In";

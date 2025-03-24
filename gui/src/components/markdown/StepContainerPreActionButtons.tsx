@@ -5,7 +5,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { useContext, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { vscEditorBackground } from "..";
+import {
+  defaultBorderRadius,
+  vscCommandCenterInactiveBorder,
+  vscEditorBackground,
+} from "..";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useWebviewListener } from "../../hooks/useWebviewListener";
 import { useAppSelector } from "../../redux/hooks";
@@ -102,7 +106,7 @@ export default function StepContainerPreActionButtons({
         >
           {shouldRunTerminalCmd && (
             <HeaderButtonWithToolTip
-              text="在terlmina终端运行"
+              text="Run in terminal"
               style={{ backgroundColor: vscEditorBackground }}
               onClick={onClickRunTerminal}
               tooltipPlacement={toolTipPlacement}
@@ -111,7 +115,7 @@ export default function StepContainerPreActionButtons({
             </HeaderButtonWithToolTip>
           )}
           <HeaderButtonWithToolTip
-            text="应用到文件"
+            text="Apply"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={onClickApply}
             tooltipPlacement={toolTipPlacement}
@@ -119,7 +123,7 @@ export default function StepContainerPreActionButtons({
             <PlayIcon className="h-4 w-4 text-gray-400" />
           </HeaderButtonWithToolTip>
           <HeaderButtonWithToolTip
-            text="插入到光标处"
+            text="Insert at cursor"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={() =>
               ideMessenger.post("insertAtCursor", { text: codeBlockContent })

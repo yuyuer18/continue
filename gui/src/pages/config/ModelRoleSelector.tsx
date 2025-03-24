@@ -52,13 +52,13 @@ const ModelRoleSelector = ({
                 <span
                   className="text-lightgray lines lines-1 italic"
                   style={{ fontSize: fontSize(-3) }}
-                >{`No ${displayName} models${["Chat", "Apply", "Edit"].includes(displayName) ? ". Using chat model" : ""}`}</span>
+                >{`无 ${displayName} 模型 ${["Chat", "Apply", "Edit"].includes(displayName) ? ". 使用对话模型" : ""}`}</span>
               ) : (
                 <span
                   className="lines lines-1"
                   style={{ fontSize: fontSize(-3) }}
                 >
-                  {selectedModel?.title ?? `Select ${displayName} model`}
+                  {selectedModel?.title ?? `选择 ${displayName} 模型`}
                 </span>
               )}
               {models.length ? (

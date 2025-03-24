@@ -48,8 +48,8 @@ export function getPlaceholderText(
   }
 
   return historyLength === 0
-    ? "Ask anything, '/' for prompts, '@' to add context"
-    : "Ask a follow-up";
+    ? "向AI提问，'/' 获取提示词，'@' 添加上下文"
+    : "继续提问，'/' 获取提示词，'@' 添加上下文";
 }
 
 /**
@@ -354,19 +354,19 @@ export function createEditorConfig(options: {
       }),
       props.availableSlashCommands.length
         ? SlashCommand.configure({
-            HTMLAttributes: {
-              class: "mention",
-            },
-            suggestion: getSlashCommandDropdownOptions(
-              availableSlashCommandsRef,
-              onClose,
-              onOpen,
-              ideMessenger,
-            ),
-            renderText: (props) => {
-              return props.node.attrs.label;
-            },
-          })
+          HTMLAttributes: {
+            class: "mention",
+          },
+          suggestion: getSlashCommandDropdownOptions(
+            availableSlashCommandsRef,
+            onClose,
+            onOpen,
+            ideMessenger,
+          ),
+          renderText: (props) => {
+            return props.node.attrs.label;
+          },
+        })
         : MockExtension,
       CodeBlockExtension,
     ],

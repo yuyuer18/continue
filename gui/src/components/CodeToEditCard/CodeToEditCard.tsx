@@ -79,7 +79,7 @@ export default function CodeToEditCard() {
             onClick={() => setShowAddFileCombobox(true)}
           >
             <PlusIcon className="h-3.5 w-3.5" />
-            <span>Add a file to get started</span>
+            <span>添加文件</span>
           </div>
         )
       )}

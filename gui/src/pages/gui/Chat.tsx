@@ -286,26 +286,6 @@ export function Chat() {
 
   return (
     <>
-<<<<<<< HEAD
-      {showPageHeader && (
-        <PageHeader
-          title={isInEditMode ? "编辑模型" : ""}
-          onTitleClick={
-            isInEditMode
-              ? async () => {
-                  await dispatch(
-                    loadLastSession({ saveCurrentSession: false }),
-                  );
-                  dispatch(exitEditMode());
-                }
-              : undefined
-          }
-          rightContent={useHub && <AssistantSelect />}
-        />
-      )}
-
-=======
->>>>>>> 009e88bbe09a6d7b9b7b070301e32f26c569a5c6
       {widget}
 
       {!!showSessionTabs && <TabBar />}
@@ -410,34 +390,7 @@ export function Chat() {
           </div>
         ))}
       </StepsDiv>
-<<<<<<< HEAD
-      <div className={`relative`}>
-        <div className="absolute -top-8 right-2 z-30">
-          {ttsActive && (
-            <StopButton
-              className=""
-              onClick={() => {
-                ideMessenger.post("tts/kill", undefined);
-              }}
-            >
-              ■ 停止朗读
-            </StopButton>
-          )}
-          {isStreaming && (
-            <StopButton
-              onClick={() => {
-                dispatch(setInactive());
-                dispatch(clearLastEmptyResponse());
-              }}
-            >
-              {getMetaKeyLabel()} ⌫ Cancel
-            </StopButton>
-          )}
-        </div>
-
-=======
       <div className={"relative"}>
->>>>>>> 009e88bbe09a6d7b9b7b070301e32f26c569a5c6
         {toolCallState?.status === "generated" && <ToolCallButtons />}
 
         {isInEditMode && history.length === 0 && <CodeToEditCard />}

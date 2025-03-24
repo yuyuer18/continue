@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
 import useSetup from "./hooks/useSetup";
+import A3CloudPromptManager from "./pages/a3";
 import { AddNewModel, ConfigureProvider } from "./pages/AddNewModel";
 import ConfigPage from "./pages/config";
 import ConfigErrorPage from "./pages/config-error";
@@ -29,6 +30,10 @@ const router = createMemoryRouter([
       {
         path: "/history",
         element: <History />,
+      },
+      {
+        path: "/a3Help",
+        element: <A3CloudPromptManager />,
       },
       {
         path: "/stats",

@@ -148,15 +148,15 @@ function ModeSelect() {
         >
           <StyledListboxOption value="agent" disabled={!agentModeSupported}>
             <SparklesIcon className="h-3 w-3" />
-            <span className="font-semibold">Agent</span>
+            <span className="font-semibold">Agent-AI程序员</span>
             {/* <ShortcutText></ShortcutText> */}
             {mode === "agent" && <CheckIcon className="ml-auto h-3 w-3" />}
-            {!agentModeSupported && <span>(Not supported)</span>}
+            {!agentModeSupported && <span>(不支持)</span>}
           </StyledListboxOption>
 
           <StyledListboxOption value="chat">
             <ChatBubbleLeftIcon className="h-3 w-3" />
-            <span className="font-semibold">Chat</span>
+            <span className="font-semibold">Chat-对话</span>
             <ShortcutText>{getMetaKeyLabel()}L</ShortcutText>
             {mode === "chat" && <CheckIcon className="ml-auto h-3 w-3" />}
           </StyledListboxOption>
@@ -164,7 +164,7 @@ function ModeSelect() {
           {!jetbrains && (
             <StyledListboxOption value="edit">
               <PencilIcon className="h-3 w-3" />
-              <span className="font-semibold">Edit</span>
+              <span className="font-semibold">Edit-代码编辑</span>
               <ShortcutText>{getMetaKeyLabel()}I</ShortcutText>
               {mode === "edit" && <CheckIcon className="ml-auto h-3 w-3" />}
             </StyledListboxOption>
@@ -172,7 +172,7 @@ function ModeSelect() {
 
           <div className="text-lightgray px-2 py-1">
             {getMetaKeyLabel()}
-            <span>.</span> for next mode
+            <span>.</span> 切换下一个模型
           </div>
         </StyledListboxOptions>
       </div>

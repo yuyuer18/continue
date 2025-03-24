@@ -78,17 +78,17 @@ function ToolDropdownItem(props: ToolDropdownItemProps) {
         </span>
       </div>
       {props.excluded ? (
-        <span className="text-lightgray">Excluded</span>
+        <span className="text-lightgray">排除不处理</span>
       ) : (
         <div className="flex cursor-pointer gap-2">
           {(settings === "allowedWithPermission" || settings === undefined) && (
-            <span className="text-yellow-500">Ask First</span>
+            <span className="text-yellow-500">确认后处理</span>
           )}
           {settings === "allowedWithoutPermission" && (
-            <span className="text-green-500">Automatic</span>
+            <span className="text-green-500">自动处理</span>
           )}
           {settings === "disabled" && (
-            <span className="text-lightgray">Excluded</span>
+            <span className="text-lightgray">排除不处理</span>
           )}
         </div>
       )}
