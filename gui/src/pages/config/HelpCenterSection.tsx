@@ -18,20 +18,20 @@ export function HelpCenterSection() {
 
   return (
     <div className="py-5">
-      <h3 className="mb-4 mt-0 text-xl">Help center</h3>
+      <h3 className="mb-4 mt-0 text-xl">帮助中心</h3>
       <div className="-mx-4 flex flex-col">
         <MoreHelpRow
-          title="Documentation"
-          description="Learn how to configure and use Continue"
+          title="学习文档"
+          description="学习如何使用KodemateAI"
           Icon={ArrowTopRightOnSquareIcon}
           onClick={() =>
-            ideMessenger.post("openUrl", "https://docs.continue.dev/")
+            ideMessenger.post("openUrl", "https://home.amarsoft.com/")
           }
         />
 
         <MoreHelpRow
-          title="Have an issue?"
-          description="Let us know on GitHub and we'll do our best to resolve it"
+          title="有问题?"
+          description="告诉我们您的问题或建议"
           Icon={ArrowTopRightOnSquareIcon}
           onClick={() =>
             ideMessenger.post(
@@ -42,24 +42,24 @@ export function HelpCenterSection() {
         />
 
         <MoreHelpRow
-          title="Join the community!"
+          title="加入我们!"
           description="Join us on Discord to stay up-to-date on the latest developments"
           Icon={ArrowTopRightOnSquareIcon}
           onClick={() =>
-            ideMessenger.post("openUrl", "https://discord.gg/vapESyrFmJ")
+            ideMessenger.post("openUrl", "https://home.amarsoft.com/")
           }
         />
 
         <MoreHelpRow
-          title="Token usage"
-          description="Daily token usage across models"
+          title="Token使用统计"
+          description="显示当前模型的token使用情况"
           Icon={TableCellsIcon}
           onClick={() => navigate("/stats")}
         />
 
         <MoreHelpRow
-          title="Quickstart"
-          description="Reopen the quickstart and tutorial file"
+          title="快速开始"
+          description="重新打开快速开始和教程文件"
           Icon={DocumentArrowUpIcon}
           onClick={async () => {
             navigate("/");

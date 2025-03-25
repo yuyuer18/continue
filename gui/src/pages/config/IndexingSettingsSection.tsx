@@ -8,14 +8,14 @@ export function IndexingSettingsSection() {
       <div>
         <h3 className="mx-auto mb-1 mt-0 text-xl">@codebase index</h3>
         <span className="w-3/4 text-xs text-stone-500">
-          Local embeddings of your codebase
+         本地文件索引，用于提供代码补全和搜索功能
         </span>
       </div>
       {config.disableIndexing ? (
         <div className="pb-2 pt-5">
-          <p className="py-1 text-center font-semibold">Indexing is disabled</p>
+          <p className="py-1 text-center font-semibold">已禁用索引</p>
           <p className="text-lightgray cursor-pointer text-center text-xs">
-            Open settings and toggle <code>Disable Indexing</code> to re-enable
+            打开设置并切换<code>禁用索引</code>以重新启用
           </p>
         </div>
       ) : (

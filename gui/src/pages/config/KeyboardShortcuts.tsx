@@ -203,7 +203,7 @@ const jetbrainsShortcuts: KeyboardShortcutProps[] = [
 function KeyboardShortcuts() {
   return (
     <div>
-      <h3 className="mx-auto mb-1 text-xl">Keyboard shortcuts</h3>
+      <h3 className="mx-auto mb-1 text-xl">键盘快捷键</h3>
       <GridDiv>
         {(isJetBrains() ? jetbrainsShortcuts : vscodeShortcuts).map(
           (shortcut, i) => {

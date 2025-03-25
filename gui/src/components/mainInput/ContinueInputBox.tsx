@@ -100,7 +100,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = props.isEditMode ? "edit" : "chat";
   const placeholder = props.isEditMode
-    ? "请描述如何修改问津 - 可使用 '#' 增加文件"
+    ? "请描述您的问题 - 可使用 '#' 增加文件"
     : undefined;
 
   const toolbarOptions: ToolbarOptions = props.isEditMode

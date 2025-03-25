@@ -1,17 +1,17 @@
 import { IndexingProgressUpdate } from "core";
+import { usePostHog } from "posthog-js/react";
 import { useContext, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { IdeMessengerContext } from "../../../context/IdeMessenger";
-import { isJetBrains } from "../../../util";
-import { useWebviewListener } from "../../../hooks/useWebviewListener";
-import IndexingProgressBar from "./IndexingProgressBar";
-import IndexingProgressIndicator from "./IndexingProgressIndicator";
-import IndexingProgressTitleText from "./IndexingProgressTitleText";
-import IndexingProgressSubtext from "./IndexingProgressSubtext";
-import { usePostHog } from "posthog-js/react";
 import ConfirmationDialog from "../../../components/dialogs/ConfirmationDialog";
-import { setShowDialog, setDialogMessage } from "../../../redux/slices/uiSlice";
+import { IdeMessengerContext } from "../../../context/IdeMessenger";
+import { useWebviewListener } from "../../../hooks/useWebviewListener";
+import { setDialogMessage, setShowDialog } from "../../../redux/slices/uiSlice";
+import { isJetBrains } from "../../../util";
+import IndexingProgressBar from "./IndexingProgressBar";
 import IndexingProgressErrorText from "./IndexingProgressErrorText";
+import IndexingProgressIndicator from "./IndexingProgressIndicator";
+import IndexingProgressSubtext from "./IndexingProgressSubtext";
+import IndexingProgressTitleText from "./IndexingProgressTitleText";
 
 export function getProgressPercentage(
   progress: IndexingProgressUpdate["progress"],
@@ -25,7 +25,7 @@ function IndexingProgress() {
   const dispatch = useDispatch();
   const [paused, setPaused] = useState<boolean | undefined>(undefined);
   const [update, setUpdate] = useState<IndexingProgressUpdate>({
-    desc: "Loading indexing config",
+    desc: "加载索引配置",
     progress: 0.0,
     status: "loading",
   });
@@ -58,13 +58,13 @@ function IndexingProgress() {
       dispatch(
         setDialogMessage(
           <ConfirmationDialog
-            title="Rebuild codebase index"
+            title="重建代码库索引"
             confirmText="Rebuild"
             text={
-              "Your index appears corrupted. We recommend clearing and rebuilding it, " +
-              "which may take time for large codebases.\n\n" +
-              "For a faster rebuild without clearing data, press 'Shift + Command + P' to open " +
-              "the Command Palette, and type out 'Continue: Force Codebase Re-Indexing'"
+              "您的索引似乎已损坏。我们建议清理并重建它, " +
+              "对于大型代码库来说，这可能需要比较长的时间.\n\n" +
+              "按 'Shift + Command + P' 键，无需清除数据即可更快地重建, " +
+              "命令面板，然后输入 'Continue: Force Codebase Re-Indexing' 再次索引"
             }
             onConfirm={() => {
               posthog.capture("rebuild_index_clicked");

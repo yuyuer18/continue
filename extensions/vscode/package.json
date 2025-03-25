@@ -532,7 +532,7 @@
         {
           "command": "continue.openConfigPage",
           "group": "navigation@4",
-          "when": "view == continue.continueGUIView"
+          "when": "view == Amarsoft.kodemate-aiGUIView"
         }
       ],
       "editor/title": [
