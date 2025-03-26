@@ -39,9 +39,9 @@ export function PlatformOnboardingCard({ isDialog }: OnboardingCardProps) {
           />
         ) : (
           <div className="mt-4 flex flex-col">
-              <Alert type="info">
-              通过修改 "Local"，KodeMate AI 将使用本地配置文件进行配置。您可以在
-              <code>config.yaml</code> 文件配置. 如果您只是想使用 Ollama
+            <Alert type="info">
+            通过修改 "Local"，KodeMate AI 将使用本地配置文件进行配置。您可以在
+              <code className="text-vsc-background">config.yaml</code> 文件配置. 如果您只是想使用 Ollama
               并希望通过 Kodemate AI 进行配置, 点击{" "}
               <a href="#" onClick={() => setCurrentTab("main")}>
                 这里

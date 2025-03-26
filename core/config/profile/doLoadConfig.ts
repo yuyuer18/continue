@@ -45,6 +45,7 @@ export default async function doLoadConfig(
   platformConfigMetadata: PlatformConfigMetadata | undefined,
   profileId: string,
   overrideConfigYamlByPath: string | undefined,
+  orgScopeId: string | null,
 ): Promise<ConfigResult<ContinueConfig>> {
   const workspaceConfigs = await getWorkspaceConfigs(ide);
   const ideInfo = await ide.getIdeInfo();
@@ -54,7 +55,7 @@ export default async function doLoadConfig(
 
   // Migrations for old config files
   // Removes
-  const configJsonPath = getConfigJsonPath(ideInfo.ideType);
+  const configJsonPath = getConfigJsonPath();
   if (fs.existsSync(configJsonPath)) {
     migrateJsonSharedConfig(configJsonPath, ide);
   }
@@ -70,7 +71,6 @@ export default async function doLoadConfig(
   if (overrideConfigYaml || fs.existsSync(configYamlPath)) {
     const result = await loadContinueConfigFromYaml(
       ide,
-      workspaceConfigs.map((c) => JSON.stringify(c)),
       ideSettings,
       ideInfo,
       uniqueId,
@@ -80,6 +80,7 @@ export default async function doLoadConfig(
       platformConfigMetadata,
       controlPlaneClient,
       configYamlPath,
+      orgScopeId,
     );
     newConfig = result.config;
     errors = result.errors;

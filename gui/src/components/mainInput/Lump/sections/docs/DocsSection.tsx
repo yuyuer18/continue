@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { useAuth } from "../../../../../context/Auth";
 import { useAppSelector } from "../../../../../redux/hooks";
-import { AddBlockButton } from "../AddBlockButton";
+import { ExploreBlocksButton } from "../ExploreBlocksButton";
 import DocsIndexingStatus from "./DocsIndexingStatus";
 
 function DocsIndexingStatuses() {
@@ -53,7 +53,7 @@ function DocsIndexingStatuses() {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-col gap-1 overflow-y-auto overflow-x-hidden pr-2">
+      <div className="flex flex-col overflow-y-auto overflow-x-hidden pr-2">
         {sortedConfigDocs.map((docConfig) => {
           return (
             <div
@@ -70,7 +70,7 @@ function DocsIndexingStatuses() {
           );
         })}
       </div>
-      <AddBlockButton blockType="docs" />
+      <ExploreBlocksButton blockType="docs" />
     </div>
   );
 }
