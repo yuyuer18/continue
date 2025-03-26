@@ -1,0 +1,18 @@
+{
+    "labels": {
+        "src": "源代码",
+        "resources": "资源文件",
+        "out": "编译输出",
+        ".continue": "插件文件夹2",
+        ".continue/README.md": "插件说明",
+        ".continue/manifest.json": "插件配置",
+        ".continue/src": "插件源代码",
+        ".continue/out": "插件编译输出",
+        "Dockerfile": "Dockerfile文件",
+        "data.json": "数据文件",
+        "README.md": "项目说明",
+        "test.ts": "测试文件1",
+        ".a3-explorer.json": "A3文件",
+        "query.sql": "查询.sql"
+    }
+}

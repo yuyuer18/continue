@@ -4,10 +4,9 @@ import { ToWebviewFromIdeOrCoreProtocol } from "./webview";
 import type {
   ApplyState,
   CodeToEdit,
-  ContextSubmenuItem,
   EditStatus,
   MessageContent,
-  RangeInFileWithContents,
+  RangeInFileWithContents
 } from "../";
 
 export type ToIdeFromWebviewProtocol = ToIdeFromWebviewOrCoreProtocol & {
@@ -57,6 +56,7 @@ export type ToIdeFromWebviewProtocol = ToIdeFromWebviewOrCoreProtocol & {
     void,
   ];
   "edit/exit": [{ shouldFocusEditor: boolean }, void];
+  handleGeneratePrompt: [{ selectedService: string, serverUrl: string }, void];
 };
 
 export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {

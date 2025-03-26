@@ -131,7 +131,7 @@ function AddDocsDialog() {
                 <Input
                   ref={urlRef}
                   type="url"
-                  placeholder="Start URL"
+                  placeholder="URL"
                   value={startUrl}
                   onChange={(e) => {
                     setStartUrl(e.target.value);

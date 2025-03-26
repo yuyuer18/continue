@@ -760,7 +760,7 @@ To get started, [register](https://dataplatform.cloud.ibm.com/registration/stepo
       },
       ...completionParamsInputsConfigs,
     ],
-    packages:[
+    packages: [
       models.qwen25Coder32BInstruct,
       models.llama3370BInstruct,
       models.llama318BInstruct,

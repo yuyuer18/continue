@@ -193,7 +193,7 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
           }
           props.onClose(); // Escape the mention list after creating a new prompt file
         },
-        description: "创建 .prompt 文件",
+        description: "创建.prompt文件",
       });
     }
     setLoadingSubmenuItem(items.find((item) => item.id === "loading"));

@@ -18,7 +18,9 @@ import { stripImages } from "core/util/messageContent";
 import { getUriPathBasename } from "core/util/uri";
 import * as vscode from "vscode";
 
+import { ILLM } from "core";
 import { VerticalDiffManager } from "../diff/vertical/manager";
+import { A3Prompt } from "../kodemate/A3Prompt";
 import EditDecorationManager from "../quickEdit/EditDecorationManager";
 import {
   getControlPlaneSessionInfo,
@@ -28,8 +30,6 @@ import { showTutorial } from "../util/tutorial";
 import { getExtensionUri } from "../util/vscode";
 import { VsCodeIde } from "../VsCodeIde";
 import { VsCodeWebviewProtocol } from "../webviewProtocol";
-import { ILLM } from "core";
-
 /**
  * A shared messenger class between Core and Webview
  * so we don't have to rewrite some of the handlers
@@ -110,6 +110,12 @@ export class VsCodeMessenger {
     });
     this.onWebview("toggleFullScreen", (msg) => {
       vscode.commands.executeCommand("continue.toggleFullScreen");
+    });
+
+    this.onWebview("handleGeneratePrompt", (selectedService: any) => {
+      vscode.window.showInformationMessage(
+        `Creating prompt file222 for ${JSON.stringify(selectedService.data.selectedService)}`);
+      new A3Prompt("selectedService", selectedService.data.serverUrl).createTemplateFile(selectedService.data.selectedService);
     });
 
     this.onWebview("acceptDiff", async ({ data: { filepath, streamId } }) => {
