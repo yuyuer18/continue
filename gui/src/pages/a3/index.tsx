@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import PageHeader from "../../components/PageHeader";
+import { PageHeader } from "../../components/PageHeader";
 import styles from './index.module.css';
 
 interface ServiceInfo {
