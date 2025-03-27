@@ -3,8 +3,10 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const viewSubdirectoryTool: Tool = {
   type: "function",
-  displayTitle: "查看子目录",
-  wouldLikeTo: 'view the contents of "{{{ directory_path }}}"',
+  displayTitle: "View Subdirectory",
+  wouldLikeTo: 'view a map of "{{{ directory_path }}}"',
+  isCurrently: 'getting a map of "{{{ directory_path }}}"',
+  hasAlready: 'viewed a map of "{{{ directory_path }}}"',
   readonly: true,
   group: BUILT_IN_GROUP_NAME,
   function: {

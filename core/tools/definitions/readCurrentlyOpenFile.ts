@@ -5,6 +5,8 @@ export const readCurrentlyOpenFileTool: Tool = {
   type: "function",
   displayTitle: "读取当前打开的问题",
   wouldLikeTo: "read the current file",
+  isCurrently: "reading the current file",
+  hasAlready: "read the current file",
   readonly: true,
   group: BUILT_IN_GROUP_NAME,
   function: {

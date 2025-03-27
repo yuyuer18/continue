@@ -18,12 +18,12 @@ export default function CodeToEditCard() {
   const [showAddFileCombobox, setShowAddFileCombobox] = useState(false);
   const codeToEdit = useAppSelector((state) => state.session.codeToEdit);
 
-  const title =
+  const itemCount =
     codeToEdit.length === 0
-      ? "待编辑代码"
+      ? ""
       : codeToEdit.length === 1
-        ? "待编辑代码 (1 个)"
-        : `待编辑代码 (${codeToEdit.length} 个)`;
+        ? "(1 item)"
+        : `(${codeToEdit.length} items)`;
 
   function onDelete(rif: CodeToEdit) {
     dispatch(removeCodeToEdit(rif));
@@ -57,7 +57,11 @@ export default function CodeToEditCard() {
   return (
     <div className="bg-vsc-editor-background mx-3 flex flex-col rounded-t-lg p-1">
       <div className="text-lightgray flex items-center justify-between gap-1.5 py-1.5 pl-3 pr-2 text-xs">
-        <span>{title}</span>
+        <div className="flex items-center gap-1">
+          <span>待编辑代码</span>
+          <span className="hidden sm:inline">{itemCount}</span>
+        </div>
+
         <AddFileButton onClick={() => setShowAddFileCombobox(true)} />
       </div>
 

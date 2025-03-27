@@ -63,20 +63,20 @@ export function UserSettingsForm() {
   }, [promptPath]);
 
   // TODO defaults are in multiple places, should be consolidated and probably not explicit here
-  const enableSessionTabs = config.ui?.showSessionTabs ?? false;
+  const showSessionTabs = config.ui?.showSessionTabs ?? false;
   const codeWrap = config.ui?.codeWrap ?? false;
   const showChatScrollbar = config.ui?.showChatScrollbar ?? false;
-  const formatMarkdownOutput = !(config.ui?.displayRawMarkdown ?? false);
-  const enableSessionTitles = !(config.disableSessionTitles ?? false);
   const readResponseTTS = config.experimental?.readResponseTTS ?? false;
+  const displayRawMarkdown = config.ui?.displayRawMarkdown ?? false;
+  const disableSessionTitles = config.disableSessionTitles ?? false;
 
   const allowAnonymousTelemetry = config.allowAnonymousTelemetry ?? true;
-  const enableIndexing = !(config.disableIndexing ?? false);
+  const disableIndexing = config.disableIndexing ?? false;
 
-  const useAutocompleteCache = config.tabAutocompleteOptions?.useCache ?? true;
-  const useChromiumForDocsCrawling =
-    config.experimental?.useChromiumForDocsCrawling ?? false;
-  const codeBlockToolbarPosition = config.ui?.codeBlockToolbarPosition ?? "top";
+  // const useAutocompleteCache = config.tabAutocompleteOptions?.useCache ?? true;
+  // const useChromiumForDocsCrawling =
+  //   config.experimental?.useChromiumForDocsCrawling ?? false;
+  // const codeBlockToolbarPosition = config.ui?.codeBlockToolbarPosition ?? "top";
   const useAutocompleteMultilineCompletions =
     config.tabAutocompleteOptions?.multilineCompletions ?? "auto";
   const fontSize = getFontSize();
@@ -112,10 +112,10 @@ export function UserSettingsForm() {
 
               <div className="flex flex-col gap-4">
                 <ToggleSwitch
-                  isToggled={enableSessionTabs}
+                  isToggled={showSessionTabs}
                   onToggle={() =>
                     handleUpdate({
-                      showSessionTabs: !enableSessionTabs,
+                      showSessionTabs: !showSessionTabs,
                     })
                   }
                   text="显示对话选项卡"
@@ -146,7 +146,7 @@ export function UserSettingsForm() {
                       readResponseTTS: !readResponseTTS,
                     })
                   }
-                  text="文本到语音输出"
+                  text="文本输出转语音"
                 />
 
                 {/* <ToggleSwitch
@@ -159,19 +159,19 @@ export function UserSettingsForm() {
                     text="Use Chromium for Docs Crawling"
                   /> */}
                 <ToggleSwitch
-                  isToggled={enableSessionTitles}
+                  isToggled={!disableSessionTitles}
                   onToggle={() =>
                     handleUpdate({
-                      disableSessionTitles: !enableSessionTitles,
+                      disableSessionTitles: !disableSessionTitles,
                     })
                   }
                   text="启用会话标题"
                 />
                 <ToggleSwitch
-                  isToggled={formatMarkdownOutput}
+                  isToggled={!displayRawMarkdown}
                   onToggle={() =>
                     handleUpdate({
-                      displayRawMarkdown: !formatMarkdownOutput,
+                      displayRawMarkdown: !displayRawMarkdown,
                     })
                   }
                   text="格式 Markdown"
@@ -188,10 +188,10 @@ export function UserSettingsForm() {
                 />
 
                 <ToggleSwitch
-                  isToggled={enableIndexing}
+                  isToggled={!disableIndexing}
                   onToggle={() =>
                     handleUpdate({
-                      disableIndexing: !enableIndexing,
+                      disableIndexing: !disableIndexing,
                     })
                   }
                   text="启用索引"
@@ -206,6 +206,20 @@ export function UserSettingsForm() {
                     }
                     text="Use Autocomplete Cache"
                   /> */}
+
+                <label className="flex items-center justify-between gap-3">
+                  <span className="text-left">Font Size</span>
+                  <NumberInput
+                    value={fontSize}
+                    onChange={(val) =>
+                      handleUpdate({
+                        fontSize: val,
+                      })
+                    }
+                    min={7}
+                    max={50}
+                  />
+                </label>
 
                 <label className="flex items-center justify-between gap-3">
                   <span className="line-clamp-1 text-left">
@@ -226,20 +240,6 @@ export function UserSettingsForm() {
                     <option value="always">总是</option>
                     <option value="never">从不</option>
                   </Select>
-                </label>
-
-                <label className="flex items-center justify-between gap-3">
-                  <span className="text-left">字体大小</span>
-                  <NumberInput
-                    value={fontSize}
-                    onChange={(val) =>
-                      handleUpdate({
-                        fontSize: val,
-                      })
-                    }
-                    min={7}
-                    max={50}
-                  />
                 </label>
 
                 <form

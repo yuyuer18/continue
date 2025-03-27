@@ -3,8 +3,10 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const exactSearchTool: Tool = {
   type: "function",
-  displayTitle: "精准搜索",
-  wouldLikeTo: '在仓库中搜索 "{{{ query }}}" ',
+  displayTitle: "Exact Search",
+  wouldLikeTo: 'search for "{{{ query }}}" in the repository',
+  isCurrently: 'getting search results for "{{{ query }}}"',
+  hasAlready: 'retreived search results for "{{{ query }}}"',
   readonly: true,
   group: BUILT_IN_GROUP_NAME,
   function: {
