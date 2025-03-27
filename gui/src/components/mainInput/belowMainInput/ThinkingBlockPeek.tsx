@@ -124,10 +124,10 @@ function ThinkingBlockPeek({
             <ButtonContent>
               {inProgress ? (
                 <ThinkingText>
-                  {redactedThinking ? "Redacted Thinking" : "Thinking"}
+                  {redactedThinking ? "修订思考中..." : "思考中..."}
                 </ThinkingText>
               ) : redactedThinking ? (
-                "Redacted Thinking"
+                "修订思考中..."
               ) : (
                 "思考" +
                 (elapsedTime ? ` for ${elapsedTime}` : "") +

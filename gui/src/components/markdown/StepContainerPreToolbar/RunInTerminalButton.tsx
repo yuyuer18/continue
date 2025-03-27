@@ -27,7 +27,7 @@ export default function RunInTerminalButton({
       >
         <>
           <CommandLineIcon className="h-3 w-3 hover:brightness-125" />
-          <span className="text-gray-400 max-sm:hidden">Run</span>
+          <span className="text-gray-400 max-sm:hidden">终端运行</span>
         </>
       </div>
     </div>
