@@ -106,7 +106,7 @@ export default function StepContainerPreActionButtons({
         >
           {shouldRunTerminalCmd && (
             <HeaderButtonWithToolTip
-              text="Run in terminal"
+              text="终端运行"
               style={{ backgroundColor: vscEditorBackground }}
               onClick={onClickRunTerminal}
               tooltipPlacement={toolTipPlacement}
@@ -115,7 +115,7 @@ export default function StepContainerPreActionButtons({
             </HeaderButtonWithToolTip>
           )}
           <HeaderButtonWithToolTip
-            text="Apply"
+            text="应用"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={onClickApply}
             tooltipPlacement={toolTipPlacement}
@@ -123,7 +123,7 @@ export default function StepContainerPreActionButtons({
             <PlayIcon className="h-4 w-4 text-gray-400" />
           </HeaderButtonWithToolTip>
           <HeaderButtonWithToolTip
-            text="Insert at cursor"
+            text="插入到光标处"
             style={{ backgroundColor: vscEditorBackground }}
             onClick={() =>
               ideMessenger.post("insertAtCursor", { text: codeBlockContent })
