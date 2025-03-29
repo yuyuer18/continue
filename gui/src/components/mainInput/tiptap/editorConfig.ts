@@ -48,8 +48,8 @@ export function getPlaceholderText(
   }
 
   return historyLength === 0
-    ? "向AI提问，'/' 获取提示词，'@' 添加上下文"
-    : "继续提问，'/' 获取提示词，'@' 添加上下文";
+    ? "提出问题，输入'/' 获取提示词，'@' 添加上下文"
+    : "继续提问";
 }
 
 /**

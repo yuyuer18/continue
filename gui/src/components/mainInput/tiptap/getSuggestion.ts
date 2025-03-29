@@ -5,12 +5,12 @@ import {
   ContextSubmenuItemWithProvider,
 } from "core";
 import { MutableRefObject } from "react";
-import { useNavigate } from "react-router-dom";
 import tippy from "tippy.js";
 import { IIdeMessenger } from "../../../context/IdeMessenger";
 import AtMentionDropdown from "../AtMentionDropdown";
 import { ComboBoxItem, ComboBoxItemType, ComboBoxSubAction } from "../types";
 import { TIPPY_DIV_ID } from "./TipTapEditor";
+
 function getSuggestion(
   items: (props: { query: string }) => Promise<ComboBoxItem[]>,
   enterSubmenu: (editor: Editor, providerId: string) => void = (editor) => { },
@@ -218,18 +218,16 @@ export function getSlashCommandDropdownOptions(
       type: (provider.type ?? "slashCommand") as ComboBoxItemType,
       action: provider.action,
     }));
-    const navigate = useNavigate();
+
     if (query.length === 0 && commandItems.length > 0) {
       commandItems.push({
-        title: "查找提示词",
+        title: "更多提示词",
         type: "action",
-        action: () => {
-          navigate("/a3Help")
-        },
-        // ideMessenger.post(
-        //   "openUrl",
-        //   "https://hub.continue.dev/explore/prompts",
-        // ),
+        action: () =>
+          ideMessenger.post(
+            "openUrl",
+            "https://hub.continue.dev/explore/prompts",
+          ),
         description: "",
         name: "",
         id: "",
