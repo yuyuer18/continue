@@ -30,6 +30,8 @@ export function ExploreBlocksButton(props: { blockType: string }) {
         return "MCP服务";
       case "Prompts":
         return "提示词";
+      case "models":
+        return "";
       default:
         return "API文档";
     }

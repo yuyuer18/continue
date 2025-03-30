@@ -42,7 +42,7 @@ export function LumpToolbar(props: TopToolbarProps) {
             ideMessenger.post("tts/kill", undefined);
           }}
         >
-          ■ Stop TTS
+          ■ 停止文本转语音
         </StopButton>
       </Container>
     );

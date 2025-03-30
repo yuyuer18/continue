@@ -31,11 +31,11 @@ interface Section {
 }
 
 const sections: Section[] = [
-  { id: "models", tooltip: "Models", icon: CubeIcon },
-  { id: "rules", tooltip: "Rules", icon: PencilIcon },
-  { id: "docs", tooltip: "Docs", icon: BookOpenIcon },
-  { id: "prompts", tooltip: "Prompts", icon: ChatBubbleLeftIcon },
-  { id: "tools", tooltip: "Tools", icon: WrenchScrewdriverIcon },
+  { id: "models", tooltip: "模型", icon: CubeIcon },
+  { id: "rules", tooltip: "规则", icon: PencilIcon },
+  { id: "docs", tooltip: "文档", icon: BookOpenIcon },
+  { id: "prompts", tooltip: "提示词", icon: ChatBubbleLeftIcon },
+  { id: "tools", tooltip: "工具", icon: WrenchScrewdriverIcon },
   { id: "mcp", tooltip: "MCP", icon: Squares2X2Icon },
 ];
 

@@ -11,7 +11,6 @@ import {
   updateConfig,
 } from "../../../../redux/slices/configSlice";
 import { isJetBrains } from "../../../../util";
-import { ExploreBlocksButton } from "./ExploreBlocksButton";
 
 export function ModelsSection() {
   const { selectedProfile } = useAuth();
@@ -108,7 +107,7 @@ export function ModelsSection() {
           onSelect={(model) => handleRoleUpdate("rerank", model)}
         />
       </div>
-      <ExploreBlocksButton blockType={"models"} />
+      {/* <ExploreBlocksButton blockType={"models"} /> */}
     </div>
   );
 }
