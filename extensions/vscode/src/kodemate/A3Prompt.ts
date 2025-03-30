@@ -12,15 +12,30 @@ export class A3Prompt {
         private readonly serverUrl: string
     ) { }
 
-    public async createTemplateFile(fileName: string): Promise<boolean> {
+    public async createTemplateFile(selectedService: any): Promise<boolean> {
         try {
+            console.log("selectedService", selectedService);
+            let fileName = selectedService.data.fileName;
+            let prompts = selectedService.data.prompts;
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                vscode.window.showErrorMessage("No workspace folder is open.");
+                return false;
+            }
+            const rootPath = workspaceFolders[0].name;
+            const promptsFolderPath = vscode.Uri.joinPath(workspaceFolders[0].uri, ".continue", "prompts");
+            if (!fs.existsSync(promptsFolderPath.fsPath)) {
+                fs.mkdirSync(promptsFolderPath.fsPath, { recursive: true });
+            }
             // 确保.continue目录存在
             if (!fs.existsSync(this.baseDir)) {
                 fs.mkdirSync(this.baseDir, { recursive: true });
             }
-
+            if (fileName === 'random') {
+                fileName = (rootPath.length > 10 ? rootPath.substring(0, 9) : rootPath) + "_" + Math.floor(Math.random() * prompts.length)
+            }
             fileName = fileName + ".prompt";
-            const targetPath = path.join(this.baseDir, fileName);
+            const targetPath = path.join(promptsFolderPath.fsPath, fileName);
 
             // 检查目标文件是否已存在
             if (fs.existsSync(targetPath)) {
@@ -30,19 +45,28 @@ export class A3Prompt {
 
             // 从服务器下载模板文件
             try {
-                const fileUrl = `${this.serverUrl}/templates/${fileName}`;
-                const response = await vscode.workspace.fs.readFile(vscode.Uri.parse(fileUrl));
 
+                if (this.serverUrl) {
+                    const fileUrl = `${this.serverUrl}/templates/${fileName}`;
+                    prompts = await vscode.workspace.fs.readFile(vscode.Uri.parse(fileUrl));
+                }
                 // 写入文件
+                let targetFile = vscode.Uri.file(targetPath);
+                const encoder = new TextEncoder();
+                const randNum = Math.floor(Math.random() * 1000000);
+                prompts = prompts.replace("提示词主题", "提示词主题_" + randNum);
+                const uint8Array = encoder.encode(prompts);
                 await vscode.workspace.fs.writeFile(
-                    vscode.Uri.file(targetPath),
-                    response
+                    targetFile,
+                    uint8Array
                 );
+                const document = await vscode.workspace.openTextDocument(targetFile);
+                await vscode.window.showTextDocument(document);
 
-                await vscode.window.showInformationMessage(`已创建模板文件: ${fileName}`);
+                await vscode.window.showInformationMessage(`已创建提示词文件: ${fileName}`);
                 return true;
             } catch (downloadError) {
-                await vscode.window.showErrorMessage(`下载模板文件失败: ${fileName}`);
+                await vscode.window.showErrorMessage(`下载提示词文件失败: ${fileName}`);
                 return false;
             }
         } catch (error) {

@@ -155,7 +155,7 @@ function ThinkingBlockPeek({
         >
           {redactedThinking ? (
             <div className="pl-4 text-xs text-gray-400">
-              Thinking content redacted due to safety reasons.
+              出于安全原因，回复内容被编辑。
             </div>
           ) : (
             <>

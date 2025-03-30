@@ -56,7 +56,7 @@ export type ToIdeFromWebviewProtocol = ToIdeFromWebviewOrCoreProtocol & {
     void,
   ];
   "edit/exit": [{ shouldFocusEditor: boolean }, void];
-  handleGeneratePrompt: [{ selectedService: string, serverUrl: string }, void];
+  handleGeneratePrompt: [{ selectedService?: string, serverUrl?: string, prompts?: any, fileName: string }, void];
 };
 
 export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {

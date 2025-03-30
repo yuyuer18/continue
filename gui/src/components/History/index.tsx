@@ -79,7 +79,7 @@ export function History() {
         <input
           className="bg-vsc-input-background text-vsc-foreground w-full flex-1 rounded-md border border-none py-1 pl-2 pr-8 text-base outline-none focus:outline-none"
           ref={searchInputRef}
-          placeholder="Search past sessions"
+          placeholder="搜索过去的对话"
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,7 +116,7 @@ export function History() {
               <Fragment key={index}>
                 {index === 0 && date > yesterday && (
                   <tr className={HEADER_CLASS}>
-                    <td colSpan={3}>Today</td>
+                    <td colSpan={3}>今天</td>
                   </tr>
                 )}
                 {date < yesterday &&

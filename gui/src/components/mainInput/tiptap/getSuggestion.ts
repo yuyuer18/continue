@@ -162,7 +162,7 @@ export function getContextProviderDropdownOptions(
 
     if (contextProviderMatches.length) {
       contextProviderMatches.push({
-        title: "Add more context providers",
+        title: " 更多上下文提供方式",
         type: "action",
         action: () => {
           ideMessenger.post(

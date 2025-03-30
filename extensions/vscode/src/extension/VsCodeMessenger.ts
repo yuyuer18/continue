@@ -113,9 +113,7 @@ export class VsCodeMessenger {
     });
 
     this.onWebview("handleGeneratePrompt", (selectedService: any) => {
-      vscode.window.showInformationMessage(
-        `Creating prompt file222 for ${JSON.stringify(selectedService.data.selectedService)}`);
-      new A3Prompt("selectedService", selectedService.data.serverUrl).createTemplateFile(selectedService.data.selectedService);
+      new A3Prompt("selectedService", selectedService.data.serverUrl).createTemplateFile(selectedService);
     });
 
     this.onWebview("acceptDiff", async ({ data: { filepath, streamId } }) => {

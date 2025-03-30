@@ -83,9 +83,10 @@ const A3CloudPromptManager: React.FC = () => {
     const handleGeneratePrompt = () => {
         ideMessenger.post("handleGeneratePrompt", { 
             selectedService: selectedService,
-            serverUrl: serverUrl  // 添加服务器地址
+            serverUrl: serverUrl,  // 添加服务器地址
+            fileName: selectedService
+
         });
-        console.log(`Generating prompt for ${selectedService} using server: ${serverUrl}`);
     };
 
     // 修改 setServerUrl 的处理函数

@@ -22,18 +22,40 @@ export function ExploreBlocksButton(props: { blockType: string }) {
   const isLocal = selectedProfile?.profileType === "local";
 
   const Icon = isLocal ? PlusIcon : ArrowTopRightOnSquareIcon;
-  const text = `${isLocal ? "Add" : "Explore"} ${
+    const getBlockName = (blockType: string) => {
+    switch (blockType) {
+      case "docs":
+        return "docs";
+      case "MCP servers":
+        return "MCP服务";
+      case "Prompts":
+        return "提示词";
+      default:
+        return "API文档";
+    }
+  }
+
+  const text = `${isLocal ? "添加" : "Explore"} ${
     props.blockType === "mcpServers"
-      ? "MCP Servers"
-      : props.blockType.charAt(0).toUpperCase() + props.blockType.slice(1)
+      ? "MCP 服务"
+      : getBlockName(props.blockType.charAt(0).toUpperCase() + props.blockType.slice(1))
   }`;
+
+
 
   const handleClick = () => {
     if (isLocal) {
+      console.log("isLocal", props.blockType);
       switch (props.blockType) {
         case "docs":
           dispatch(setShowDialog(true));
           dispatch(setDialogMessage(<AddDocsDialog />));
+          break;
+        case "prompts": // 新增提示词
+          ideMessenger.post("handleGeneratePrompt", {
+            fileName: 'random',
+            prompts:`name: 提示词主题\ndescription: 提示词描述\n---\n该程序请采用Vue2+ElementUI架构\n表单使用a3-ow-info组件`
+          });
           break;
         default:
           ideMessenger.request("config/openProfile", {
