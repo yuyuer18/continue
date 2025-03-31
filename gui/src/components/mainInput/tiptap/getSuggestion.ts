@@ -203,10 +203,10 @@ export function getSlashCommandDropdownOptions(
     const filteredCommands =
       query.length > 0
         ? options.filter((slashCommand) => {
-          const sc = slashCommand.title.substring(1).toLowerCase();
-          const iv = query.toLowerCase();
-          return sc.startsWith(iv);
-        })
+            const sc = slashCommand.title.toLowerCase();
+            const iv = query.toLowerCase();
+            return sc.startsWith(iv);
+          })
         : options;
 
     const commandItems = (filteredCommands || []).map((provider) => ({
@@ -219,7 +219,7 @@ export function getSlashCommandDropdownOptions(
       action: provider.action,
     }));
 
-    if (query.length === 0 && commandItems.length > 0) {
+    if (query.length === 0 && commandItems.length === 0) {
       commandItems.push({
         title: "更多提示词",
         type: "action",
