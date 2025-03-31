@@ -244,7 +244,7 @@ function InputToolbar(props: InputToolbarProps) {
             disabled={isEnterDisabled}
           >
             <span className="hidden md:inline">
-              ⏎ {props.toolbarOptions?.enterText ?? "Enter"}
+              ⏎ {props.toolbarOptions?.enterText ?? "发送"}
             </span>
             <span className="md:hidden">⏎</span>
           </EnterButton>
