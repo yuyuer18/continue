@@ -1,6 +1,6 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { ContextItemWithId, InputModifiers } from "core";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import styled, { keyframes } from "styled-components";
 import { defaultBorderRadius, vscBackground } from "..";
 import { useAppSelector } from "../../redux/hooks";
@@ -100,25 +100,23 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = props.isEditMode ? "edit" : "chat";
   const placeholder = props.isEditMode
-    ? "请描述您的问题 - 可使用 '#' 增加文件"
+    ? "Describe how to modify the code - use '#' to add files"
     : undefined;
 
   const toolbarOptions: ToolbarOptions = props.isEditMode
     ? {
-      hideAddContext: false,
-      hideImageUpload: false,
-      hideUseCodebase: true,
-      hideSelectModel: false,
-      enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
-    }
+        hideAddContext: false,
+        hideImageUpload: false,
+        hideUseCodebase: true,
+        hideSelectModel: false,
+        enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
+      }
     : {};
-
-  const [lumpOpen, setLumpOpen] = useState(true);
 
   return (
     <div className={`${props.hidden ? "hidden" : ""}`}>
       <div className={`relative flex flex-col px-2`}>
-        {props.isMainInput && <Lump open={lumpOpen} setOpen={setLumpOpen} />}
+        {props.isMainInput && <Lump />}
         <GradientBorder
           loading={isStreaming && props.isLastUserInput ? 1 : 0}
           borderColor={
@@ -135,8 +133,6 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
             availableSlashCommands={filteredSlashCommands}
             historyKey={historyKey}
             toolbarOptions={toolbarOptions}
-            lumpOpen={lumpOpen}
-            setLumpOpen={setLumpOpen}
             inputId={props.inputId}
           />
         </GradientBorder>
