@@ -121,7 +121,7 @@ export function UserSettingsForm() {
       {!controlServerBetaEnabled || hubEnabled ? (
         <div className="flex flex-col gap-4 py-4">
           <div>
-            <h2 className="mb-2 mt-0 p-0">User settings</h2>
+            <h2 className="mb-2 mt-0 p-0">用户设置</h2>
           </div>
 
           <div className="flex flex-col gap-4">
@@ -132,7 +132,7 @@ export function UserSettingsForm() {
                   showSessionTabs: !showSessionTabs,
                 })
               }
-              text="Show Session Tabs"
+              text="显示会话选项卡"
             />
             <ToggleSwitch
               isToggled={codeWrap}
@@ -141,7 +141,7 @@ export function UserSettingsForm() {
                   codeWrap: !codeWrap,
                 })
               }
-              text="Wrap Codeblocks"
+              text="包装代码块"
             />
 
             <ToggleSwitch
@@ -151,7 +151,7 @@ export function UserSettingsForm() {
                   showChatScrollbar: !showChatScrollbar,
                 })
               }
-              text="Show Chat Scrollbar"
+              text="显示对话滚动条"
             />
             <ToggleSwitch
               isToggled={readResponseTTS}
@@ -160,7 +160,7 @@ export function UserSettingsForm() {
                   readResponseTTS: !readResponseTTS,
                 })
               }
-              text="Text-to-Speech Output"
+              text="文本转语音"
             />
 
             {/* <ToggleSwitch
@@ -179,7 +179,7 @@ export function UserSettingsForm() {
                   disableSessionTitles: !disableSessionTitles,
                 })
               }
-              text="Enable Session Titles"
+              text="启用会话标题"
             />
             <ToggleSwitch
               isToggled={!displayRawMarkdown}
@@ -188,7 +188,7 @@ export function UserSettingsForm() {
                   displayRawMarkdown: !displayRawMarkdown,
                 })
               }
-              text="Format Markdown"
+              text="格式 Markdown"
             />
 
             <ToggleSwitch
@@ -198,7 +198,7 @@ export function UserSettingsForm() {
                   allowAnonymousTelemetry: !allowAnonymousTelemetry,
                 })
               }
-              text="Allow Anonymous Telemetry"
+              text="允许匿名遥测"
             />
 
             <ToggleSwitch
@@ -208,7 +208,7 @@ export function UserSettingsForm() {
                   disableIndexing: !disableIndexing,
                 })
               }
-              text="Enable Indexing"
+              text="启用索引"
             />
 
             {/* <ToggleSwitch
@@ -222,7 +222,7 @@ export function UserSettingsForm() {
                   /> */}
 
             <label className="flex items-center justify-between gap-3">
-              <span className="text-left">Font Size</span>
+              <span className="text-left">字体大小</span>
               <NumberInput
                 value={fontSize}
                 onChange={(val) =>
@@ -237,7 +237,7 @@ export function UserSettingsForm() {
 
             <label className="flex items-center justify-between gap-3">
               <span className="line-clamp-1 text-left">
-                Multiline Autocompletions
+                多线程自动完成
               </span>
               <Select
                 value={useAutocompleteMultilineCompletions}
@@ -250,9 +250,9 @@ export function UserSettingsForm() {
                   })
                 }
               >
-                <option value="auto">Auto</option>
-                <option value="always">Always</option>
-                <option value="never">Never</option>
+                <option value="auto">自动</option>
+                <option value="always">一直</option>
+                <option value="never">从不</option>
               </Select>
             </label>
 
@@ -264,7 +264,7 @@ export function UserSettingsForm() {
               }}
             >
               <div className="flex items-center justify-between">
-                <span>Disable autocomplete in files</span>
+                <span>文件禁用自动完成</span>
                 <div className="flex items-center gap-2">
                   <Input
                     value={formDisableAutocomplete}
@@ -298,7 +298,7 @@ export function UserSettingsForm() {
                 </div>
               </div>
               <span className="text-vsc-foreground-muted text-lightgray self-end text-xs">
-                Comma-separated list of path matchers
+               路径匹配器列表通过逗号分隔
               </span>
             </form>
           </div>

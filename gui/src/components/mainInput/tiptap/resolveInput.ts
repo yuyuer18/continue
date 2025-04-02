@@ -225,9 +225,9 @@ function resolveParagraph(
       contextItems.push(child.attrs as MentionAttrs);
     } else if (child.type === "slashcommand") {
       if (typeof slashCommand === "undefined") {
-        slashCommand = child.attrs?.id;
+        slashCommand = (child.attrs?.content || child.attrs?.label || child.attrs?.id);
       } else {
-        text += child.attrs?.label;
+        text += (child.attrs?.content || child.attrs?.label);
       }
     } else {
       console.warn("Unexpected child type", child.type);

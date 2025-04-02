@@ -214,6 +214,7 @@ export function getSlashCommandDropdownOptions(
       description: provider.description,
       id: provider.title,
       title: provider.title,
+      content: provider.content,
       label: provider.title,
       type: (provider.type ?? "slashCommand") as ComboBoxItemType,
       action: provider.action,
@@ -223,6 +224,7 @@ export function getSlashCommandDropdownOptions(
       commandItems.push({
         title: "更多提示词",
         type: "action",
+        content: "",
         action: () =>
           ideMessenger.post(
             "openUrl",

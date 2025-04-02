@@ -104,6 +104,19 @@ export const SlashCommand = Node.create<SlashCommandOptions>({
           };
         },
       },
+      content: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-content"),
+        renderHTML: (attributes) => {
+          if (!attributes.content) {
+            return {};
+          }
+
+          return {
+            "data-content": attributes.content,
+          };
+        },
+      },
     };
   },
 
