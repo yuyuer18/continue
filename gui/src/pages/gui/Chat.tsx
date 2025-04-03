@@ -235,7 +235,8 @@ export function Chat() {
       console.error("No selected chat model");
       return;
     }
-    const [contextItems, __, userInstructions] = await resolveEditorContent({
+
+    const [contextItems, __, userInstructions, _] = await resolveEditorContent({
       editorState,
       modifiers: {
         noContext: true,
@@ -243,6 +244,7 @@ export function Chat() {
       },
       ideMessenger,
       defaultContextProviders: [],
+      availableSlashCommands: [],
       dispatch,
       selectedModelTitle: defaultModel.title,
     });
@@ -428,7 +430,7 @@ export function Chat() {
                     className="flex items-center gap-2"
                   >
                     <ArrowLeftIcon className="h-3 w-3" />
-                    <span className="text-xs">上一会话</span>
+                    <span className="text-xs">上一对话</span>
                   </NewSessionButton>
                 </div>
               )}
