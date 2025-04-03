@@ -112,7 +112,7 @@ export default function Reasoning(props: ReasoningProps) {
       <SpoilerButton onClick={() => setOpen(!open)}>
         <ButtonContent>
           {isThinking ? (
-            <ThinkingText>Thinking</ThinkingText>
+            <ThinkingText>思考中</ThinkingText>
           ) : (
             `思考 ${reasoningTime}`
           )}
