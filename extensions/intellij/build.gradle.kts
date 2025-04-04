@@ -30,6 +30,16 @@ repositories {
     mavenCentral()
     maven { url = uri("https://maven.aliyun.com/repository/public") }
     maven { url = uri("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies") }
+    maven { url = uri("https://maven.aliyun.com/repository/public") }
+    maven { url = uri("https://maven.aliyun.com/repository/spring") }
+    maven { url = uri( "https://maven.aliyun.com/repository/google" )}
+    maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
+    maven { url = uri("https://maven.aliyun.com/repository/spring-plugin") }
+    maven { url = uri("https://maven.aliyun.com/repository/grails-core") }
+    maven { url = uri( "https://maven.aliyun.com/repository/apache-snapshots") }
+    maven { url = uri("https://maven.aliyun.com/repository/jcenter") }
+    maven { url = uri("https://maven.aliyun.com/repository/central") }
+
 }
 
 // Dependencies are managed with Gradle version catalog - read more:
