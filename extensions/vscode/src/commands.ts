@@ -545,10 +545,193 @@ const getCommandsMap: (
           editor.document.fileName,
         );
 
-        // If there's a diff currently being applied, then we just toggle focus back to the input
-        if (existingDiff) {
-          sidebar.webviewProtocol?.request("focusContinueInput", undefined);
-          return;
+        // Un-select the current selection
+        editor.selection = new vscode.Selection(
+          editor.selection.anchor,
+          editor.selection.anchor,
+        );
+      }
+    },
+    "continue.focusEditWithoutClear": async () => {
+      captureCommandTelemetry("focusEditWithoutClear");
+      focusGUI();
+
+      sidebar.webviewProtocol?.request("focusEditWithoutClear", undefined);
+
+      const editor = vscode.window.activeTextEditor;
+
+      if (!editor) {
+        return;
+      }
+
+      const document = editor.document;
+
+      const existingDiff = verticalDiffManager.getHandlerForFile(
+        document.fileName,
+      );
+
+      // If there's a diff currently being applied, then we just toggle focus back to the input
+      if (existingDiff) {
+        sidebar.webviewProtocol?.request("focusContinueInput", undefined);
+        return;
+      }
+
+      const rangeInFileWithContents = getRangeInFileWithContents(false);
+
+      if (rangeInFileWithContents) {
+        sidebar.webviewProtocol?.request(
+          "addCodeToEdit",
+          rangeInFileWithContents,
+        );
+      } else {
+        const contents = document.getText();
+
+        sidebar.webviewProtocol?.request("addCodeToEdit", {
+          filepath: document.uri.toString(),
+          contents,
+        });
+      }
+    },
+    "continue.exitEditMode": async () => {
+      captureCommandTelemetry("exitEditMode");
+      editDecorationManager.clear();
+      void sidebar.webviewProtocol?.request("exitEditMode", undefined);
+    },
+    "continue.writeCommentsForCode": async () => {
+      captureCommandTelemetry("writeCommentsForCode");
+
+      streamInlineEdit(
+        "comment",
+        "Write comments for this code. Do not change anything about the code itself.",
+      );
+    },
+    "continue.writeDocstringForCode": async () => {
+      captureCommandTelemetry("writeDocstringForCode");
+
+      streamInlineEdit(
+        "docstring",
+        "Write a docstring for this code. Do not change anything about the code itself.",
+        true,
+      );
+    },
+    "continue.fixCode": async () => {
+      captureCommandTelemetry("fixCode");
+
+      streamInlineEdit(
+        "fix",
+        "Fix this code. If it is already 100% correct, simply rewrite the code.",
+      );
+    },
+    "continue.optimizeCode": async () => {
+      captureCommandTelemetry("optimizeCode");
+      streamInlineEdit("optimize", "Optimize this code");
+    },
+    "continue.fixGrammar": async () => {
+      captureCommandTelemetry("fixGrammar");
+      streamInlineEdit(
+        "fixGrammar",
+        "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
+      );
+    },
+    "continue.viewLogs": async () => {
+      captureCommandTelemetry("viewLogs");
+      vscode.commands.executeCommand("workbench.action.toggleDevTools");
+    },
+    "continue.debugTerminal": async () => {
+      captureCommandTelemetry("debugTerminal");
+
+      const terminalContents = await ide.getTerminalContents();
+
+      vscode.commands.executeCommand("continue.continueGUIView.focus");
+
+      sidebar.webviewProtocol?.request("userInput", {
+        input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
+      });
+    },
+    "continue.hideInlineTip": () => {
+      vscode.workspace
+        .getConfiguration(EXTENSION_NAME)
+        .update("showInlineTip", false, vscode.ConfigurationTarget.Global);
+    },
+
+    // Commands without keyboard shortcuts
+    "continue.addModel": () => {
+      captureCommandTelemetry("addModel");
+
+      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      sidebar.webviewProtocol?.request("addModel", undefined);
+    },
+    "continue.newSession": () => {
+      sidebar.webviewProtocol?.request("newSession", undefined);
+    },
+    "continue.viewHistory": () => {
+      vscode.commands.executeCommand("continue.navigateTo", "/history", true);
+    },
+    "continue.focusContinueSessionId": async (
+      sessionId: string | undefined,
+    ) => {
+      if (!sessionId) {
+        sessionId = await vscode.window.showInputBox({
+          prompt: "Enter the Session ID",
+        });
+      }
+      void sidebar.webviewProtocol?.request("focusContinueSessionId", {
+        sessionId,
+      });
+    },
+    "continue.applyCodeFromChat": () => {
+      void sidebar.webviewProtocol.request("applyCodeFromChat", undefined);
+    },
+    "continue.toggleFullScreen": async () => {
+      focusGUI();
+
+      const sessionId = await sidebar.webviewProtocol.request(
+        "getCurrentSessionId",
+        undefined,
+      );
+      // Check if full screen is already open by checking open tabs
+      const fullScreenTab = getFullScreenTab();
+
+      if (fullScreenTab && fullScreenPanel) {
+        // Full screen open, but not focused - focus it
+        fullScreenPanel.reveal();
+        return;
+      }
+
+      // Clear the sidebar to prevent overwriting changes made in fullscreen
+      vscode.commands.executeCommand("continue.newSession");
+
+      // Full screen not open - open it
+      captureCommandTelemetry("openFullScreen");
+
+      // Create the full screen panel
+      let panel = vscode.window.createWebviewPanel(
+        "continue.continueGUIView",
+        "Continue",
+        vscode.ViewColumn.One,
+        {
+          retainContextWhenHidden: true,
+          enableScripts: true,
+        },
+      );
+      fullScreenPanel = panel;
+
+      // Add content to the panel
+      panel.webview.html = sidebar.getSidebarContent(
+        extensionContext,
+        panel,
+        undefined,
+        undefined,
+        true,
+      );
+
+      const sessionLoader = panel.onDidChangeViewState(() => {
+        vscode.commands.executeCommand("continue.newSession");
+        if (sessionId) {
+          vscode.commands.executeCommand(
+            "continue.focusContinueSessionId",
+            sessionId,
+          );
         }
 
         const startFromCharZero = editor.selection.start.with(undefined, 0);
