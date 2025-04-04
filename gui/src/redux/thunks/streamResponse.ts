@@ -107,12 +107,12 @@ export const streamResponseThunk = createAsyncThunk<
               messages,
               legacySlashCommandData: slashCommandWithInput
                 ? {
-                  command: slashCommandWithInput.command,
-                  contextItems: selectedContextItems,
-                  historyIndex: inputIndex,
-                  input: slashCommandWithInput.input,
-                  selectedCode,
-                }
+                    command: slashCommandWithInput.command,
+                    contextItems: selectedContextItems,
+                    historyIndex: inputIndex,
+                    input: slashCommandWithInput.input,
+                    selectedCode,
+                  }
                 : undefined,
             }),
           ),
