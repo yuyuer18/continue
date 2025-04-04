@@ -75,7 +75,7 @@ intellij {
     pluginName = properties("pluginName")
     version = properties("platformVersion")
     type = properties("platformType")
-
+    localPath = "/var/jenkins_app/ideaIC"
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins =
         properties("platformPlugins").map {
