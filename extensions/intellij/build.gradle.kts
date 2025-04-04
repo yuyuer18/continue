@@ -28,6 +28,7 @@ version = properties("pluginVersion").get()
 // Configure project's dependencies
 repositories {
     mavenCentral()
+    maven { url = uri("https://maven.aliyun.com/repository/public") }
     maven { url = uri("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies") }
 }
 
@@ -73,9 +74,9 @@ kotlin { jvmToolchain(17) }
 // https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName = properties("pluginName")
-//    version = properties("platformVersion")
+    version = properties("platformVersion")
     type = properties("platformType")
-    localPath = "/var/jenkins_app/ideaIC"
+//    localPath = "D:\\software\\JetBrains\\ideaIC-2022.3.3"
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins =
         properties("platformPlugins").map {
