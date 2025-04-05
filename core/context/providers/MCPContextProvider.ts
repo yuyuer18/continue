@@ -1,10 +1,10 @@
 import { BaseContextProvider } from "../";
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
-  ContextSubmenuItem,
-  LoadSubmenuItemsArgs,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
+    ContextSubmenuItem,
+    LoadSubmenuItemsArgs,
 } from "../../";
 import { MCPManagerSingleton } from "../mcp";
 
@@ -17,7 +17,7 @@ class MCPContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "mcp",
     displayTitle: "MCP",
-    description: "Model Context Protocol",
+    description: "MCP模型上下文协议",
     type: "submenu",
   };
 

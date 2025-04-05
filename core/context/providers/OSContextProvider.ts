@@ -1,17 +1,17 @@
 import os from "os";
 
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
 } from "../../index.js";
 import { BaseContextProvider } from "../index.js";
 
 class OSContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "os",
-    displayTitle: "Operating System",
-    description: "Operating system and CPU Information.",
+    displayTitle: "操作系统",
+    description: "操作系统和 CPU 信息。.",
     type: "normal",
   };
 

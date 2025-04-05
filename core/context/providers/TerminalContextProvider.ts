@@ -8,8 +8,8 @@ import { BaseContextProvider } from "../index.js";
 class TerminalContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "terminal",
-    displayTitle: "Terminal",
-    description: "Reference the last terminal command",
+    displayTitle: "终端",
+    description: "引用最后一个终端命令",
     type: "normal",
   };
 

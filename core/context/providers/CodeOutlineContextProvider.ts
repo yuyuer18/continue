@@ -9,7 +9,7 @@ class CodeOutlineContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "outline",
     displayTitle: "Outline",
-    description: "Definition lines only (from open files)",
+    description: "定义行只有 (从打开的文件)",
     type: "normal",
     renderInlineAs: "",
   };

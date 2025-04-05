@@ -10,8 +10,8 @@ const HIGHLIGHTS_TOKEN_BUDGET = 2000;
 class CodeHighlightsContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "highlights",
-    displayTitle: "Highlights",
-    description: "Code highlights from open files",
+    displayTitle: "高亮代码",
+    description: "打开文件中的代码高亮显示",
     type: "normal",
     renderInlineAs: "",
   };

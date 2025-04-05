@@ -46,7 +46,7 @@ let fullScreenPanel: vscode.WebviewPanel | undefined;
 function getFullScreenTab() {
   const tabs = vscode.window.tabGroups.all.flatMap((tabGroup) => tabGroup.tabs);
   return tabs.find((tab) =>
-    (tab.input as any)?.viewType?.endsWith("Amarsoft.kodemate-aiGUIView"),
+    (tab.input as any)?.viewType?.endsWith("continue.continueGUIView"),
   );
 }
 
@@ -223,7 +223,7 @@ function focusGUI() {
     fullScreenPanel?.reveal();
   } else {
     // focus sidebar
-    vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+    vscode.commands.executeCommand("continue.continueGUIView.focus");
     // vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar");
   }
 }
@@ -415,7 +415,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
       },
       // Passthrough for telemetry purposes
       "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -430,7 +430,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
       },
       "continue.customQuickActionStreamInlineEdit": async (
         prompt: string,
@@ -545,193 +545,10 @@ const getCommandsMap: (
           editor.document.fileName,
         );
 
-        // Un-select the current selection
-        editor.selection = new vscode.Selection(
-          editor.selection.anchor,
-          editor.selection.anchor,
-        );
-      }
-    },
-    "continue.focusEditWithoutClear": async () => {
-      captureCommandTelemetry("focusEditWithoutClear");
-      focusGUI();
-
-      sidebar.webviewProtocol?.request("focusEditWithoutClear", undefined);
-
-      const editor = vscode.window.activeTextEditor;
-
-      if (!editor) {
-        return;
-      }
-
-      const document = editor.document;
-
-      const existingDiff = verticalDiffManager.getHandlerForFile(
-        document.fileName,
-      );
-
-      // If there's a diff currently being applied, then we just toggle focus back to the input
-      if (existingDiff) {
-        sidebar.webviewProtocol?.request("focusContinueInput", undefined);
-        return;
-      }
-
-      const rangeInFileWithContents = getRangeInFileWithContents(false);
-
-      if (rangeInFileWithContents) {
-        sidebar.webviewProtocol?.request(
-          "addCodeToEdit",
-          rangeInFileWithContents,
-        );
-      } else {
-        const contents = document.getText();
-
-        sidebar.webviewProtocol?.request("addCodeToEdit", {
-          filepath: document.uri.toString(),
-          contents,
-        });
-      }
-    },
-    "continue.exitEditMode": async () => {
-      captureCommandTelemetry("exitEditMode");
-      editDecorationManager.clear();
-      void sidebar.webviewProtocol?.request("exitEditMode", undefined);
-    },
-    "continue.writeCommentsForCode": async () => {
-      captureCommandTelemetry("writeCommentsForCode");
-
-      streamInlineEdit(
-        "comment",
-        "Write comments for this code. Do not change anything about the code itself.",
-      );
-    },
-    "continue.writeDocstringForCode": async () => {
-      captureCommandTelemetry("writeDocstringForCode");
-
-      streamInlineEdit(
-        "docstring",
-        "Write a docstring for this code. Do not change anything about the code itself.",
-        true,
-      );
-    },
-    "continue.fixCode": async () => {
-      captureCommandTelemetry("fixCode");
-
-      streamInlineEdit(
-        "fix",
-        "Fix this code. If it is already 100% correct, simply rewrite the code.",
-      );
-    },
-    "continue.optimizeCode": async () => {
-      captureCommandTelemetry("optimizeCode");
-      streamInlineEdit("optimize", "Optimize this code");
-    },
-    "continue.fixGrammar": async () => {
-      captureCommandTelemetry("fixGrammar");
-      streamInlineEdit(
-        "fixGrammar",
-        "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
-      );
-    },
-    "continue.viewLogs": async () => {
-      captureCommandTelemetry("viewLogs");
-      vscode.commands.executeCommand("workbench.action.toggleDevTools");
-    },
-    "continue.debugTerminal": async () => {
-      captureCommandTelemetry("debugTerminal");
-
-      const terminalContents = await ide.getTerminalContents();
-
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
-
-      sidebar.webviewProtocol?.request("userInput", {
-        input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
-      });
-    },
-    "continue.hideInlineTip": () => {
-      vscode.workspace
-        .getConfiguration(EXTENSION_NAME)
-        .update("showInlineTip", false, vscode.ConfigurationTarget.Global);
-    },
-
-    // Commands without keyboard shortcuts
-    "continue.addModel": () => {
-      captureCommandTelemetry("addModel");
-
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
-      sidebar.webviewProtocol?.request("addModel", undefined);
-    },
-    "continue.newSession": () => {
-      sidebar.webviewProtocol?.request("newSession", undefined);
-    },
-    "continue.viewHistory": () => {
-      vscode.commands.executeCommand("continue.navigateTo", "/history", true);
-    },
-    "continue.focusContinueSessionId": async (
-      sessionId: string | undefined,
-    ) => {
-      if (!sessionId) {
-        sessionId = await vscode.window.showInputBox({
-          prompt: "Enter the Session ID",
-        });
-      }
-      void sidebar.webviewProtocol?.request("focusContinueSessionId", {
-        sessionId,
-      });
-    },
-    "continue.applyCodeFromChat": () => {
-      void sidebar.webviewProtocol.request("applyCodeFromChat", undefined);
-    },
-    "continue.toggleFullScreen": async () => {
-      focusGUI();
-
-      const sessionId = await sidebar.webviewProtocol.request(
-        "getCurrentSessionId",
-        undefined,
-      );
-      // Check if full screen is already open by checking open tabs
-      const fullScreenTab = getFullScreenTab();
-
-      if (fullScreenTab && fullScreenPanel) {
-        // Full screen open, but not focused - focus it
-        fullScreenPanel.reveal();
-        return;
-      }
-
-      // Clear the sidebar to prevent overwriting changes made in fullscreen
-      vscode.commands.executeCommand("continue.newSession");
-
-      // Full screen not open - open it
-      captureCommandTelemetry("openFullScreen");
-
-      // Create the full screen panel
-      let panel = vscode.window.createWebviewPanel(
-        "continue.continueGUIView",
-        "Continue",
-        vscode.ViewColumn.One,
-        {
-          retainContextWhenHidden: true,
-          enableScripts: true,
-        },
-      );
-      fullScreenPanel = panel;
-
-      // Add content to the panel
-      panel.webview.html = sidebar.getSidebarContent(
-        extensionContext,
-        panel,
-        undefined,
-        undefined,
-        true,
-      );
-
-      const sessionLoader = panel.onDidChangeViewState(() => {
-        vscode.commands.executeCommand("continue.newSession");
-        if (sessionId) {
-          vscode.commands.executeCommand(
-            "continue.focusContinueSessionId",
-            sessionId,
-          );
+        // If there's a diff currently being applied, then we just toggle focus back to the input
+        if (existingDiff) {
+          sidebar.webviewProtocol?.request("focusContinueInput", undefined);
+          return;
         }
 
         const startFromCharZero = editor.selection.start.with(undefined, 0);
@@ -817,16 +634,6 @@ const getCommandsMap: (
         editDecorationManager.clear();
         void sidebar.webviewProtocol?.request("exitEditMode", undefined);
       },
-      // "continue.quickEdit": async (args: QuickEditShowParams) => {
-      //   let linesOfCode = undefined;
-      //   if (args.range) {
-      //     linesOfCode = args.range.end.line - args.range.start.line;
-      //   }
-      //   captureCommandTelemetry("quickEdit", {
-      //     linesOfCode,
-      //   });
-      //   quickEdit.show(args);
-      // },
       "continue.writeCommentsForCode": async () => {
         captureCommandTelemetry("writeCommentsForCode");
 
@@ -872,7 +679,7 @@ const getCommandsMap: (
 
         const terminalContents = await ide.getTerminalContents();
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
 
         sidebar.webviewProtocol?.request("userInput", {
           input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
@@ -888,39 +695,8 @@ const getCommandsMap: (
       "continue.addModel": () => {
         captureCommandTelemetry("addModel");
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
         sidebar.webviewProtocol?.request("addModel", undefined);
-      },
-      "continue.sendMainUserInput": (text: string) => {
-        sidebar.webviewProtocol?.request("userInput", {
-          input: text,
-        });
-      },
-      "continue.selectRange": (startLine: number, endLine: number) => {
-        if (!vscode.window.activeTextEditor) {
-          return;
-        }
-        vscode.window.activeTextEditor.selection = new vscode.Selection(
-          startLine,
-          0,
-          endLine,
-          0,
-        );
-      },
-      "continue.foldAndUnfold": (
-        foldSelectionLines: number[],
-        unfoldSelectionLines: number[],
-      ) => {
-        vscode.commands.executeCommand("editor.unfold", {
-          selectionLines: unfoldSelectionLines,
-        });
-        vscode.commands.executeCommand("editor.fold", {
-          selectionLines: foldSelectionLines,
-        });
-      },
-      "continue.sendToTerminal": (text: string) => {
-        captureCommandTelemetry("sendToTerminal");
-        ide.runCommand(text);
       },
       "continue.newSession": () => {
         sidebar.webviewProtocol?.request("newSession", undefined);
@@ -970,7 +746,7 @@ const getCommandsMap: (
 
         // Create the full screen panel
         let panel = vscode.window.createWebviewPanel(
-          "Amarsoft.kodemate-aiGUIView",
+          "continue.continueGUIView",
           "Continue",
           vscode.ViewColumn.One,
           {
@@ -1025,7 +801,7 @@ const getCommandsMap: (
           throw new Error("No files were selected");
         }
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
 
         for (const uri of uris) {
           // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
@@ -1125,14 +901,14 @@ const getCommandsMap: (
 
         quickPick.items = [
           {
-            label: "$(question) 帮助中心",
+            label: "$(question) Open help center",
           },
           {
-            label: "$(comment) 对话",
+            label: "$(comment) Open chat",
             description: getMetaKeyLabel() + " + L",
           },
           {
-            label: "$(screen-full) 全屏",
+            label: "$(screen-full) Open full screen chat",
             description:
               getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
           },
@@ -1140,7 +916,7 @@ const getCommandsMap: (
             label: quickPickStatusText(targetStatus),
           },
           {
-            label: "$(feedback) 问题反馈",
+            label: "$(feedback) Give feedback",
           },
           {
             kind: vscode.QuickPickItemKind.Separator,
@@ -1174,15 +950,12 @@ const getCommandsMap: (
                 title: selectedOption,
               });
             }
-          } else if (selectedOption === "$(feedback) 问题反馈") {
+          } else if (selectedOption === "$(feedback) Give feedback") {
             vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
-          } else if (selectedOption === "$(comment) 对话") {
+          } else if (selectedOption === "$(comment) Open chat") {
             vscode.commands.executeCommand("continue.focusContinueInput");
-          } else if (selectedOption === "$(screen-full) 全屏") {
+          } else if (selectedOption === "$(screen-full) Open full screen chat") {
             vscode.commands.executeCommand("continue.toggleFullScreen");
-          } else if (selectedOption === "$(question) 帮助中心") {
-            focusGUI();
-            vscode.commands.executeCommand("continue.navigateTo", "/more", true);
           }
           quickPick.dispose();
         });
@@ -1201,41 +974,38 @@ const getCommandsMap: (
             LOCAL_DEV_DATA_VERSION,
           );
 
-        const lastLines = await readLastLines.read(completionsPath, 2);
-        client.sendFeedback(feedback, lastLines);
-      }
-    },
-    "continue.openMorePage": () => {
-      vscode.commands.executeCommand("continue.navigateTo", "/more", true);
-    },
-    "continue.navigateTo": (path: string, toggle: boolean) => {
-      sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
-      focusGUI();
-    },
-    "continue.startLocalOllama": () => {
-      startLocalOllama(ide);
-    },
-    "continue.installModel": async (
-      modelName: string,
-      llmProvider: ILLM | undefined,
-    ) => {
-      try {
-        if (!isModelInstaller(llmProvider)) {
-          const msg = llmProvider
-            ? `LLM provider '${llmProvider.providerName}' does not support installing models`
-            : "Missing LLM Provider";
-          throw new Error(msg);
+          const lastLines = await readLastLines.read(completionsPath, 2);
+          client.sendFeedback(feedback, lastLines);
         }
-        await installModelWithProgress(modelName, llmProvider);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        vscode.window.showErrorMessage(
-          `Failed to install '${modelName}': ${message}`,
-        );
-      }
-    },
+      },
+      "continue.navigateTo": (path: string, toggle: boolean) => {
+        sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
+        focusGUI();
+      },
+      "continue.startLocalOllama": () => {
+        startLocalOllama(ide);
+      },
+      "continue.installModel": async (
+        modelName: string,
+        llmProvider: ILLM | undefined,
+      ) => {
+        try {
+          if (!isModelInstaller(llmProvider)) {
+            const msg = llmProvider
+              ? `LLM provider '${llmProvider.providerName}' does not support installing models`
+              : "Missing LLM Provider";
+            throw new Error(msg);
+          }
+          await installModelWithProgress(modelName, llmProvider);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          vscode.window.showErrorMessage(
+            `Failed to install '${modelName}': ${message}`,
+          );
+        }
+      },
+    };
   };
-};
 
 const registerCopyBufferSpy = (
   context: vscode.ExtensionContext,

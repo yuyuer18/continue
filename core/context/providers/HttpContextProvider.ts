@@ -1,7 +1,7 @@
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
 } from "../../index.js";
 import { BaseContextProvider } from "../index.js";
 
@@ -9,7 +9,7 @@ class HttpContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "http",
     displayTitle: "HTTP",
-    description: "Retrieve a context item from a custom server",
+    description: "从服务器检索上下文项",
     type: "normal",
     renderInlineAs: "",
   };
@@ -20,7 +20,7 @@ class HttpContextProvider extends BaseContextProvider {
       displayTitle: this.options.displayTitle || "HTTP",
       description:
         this.options.description ||
-        "Retrieve a context item from a custom server",
+        "从服务器检索上下文项",
       type: "normal",
       renderInlineAs:
         this.options.renderInlineAs ||

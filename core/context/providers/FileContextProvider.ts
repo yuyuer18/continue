@@ -1,16 +1,16 @@
 import { BaseContextProvider } from "../";
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
-  ContextSubmenuItem,
-  LoadSubmenuItemsArgs,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
+    ContextSubmenuItem,
+    LoadSubmenuItemsArgs,
 } from "../../";
 import { walkDirs } from "../../indexing/walkDir";
 import {
-  getShortestUniqueRelativeUriPaths,
-  getUriDescription,
-  getUriPathBasename,
+    getShortestUniqueRelativeUriPaths,
+    getUriDescription,
+    getUriPathBasename,
 } from "../../util/uri";
 
 const MAX_SUBMENU_ITEMS = 10_000;
@@ -18,7 +18,7 @@ const MAX_SUBMENU_ITEMS = 10_000;
 class FileContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "file",
-    displayTitle: "Files",
+    displayTitle: "文件",
     description: "搜索文件",
     type: "submenu",
   };

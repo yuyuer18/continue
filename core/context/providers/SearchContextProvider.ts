@@ -8,8 +8,8 @@ import { BaseContextProvider } from "../index.js";
 class SearchContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "search",
-    displayTitle: "Search",
-    description: "Use ripgrep to exact search the workspace",
+    displayTitle: "搜索",
+    description: "使用 ripgrep 精确搜索工作区",
     type: "query",
     renderInlineAs: "",
   };

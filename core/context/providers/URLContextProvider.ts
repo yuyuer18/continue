@@ -14,7 +14,7 @@ class URLContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "url",
     displayTitle: "URL",
-    description: "Reference a webpage at a given URL",
+    description: "应用搜索结果",
     type: "query",
   };
 

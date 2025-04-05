@@ -1,14 +1,14 @@
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
-  ContextSubmenuItem,
-  LoadSubmenuItemsArgs,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
+    ContextSubmenuItem,
+    LoadSubmenuItemsArgs,
 } from "../../index.js";
 import { walkDirs } from "../../indexing/walkDir.js";
 import {
-  getShortestUniqueRelativeUriPaths,
-  getUriPathBasename,
+    getShortestUniqueRelativeUriPaths,
+    getUriPathBasename,
 } from "../../util/uri.js";
 import { BaseContextProvider } from "../index.js";
 import { retrieveContextItemsFromEmbeddings } from "../retrieval/retrieval.js";
@@ -16,8 +16,8 @@ import { retrieveContextItemsFromEmbeddings } from "../retrieval/retrieval.js";
 class FolderContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "folder",
-    displayTitle: "Folder",
-    description: "输入搜索",
+    displayTitle: "文件夹",
+    description: "输入搜索目录",
     type: "submenu",
     dependsOnIndexing: true,
   };

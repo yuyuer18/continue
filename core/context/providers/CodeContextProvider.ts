@@ -13,7 +13,7 @@ const MAX_SUBMENU_ITEMS = 10_000;
 class CodeContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "code",
-    displayTitle: "Code",
+    displayTitle: "代码片段",
     description: "输入搜索",
     type: "submenu",
     dependsOnIndexing: true,

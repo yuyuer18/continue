@@ -1,9 +1,9 @@
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
-  ContextSubmenuItem,
-  LoadSubmenuItemsArgs,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
+    ContextSubmenuItem,
+    LoadSubmenuItemsArgs,
 } from "../../index.js";
 import { BaseContextProvider } from "../index.js";
 
@@ -11,7 +11,7 @@ class PostgresContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "postgres",
     displayTitle: "PostgreSQL",
-    description: "Retrieve PostgreSQL table schema and sample rows",
+    description: "检索 PostgreSQL 表模式和示例行",
     type: "submenu",
     renderInlineAs: "",
   };

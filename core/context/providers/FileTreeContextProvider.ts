@@ -30,8 +30,8 @@ function formatFileTree(tree: Directory, indentation = ""): string {
 class FileTreeContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "tree",
-    displayTitle: "File Tree",
-    description: "Attach a representation of the file tree",
+    displayTitle: "文件树",
+    description: "附加文件树的结构",
     type: "normal",
     renderInlineAs: "",
   };

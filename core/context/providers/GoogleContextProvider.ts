@@ -9,7 +9,7 @@ class GoogleContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "google",
     displayTitle: "Google",
-    description: "Attach the results of a Google search",
+    description: "增加Google 搜索的结果",
     type: "query",
   };
 
