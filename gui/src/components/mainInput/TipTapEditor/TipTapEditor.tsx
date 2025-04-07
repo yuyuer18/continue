@@ -182,20 +182,25 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
         "action": undefined,
         "content": prompt.description,
         "id": prompt.name,
-        "itemType": "slashCommand",
+        "itemType": "slash-command",
         "label": prompt.name,
         "name": prompt.name,
         "title": prompt.name,
-        "type": "slashCommand",
+        "type": "slash-command",
       };
-      let inser= editor?.chain().focus()
-            .insertContentAt(0, [
-              {
-                type: 'slashcommand' ,
-                attrs: attrs,
-              }
-            ]);
-      inser?.run();
+          editor?.commands.insertPrompt({
+            name: prompt.name,
+            description: prompt.description,
+            prompt: prompt.content||prompt.prompt,
+          });
+      // let inser= editor?.chain().focus()
+      //       .insertContentAt(0, [
+      //         {
+      //           type: 'slash-command' ,
+      //           attrs: attrs,
+      //         }
+      //       ]);
+      // inser?.run();
     }
     }));
  
