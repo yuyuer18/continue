@@ -39,9 +39,10 @@
 
 ## A快捷操作ctions
 
-[快捷操作] 是针对常见开发场景的一键式快捷方式
+[快捷操作] 是针对常见开发场景的一键式快捷方式，使您能够对代码库进行更实质性的更改
 
-![actions](docs/static/img/actions.gif)
+
+![agent](docs/static/img/agent.gif)
 
 </div>
 

@@ -137,6 +137,7 @@ export class VsCodeMessenger {
         streamId: data.streamId,
         status: "streaming",
         fileContent: data.text,
+        toolCallId: data.toolCallId,
       });
 
       if (data.filepath) {
@@ -168,6 +169,7 @@ export class VsCodeMessenger {
           status: "closed",
           numDiffs: 0,
           fileContent: data.text,
+          toolCallId: data.toolCallId,
         });
 
         return;
@@ -215,6 +217,7 @@ export class VsCodeMessenger {
           diffLines,
           instant,
           data.streamId,
+          data.toolCallId,
         );
       } else {
         const prompt = `The following code was suggested as an edit:\n\`\`\`\n${data.text}\n\`\`\`\nPlease apply it to the previous code.`;
@@ -236,6 +239,7 @@ export class VsCodeMessenger {
           undefined,
           rangeToApplyTo,
           data.text,
+          data.toolCallId,
         );
       }
     });
@@ -394,6 +398,9 @@ export class VsCodeMessenger {
     });
     this.onWebviewOrCore("getSearchResults", async (msg) => {
       return ide.getSearchResults(msg.data.query);
+    });
+    this.onWebviewOrCore("getFileResults", async (msg) => {
+      return ide.getFileResults(msg.data.pattern);
     });
     this.onWebviewOrCore("subprocess", async (msg) => {
       return ide.subprocess(msg.data.command, msg.data.cwd);

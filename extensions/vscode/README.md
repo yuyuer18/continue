@@ -36,11 +36,11 @@
 
 ![edit](docs/static/img/edit.gif)
 
-## Actions
+## Agent
 
 [Actions]  预定义快捷键（像 Ctrl/Cmd + [数字]、Alt + 方向键 这类）或 自定义快捷操作，能为 代码编写、调试、重构 等高频开发场景提供一键式解决方案，让开发者无需记忆复杂命令或鼠标操作，就能快速完成代码格式化、函数跳转、版本提交等任务。
 
-![actions](docs/static/img/actions.gif)
+![agent](docs/static/img/agent.gif)
 
 </div>
  

@@ -1,12 +1,14 @@
 export enum BuiltInToolNames {
-  ReadFile = "读文件",
-  ReadCurrentlyOpenFile = "读取当前打开的文件",
-  CreateNewFile = "新建文件",
-  RunTerminalCommand = "执行命令",
-  ExactSearch = "精确搜索",
-  SearchWeb = "web搜索",
-  ViewDiff = "查看差异",
-  LSTool = "显示文件列表",
+  ReadFile = "builtin_read_file",
+  EditExistingFile = "builtin_edit_existing_file",
+  ReadCurrentlyOpenFile = "builtin_read_currently_open_file",
+  CreateNewFile = "builtin_create_new_file",
+  RunTerminalCommand = "builtin_run_terminal_command",
+  GrepSearch = "builtin_grep_search",
+  FileGlobSearch = "builtin_file_glob_search",
+  SearchWeb = "builtin_search_web",
+  ViewDiff = "builtin_view_diff",
+  LSTool = "builtin_ls",
 
   // excluded from allTools for now
   ViewRepoMap = "查看仓库地图",

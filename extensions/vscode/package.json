@@ -1,8 +1,8 @@
 {
   "name": "kodemate-ai",
   "icon": "media/icon.png",
-  "author": "Amarsoft.sh",
-  "version": "1.1.20",
+  "author": "Amarsoft.com",
+  "version": "1.1.21",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
@@ -653,7 +653,7 @@
     "ovsx": "^0.8.3",
     "rimraf": "^5.0.5",
     "typescript": "^5.6.3",
-    "vite": "^4.3.9",
+    "vite": "^4.5.12",
     "vsce": "^2.15.0",
     "vscode-extension-tester": "^8.10.0"
   },
