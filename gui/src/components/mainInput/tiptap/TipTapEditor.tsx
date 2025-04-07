@@ -1,7 +1,7 @@
 import { Editor, EditorContent, JSONContent } from "@tiptap/react";
 import { ContextProviderDescription, InputModifiers } from "core";
 import { modelSupportsImages } from "core/llm/autodetect";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
 import useIsOSREnabled from "../../../hooks/useIsOSREnabled";
 import useUpdatingRef from "../../../hooks/useUpdatingRef";
@@ -35,11 +35,12 @@ export interface TipTapEditorProps {
   placeholder?: string;
   historyKey: string;
   inputId: string;
+  insertPrompt: (prompt: string) => void;
 }
 
 export const TIPPY_DIV_ID = "tippy-js-div";
 
-function TipTapEditor(props: TipTapEditorProps) {
+const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   const dispatch = useAppDispatch();
 
   const ideMessenger = useContext(IdeMessengerContext);
@@ -189,7 +190,41 @@ function TipTapEditor(props: TipTapEditorProps) {
 
   // TODO pass clear blur timeout to model and mode selectors
   // Seems like unnecessary for now?
+  
 
+    // 使用 useImperativeHandle 来暴露 sayHello 方法
+  useImperativeHandle(ref, () => ({
+    insertPrompt: (prompt: any) => {
+      // editor?.commands.insertContent("/");
+      console.log("insertPrompt",  editor?.chain().focus());
+      console.log("insertPrompt", editor?.chain().focus().insertContentAt);
+      const  attrs = {
+        "action": undefined,
+        "content": prompt.description,
+        "id": prompt.name,
+        "itemType": "slashCommand",
+        "label": prompt.name,
+        "name": prompt.name,
+        "title": prompt.name,
+        "type": "slashCommand",
+      };
+      let inser= editor?.chain().focus()
+            .insertContentAt(0, [
+              {
+                type: 'slashcommand' ,
+                attrs: attrs,
+              }
+            ]);
+      debugger;
+      console.log("insertPrompt", inser);
+      inser?.run();
+            
+
+      console.log("Hello from the parent component!",editor);
+      console.log("Hello from the parent component!",prompt);
+    }
+    }));
+ 
   return (
     <InputBoxDiv
       onFocus={handleFocus}
@@ -293,6 +328,6 @@ function TipTapEditor(props: TipTapEditorProps) {
       <div id={TIPPY_DIV_ID} className="fixed z-50" />
     </InputBoxDiv>
   );
-}
+});
 
 export default TipTapEditor;

@@ -1,6 +1,6 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { ContextItemWithId, InputModifiers } from "core";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import { defaultBorderRadius, vscBackground } from "..";
 import { useAppSelector } from "../../redux/hooks";
@@ -8,7 +8,7 @@ import { selectSlashCommandComboBoxInputs } from "../../redux/selectors";
 import ContextItemsPeek from "./belowMainInput/ContextItemsPeek";
 import { ToolbarOptions } from "./InputToolbar";
 import { Lump } from "./Lump";
-import TipTapEditor from "./tiptap/TipTapEditor";
+import TipTapEditor, { TipTapEditorProps } from "./tiptap/TipTapEditor";
 
 interface ContinueInputBoxProps {
   isEditMode?: boolean;
@@ -75,6 +75,7 @@ const GradientBorder = styled.div<{
 `;
 
 function ContinueInputBox(props: ContinueInputBoxProps) {
+  const editorRef = useRef<TipTapEditorProps>(null);
   const isStreaming = useAppSelector((state) => state.session.isStreaming);
   const availableSlashCommands = useAppSelector(
     selectSlashCommandComboBoxInputs,
@@ -112,11 +113,14 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
         enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
       }
     : {};
-
+  const selectChange = (e: any) => {
+    editorRef.current?.insertPrompt(e)
+  };
+    
   return (
     <div className={`${props.hidden ? "hidden" : ""}`}>
       <div className={`relative flex flex-col px-2`}>
-        {props.isMainInput && <Lump />}
+        <Lump selectChange={selectChange} />
         <GradientBorder
           loading={isStreaming && props.isLastUserInput ? 1 : 0}
           borderColor={
@@ -125,6 +129,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
           borderRadius={defaultBorderRadius}
         >
           <TipTapEditor
+            ref={editorRef}
             editorState={props.editorState}
             onEnter={props.onEnter}
             placeholder={placeholder}
@@ -134,6 +139,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
             historyKey={historyKey}
             toolbarOptions={toolbarOptions}
             inputId={props.inputId}
+            insertPrompt={selectChange}
           />
         </GradientBorder>
       </div>

@@ -8,6 +8,7 @@ import { ToolPoliciesSection } from "./tool-policies/ToolPoliciesSection";
 
 interface SelectedSectionProps {
   selectedSection: string | null;
+  selectChange: (prompt: any) => void;
 }
 
 export function SelectedSection(props: SelectedSectionProps) {
@@ -19,7 +20,7 @@ export function SelectedSection(props: SelectedSectionProps) {
     case "docs":
       return <DocsSection />;
     case "prompts":
-      return <PromptsSection />;
+      return <PromptsSection selectChange={props.selectChange} />;
     case "context":
       return <ContextSection />;
     case "tools":

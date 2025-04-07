@@ -130,7 +130,6 @@ async function resolveEditorContent({
     }
   }
 
-  debugger
   if (slashCommandName) {
     const command = availableSlashCommands.find(
       (c) => c.name === slashCommandName,

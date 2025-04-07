@@ -30,7 +30,11 @@ const ContentDiv = styled.div<{ hasSection: boolean; isVisible: boolean }>`
   overflow-y: auto;
 `;
 
-export function Lump() {
+interface LumpProps { 
+  selectChange: (section: any) => void;
+}
+
+export function Lump(props: LumpProps) {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [displayedSection, setDisplayedSection] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -85,7 +89,7 @@ export function Lump() {
           hasSection={!!selectedSection}
           isVisible={isVisible}
         >
-          <SelectedSection selectedSection={displayedSection} />
+          <SelectedSection selectedSection={displayedSection} selectChange={props.selectChange} />
         </ContentDiv>
       </div>
     </LumpDiv>

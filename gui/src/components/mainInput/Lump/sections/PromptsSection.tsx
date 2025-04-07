@@ -54,14 +54,17 @@ function PromptRow({
   );
 }
 
-export function PromptsSection() {
+interface promptProps {
+  selectChange: (prompt: any) => void;
+}
+export function PromptsSection({ selectChange }: promptProps) {
   const { isCommandBookmarked, toggleBookmark } = useBookmarkedSlashCommands();
   const slashCommands = useAppSelector(
     (state) => state.config.config.slashCommands ?? [],
   );
-
   const handleEdit = (prompt: any) => {
     // Handle edit action here
+    selectChange(prompt);
     console.log("Editing prompt:", prompt);
   };
 
