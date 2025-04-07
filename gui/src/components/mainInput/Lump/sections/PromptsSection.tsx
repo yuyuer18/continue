@@ -96,7 +96,6 @@ export function PromptsSection({ selectChange }: promptProps) {
   const handleEdit = (prompt: any) => {
     // Handle edit action here
     selectChange(prompt);
-    console.log("Editing prompt:", prompt);
   };
 
   const sortedCommands = [...slashCommands].sort((a, b) => {

@@ -15,7 +15,6 @@ export const selectSlashCommandComboBoxInputs = createSelector(
           description: cmd.description,
           content: cmd.prompt,
           type: "slashCommand" as ComboBoxItemType,
-          content: cmd.prompt,
         } as ComboBoxItem;
       }) || []
     );

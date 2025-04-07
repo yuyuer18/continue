@@ -7,10 +7,14 @@ import { PromptsSection } from "./PromptsSection";
 import { RulesSection } from "./RulesSection";
 import { ToolPoliciesSection } from "./tool-policies/ToolPoliciesSection";
 
+export interface SelectedSectionProps {
+  selectChange: (e: any) => void; 
+}
+
 /**
  * Renders the appropriate section based on the selected section in the Lump context
  */
-export function SelectedSection() {
+export function SelectedSection(props:SelectedSectionProps) {
   const { displayedSection } = useLump();
 
   switch (displayedSection) {

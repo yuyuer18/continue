@@ -17,7 +17,7 @@ import { handleImageFile } from "./utils";
 import { createEditorConfig, getPlaceholderText } from "./utils/editorConfig";
 import { useEditorEventHandlers } from "./utils/keyHandlers";
 
-export interface TipTapEditorProps {
+ export interface TipTapEditorProps {
   availableContextProviders: ContextProviderDescription[];
   availableSlashCommands: ComboBoxItem[];
   isMainInput: boolean;
@@ -39,7 +39,7 @@ export interface TipTapEditorProps {
 
 export const TIPPY_DIV_ID = "tippy-js-div";
 
-const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
+export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   const dispatch = useAppDispatch();
   const mainEditorContext = useMainEditor();
 
@@ -175,13 +175,9 @@ const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   // TODO pass clear blur timeout to model and mode selectors
   // Seems like unnecessary for now?
   
-
-    // 使用 useImperativeHandle 来暴露 sayHello 方法
   useImperativeHandle(ref, () => ({
     insertPrompt: (prompt: any) => {
       // editor?.commands.insertContent("/");
-      console.log("insertPrompt",  editor?.chain().focus());
-      console.log("insertPrompt", editor?.chain().focus().insertContentAt);
       const  attrs = {
         "action": undefined,
         "content": prompt.description,
@@ -199,13 +195,7 @@ const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
                 attrs: attrs,
               }
             ]);
-      debugger;
-      console.log("insertPrompt", inser);
       inser?.run();
-            
-
-      console.log("Hello from the parent component!",editor);
-      console.log("Hello from the parent component!",prompt);
     }
     }));
  
@@ -314,4 +304,4 @@ const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   );
 });
 
-export default TipTapEditor;
+ 
