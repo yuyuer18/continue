@@ -22,8 +22,8 @@ export default function CodeToEditCard() {
     codeToEdit.length === 0
       ? ""
       : codeToEdit.length === 1
-        ? "(1 item)"
-        : `(${codeToEdit.length} items)`;
+        ? "(1 个)"
+        : `(${codeToEdit.length} 个)`;
 
   function onDelete(rif: CodeToEdit) {
     dispatch(removeCodeToEdit(rif));

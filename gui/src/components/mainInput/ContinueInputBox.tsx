@@ -101,7 +101,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = props.isEditMode ? "edit" : "chat";
   const placeholder = props.isEditMode
-    ? "Describe how to modify the code - use '#' to add files"
+    ? "请描述需要如何修改代码 - 使用 “#” 添加文件"
     : undefined;
 
   const toolbarOptions: ToolbarOptions = props.isEditMode
@@ -110,7 +110,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
         hideImageUpload: false,
         hideUseCodebase: true,
         hideSelectModel: false,
-        enterText: editModeState.editStatus === "accepting" ? "Retry" : "Edit",
+        enterText: editModeState.editStatus === "accepting" ? "重试" : "修改",
       }
     : {};
   const selectChange = (e: any) => {
