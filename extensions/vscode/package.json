@@ -127,6 +127,11 @@
           "default": false,
           "markdownDescription": "Pause Continue's codebase index on start."
         },
+        "continue.enableConsole": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable a console to log and explore model inputs and outputs. It can be found in the bottom panel."
+        },
         "continue.remoteConfigServerUrl": {
           "type": "string",
           "default": null,
@@ -257,6 +262,13 @@
         "command": "continue.viewLogs",
         "category": "Continue",
         "title": "查看对话历史",
+        "group": "Continue"
+      },
+      {
+        "command": "continue.clearConsole",
+        "category": "Continue",
+        "title": "Clear Console",
+        "icon": "$(clear-all)",
         "group": "Continue"
       },
       {
@@ -533,6 +545,11 @@
           "command": "continue.openConfigPage",
           "group": "navigation@4",
           "when": "view == Amarsoft.kodemate-aiGUIView"
+        },
+        {
+          "command": "continue.clearConsole",
+          "group": "navigation@1",
+          "when": "view == Amarsoft.kodemate-aiGUIView"
         }
       ],
       "editor/title": [
@@ -561,6 +578,13 @@
           "title": "KodeMateAi+",
           "icon": "media/sidebar-icon.png"
         }
+      ],
+      "panel": [
+        {
+          "id": "continueConsole",
+          "title": "Continue Console",
+          "icon": "$(window)"
+        }
       ]
     },
     "views": {
@@ -571,6 +595,16 @@
           "name": "KodeMateAi+",
           "icon": "media/sidebar-icon.png",
           "visibility": "visible"
+        }
+      ],
+      "continueConsole": [
+        {
+          "type": "webview",
+          "id": "continue.continueConsoleView",
+          "name": "Continue Console",
+          "icon": "$(window)",
+          "visibility": "visible",
+          "when": "config.continue.enableConsole"
         }
       ]
     },
