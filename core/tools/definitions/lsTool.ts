@@ -12,7 +12,7 @@ export const lsTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.LSTool,
-    description: "List files and folders in a given directory",
+    description: "列出给定目录中的文件和文件夹",
     parameters: {
       type: "object",
       required: ["dirPath", "recursive"],
@@ -20,7 +20,7 @@ export const lsTool: Tool = {
         dirPath: {
           type: "string",
           description:
-            "The directory path relative to the root of the project. Always use forward slash paths like '/'. rather than e.g. '.'",
+            "相对于项目根目录的目录路径。始终使用正斜杠路径，如 '/'。 不是 '.'",
         },
         recursive: {
           type: "boolean",

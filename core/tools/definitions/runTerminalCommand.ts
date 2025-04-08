@@ -12,7 +12,7 @@ export const runTerminalCommandTool: Tool = {
   function: {
     name: BuiltInToolNames.RunTerminalCommand,
     description:
-      "Run a terminal command in the current directory. The shell is not stateful and will not remember any previous commands. Do NOT perform actions requiring special/admin priveleges.",
+      "在当前目录中运行终端命令。shell 没有状态，不会记住任何以前的命令。不要执行需要特殊 /admin 权限的操作.",
     parameters: {
       type: "object",
       required: ["command"],

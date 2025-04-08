@@ -13,7 +13,7 @@ export const searchWebTool: Tool = {
   function: {
     name: BuiltInToolNames.SearchWeb,
     description:
-      "Performs a web search, returning top results. Use this tool sparingly - only for questions that require specialized, external, and/or up-to-date knowledege. Common programming questions do not require web search.",
+      "网络搜索，返回热门结果。谨慎使用此工具 - 仅用于需要专业、外部和 / 或最新知识的问题。常见的编程问题不需要网络搜索。",
     parameters: {
       type: "object",
       required: ["query"],

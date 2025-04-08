@@ -17,7 +17,7 @@ export const editFileTool: Tool = {
   function: {
     name: BuiltInToolNames.EditExistingFile,
     description:
-      "Use this tool to edit an existing file. If you don't know the contents of the file, read it first.",
+      "使用此工具编辑现有文件。如不知道文件的内容，请先阅读它.",
     parameters: {
       type: "object",
       required: ["filepath", "new_contents"],
@@ -25,11 +25,11 @@ export const editFileTool: Tool = {
         filepath: {
           type: "string",
           description:
-            "The path of the file to edit, relative to the root of the workspace.",
+            "编辑的文件的路径，相对于工作区的根目录.",
         },
         new_contents: {
           type: "string",
-          description: "The new file contents",
+          description: "新文件内容",
         },
       },
     },

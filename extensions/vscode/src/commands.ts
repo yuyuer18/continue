@@ -47,7 +47,7 @@ let fullScreenPanel: vscode.WebviewPanel | undefined;
 function getFullScreenTab() {
   const tabs = vscode.window.tabGroups.all.flatMap((tabGroup) => tabGroup.tabs);
   return tabs.find((tab) =>
-    (tab.input as any)?.viewType?.endsWith("continue.continueGUIView"),
+    (tab.input as any)?.viewType?.endsWith("Amarsoft.kodemate-aiGUIView"),
   );
 }
 
@@ -224,7 +224,7 @@ function focusGUI() {
     fullScreenPanel?.reveal();
   } else {
     // focus sidebar
-    vscode.commands.executeCommand("continue.continueGUIView.focus");
+    vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
     // vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar");
   }
 }
@@ -420,7 +420,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       // Passthrough for telemetry purposes
       "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -435,7 +435,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       "continue.customQuickActionStreamInlineEdit": async (
         prompt: string,
@@ -687,7 +687,7 @@ const getCommandsMap: (
 
         const terminalContents = await ide.getTerminalContents();
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
         sidebar.webviewProtocol?.request("userInput", {
           input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
@@ -703,7 +703,7 @@ const getCommandsMap: (
       "continue.addModel": () => {
         captureCommandTelemetry("addModel");
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
         sidebar.webviewProtocol?.request("addModel", undefined);
       },
       "continue.newSession": () => {
@@ -751,7 +751,7 @@ const getCommandsMap: (
 
         // Create the full screen panel
         let panel = vscode.window.createWebviewPanel(
-          "continue.continueGUIView",
+          "Amarsoft.kodemate-aiGUIView",
           "Continue",
           vscode.ViewColumn.One,
           {
@@ -798,6 +798,9 @@ const getCommandsMap: (
       "continue.openConfigPage": () => {
         vscode.commands.executeCommand("continue.navigateTo", "/config", true);
       },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
+      },
       "continue.selectFilesAsContext": async (
         firstUri: vscode.Uri,
         uris: vscode.Uri[],
@@ -806,7 +809,7 @@ const getCommandsMap: (
           throw new Error("No files were selected");
         }
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
         for (const uri of uris) {
           // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
@@ -906,14 +909,14 @@ const getCommandsMap: (
 
         quickPick.items = [
           {
-            label: "$(question) Open help center",
+            label: "$(question) 设置",
           },
           {
-            label: "$(comment) Open chat",
+            label: "$(comment) 对话",
             description: getMetaKeyLabel() + " + L",
           },
           {
-            label: "$(screen-full) Open full screen chat",
+            label: "$(screen-full) 全屏对话",
             description:
               getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
           },
@@ -921,11 +924,11 @@ const getCommandsMap: (
             label: quickPickStatusText(targetStatus),
           },
           {
-            label: "$(feedback) Give feedback",
+            label: "$(feedback) 问题反馈",
           },
           {
             kind: vscode.QuickPickItemKind.Separator,
-            label: "Switch model",
+            label: "切换模型",
           },
           ...autocompleteModels.map((model) => ({
             label: getAutocompleteStatusBarTitle(selected, model),
@@ -955,12 +958,14 @@ const getCommandsMap: (
                 title: selectedOption,
               });
             }
-          } else if (selectedOption === "$(feedback) Give feedback") {
+          } else if (selectedOption === "$(feedback) 问题反馈") {
             vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
-          } else if (selectedOption === "$(comment) Open chat") {
+          } else if (selectedOption === "$(comment) 对话") {
             vscode.commands.executeCommand("continue.focusContinueInput");
-          } else if (selectedOption === "$(screen-full) Open full screen chat") {
+          } else if (selectedOption === "$(screen-full) 全屏对话") {
             vscode.commands.executeCommand("continue.toggleFullScreen");
+          } else {
+            vscode.commands.executeCommand("continue.openConfigPage");
           }
           quickPick.dispose();
         });

@@ -19,7 +19,7 @@ export const viewSubdirectoryTool: Tool = {
         directory_path: {
           type: "string",
           description:
-            "The path of the subdirectory to view, relative to the root of the workspace",
+            "要查看的子目录的路径，相对于工作区的根目录（请勿使用绝对路径）",
         },
       },
     },

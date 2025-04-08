@@ -11,7 +11,7 @@ export const grepSearchTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.GrepSearch,
-    description: "Perform a search over the repository using ripgrep.",
+    description: "使用 ripgrep 对存储库执行搜索.",
     parameters: {
       type: "object",
       required: ["query"],

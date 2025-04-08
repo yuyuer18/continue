@@ -11,7 +11,7 @@ export const globSearchTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.FileGlobSearch,
-    description: "Search for files in the project",
+    description: "搜索项目中的文件",
     parameters: {
       type: "object",
       required: ["pattern"],

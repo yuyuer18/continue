@@ -12,7 +12,7 @@ export const viewDiffTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.ViewDiff,
-    description: "View the current diff of working changes",
+    description: "查看当前工作更改的差异",
     parameters: {
       type: "object",
       properties: {},
