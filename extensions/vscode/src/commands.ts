@@ -339,139 +339,28 @@ const getCommandsMap: (
   core,
   editDecorationManager,
 ) => {
-  /**
-   * Streams an inline edit to the vertical diff manager.
-   *
-   * This function retrieves the configuration, determines the appropriate model title,
-   * increments the FTC count, and then streams an edit to the
-   * vertical diff manager.
-   *
-   * @param  promptName - The key for the prompt in the context menu configuration.
-   * @param  fallbackPrompt - The prompt to use if the configured prompt is not available.
-   * @param  [onlyOneInsertion] - Optional. If true, only one insertion will be made.
-   * @param  [range] - Optional. The range to edit if provided.
-   * @returns
-   */
-  async function streamInlineEdit(
-    promptName: keyof ContextMenuConfig,
-    fallbackPrompt: string,
-    onlyOneInsertion?: boolean,
-    range?: vscode.Range,
-  ) {
-    const { config } = await configHandler.loadConfig();
-    if (!config) {
-      throw new Error("Config not loaded");
-    }
-
-    const llm =
-      config.selectedModelByRole.edit ?? config.selectedModelByRole.chat;
-
-    if (!llm) {
-      throw new Error("No edit or chat model selected");
-    }
-
-    void sidebar.webviewProtocol.request("incrementFtc", undefined);
-
-    await verticalDiffManager.streamEdit(
-      config.experimental?.contextMenuPrompts?.[promptName] ?? fallbackPrompt,
-      llm,
-      undefined,
-      onlyOneInsertion,
-      undefined,
-      range,
-    );
-  }
-  return {
-    "continue.acceptDiff": async (newFileUri?: string, streamId?: string) =>
-      processDiff(
-        "accept",
-        sidebar,
-        ide,
-        verticalDiffManager,
-        newFileUri,
-        streamId,
-      ),
-
-    "continue.rejectDiff": async (newFilepath?: string, streamId?: string) =>
-      processDiff(
-        "reject",
-        sidebar,
-        ide,
-        verticalDiffManager,
-        newFilepath,
-        streamId,
-      ),
-    "continue.acceptVerticalDiffBlock": (fileUri?: string, index?: number) => {
-      captureCommandTelemetry("acceptVerticalDiffBlock");
-      verticalDiffManager.acceptRejectVerticalDiffBlock(true, fileUri, index);
-    },
-    "continue.rejectVerticalDiffBlock": (fileUri?: string, index?: number) => {
-      captureCommandTelemetry("rejectVerticalDiffBlock");
-      verticalDiffManager.acceptRejectVerticalDiffBlock(false, fileUri, index);
-    },
-    "continue.quickFix": async (
-      range: vscode.Range,
-      diagnosticMessage: string,
-    ) => {
-      captureCommandTelemetry("quickFix");
-
-      const prompt = `Please explain the cause of this error and how to solve it: ${diagnosticMessage}`;
-
-      addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
-
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
-    },
-    // Passthrough for telemetry purposes
-    "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
-      captureCommandTelemetry("defaultQuickAction");
-      vscode.commands.executeCommand("continue.focusEdit", args);
-    },
-    "continue.customQuickActionSendToChat": async (
-      prompt: string,
-      range: vscode.Range,
-    ) => {
-      captureCommandTelemetry("customQuickActionSendToChat");
-
-      addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
-
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
-    },
-    "continue.customQuickActionStreamInlineEdit": async (
-      prompt: string,
-      range: vscode.Range,
-    ) => {
-      captureCommandTelemetry("customQuickActionStreamInlineEdit");
-
-      streamInlineEdit("docstring", prompt, false, range);
-    },
-    "continue.codebaseForceReIndex": async () => {
-      core.invoke("index/forceReIndex", undefined);
-    },
-    "continue.rebuildCodebaseIndex": async () => {
-      core.invoke("index/forceReIndex", { shouldClearIndexes: true });
-    },
-    "continue.docsIndex": async () => {
-      core.invoke("context/indexDocs", { reIndex: false });
-    },
-    "continue.docsReIndex": async () => {
-      core.invoke("context/indexDocs", { reIndex: true });
-    },
-    "continue.focusContinueInput": async () => {
-      const isContinueInputFocused = await sidebar.webviewProtocol.request(
-        "isContinueInputFocused",
-        undefined,
-        false,
-      );
-
-      // This is a temporary fix—sidebar.webviewProtocol.request is blocking
-      // when the GUI hasn't yet been setup and we should instead be
-      // immediately throwing an error, or returning a Result object
-      focusGUI();
-      if (!sidebar.isReady) {
-        const isReady = await waitForSidebarReady(sidebar, 5000, 100);
-        if (!isReady) {
-          return;
-        }
+    /**
+     * Streams an inline edit to the vertical diff manager.
+     *
+     * This function retrieves the configuration, determines the appropriate model title,
+     * increments the FTC count, and then streams an edit to the
+     * vertical diff manager.
+     *
+     * @param  promptName - The key for the prompt in the context menu configuration.
+     * @param  fallbackPrompt - The prompt to use if the configured prompt is not available.
+     * @param  [onlyOneInsertion] - Optional. If true, only one insertion will be made.
+     * @param  [range] - Optional. The range to edit if provided.
+     * @returns
+     */
+    async function streamInlineEdit(
+      promptName: keyof ContextMenuConfig,
+      fallbackPrompt: string,
+      onlyOneInsertion?: boolean,
+      range?: vscode.Range,
+    ) {
+      const { config } = await configHandler.loadConfig();
+      if (!config) {
+        throw new Error("Config not loaded");
       }
 
       const llm =
@@ -1092,6 +981,9 @@ const getCommandsMap: (
           const lastLines = await readLastLines.read(completionsPath, 2);
           client.sendFeedback(feedback, lastLines);
         }
+      },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
       },
       "continue.navigateTo": (path: string, toggle: boolean) => {
         sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
