@@ -1,8 +1,8 @@
 {
   "name": "kodemate-ai",
   "icon": "media/icon.png",
-  "author": "Amarsoft.com",
-  "version": "1.1.23",
+  "author": "Continue Dev, Inc",
+  "version": "1.1.21",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
