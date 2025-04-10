@@ -43,12 +43,16 @@ function AddModelForm({
   const ideMessenger = useContext(IdeMessengerContext);
 
   const popularProviderTitles = [
-    providers["openai"]?.title || "",
-    providers["anthropic"]?.title || "",
-    providers["mistral"]?.title || "",
-    providers["gemini"]?.title || "",
-    providers["azure"]?.title || "",
+    // providers["openai"]?.title || "",
+    // providers["anthropic"]?.title || "",
+    // providers["mistral"]?.title || "",
+    // providers["gemini"]?.title || "",
+    // providers["azure"]?.title || "",
     providers["ollama"]?.title || "",
+    providers["vllm"]?.title || "",
+    providers["deepseek"]?.title || "",
+    providers["moonshot"]?.title || "",
+    ,
   ];
 
   const allProviders = Object.entries(providers)
@@ -61,9 +65,7 @@ function AddModelForm({
     .filter((provider) => popularProviderTitles.includes(provider.title))
     .sort((a, b) => a.title.localeCompare(b.title));
 
-  const otherProviders = allProviders
-    .filter((provider) => !popularProviderTitles.includes(provider.title))
-    .sort((a, b) => a.title.localeCompare(b.title));
+  const otherProviders: any[] = [];
 
   const selectedProviderApiKeyUrl = selectedModel.params.model.startsWith(
     "codestral",
@@ -161,18 +163,6 @@ function AddModelForm({
                 topOptions={popularProviders}
                 otherOptions={otherProviders}
               />
-              <InputSubtext className="mb-0">
-                没找到你需要的模型提供者?{" "}
-                <a
-                  className="cursor-pointer text-inherit underline hover:text-inherit"
-                  onClick={() =>
-                    ideMessenger.post("openUrl", MODEL_PROVIDERS_URL)
-                  }
-                >
-                  点击这里
-                </a>{" "}
-                查看更多
-              </InputSubtext>
             </div>
 
             {selectedProvider.downloadUrl && (
@@ -227,6 +217,23 @@ function AddModelForm({
               </div>
             )}
 
+            {selectedProvider.apiBase && (
+              <div>
+                <>
+                  <label className="mb-1 block text-sm font-medium">
+                    服务地址
+                  </label>
+                  <Input
+                    id="apiBase"
+                    className="w-full"
+                    placeholder={`请输入 ${selectedProvider.title} 服务地址`}
+                    {...formMethods.register("apiBase")}
+                  />
+                  <InputSubtext className="mb-0"></InputSubtext>
+                </>
+              </div>
+            )}
+
             {selectedProvider.apiKeyUrl && (
               <div>
                 <>
@@ -236,7 +243,7 @@ function AddModelForm({
                   <Input
                     id="apiKey"
                     className="w-full"
-                    placeholder={`Enter your ${selectedProvider.title} API key`}
+                    placeholder={`请输入 ${selectedProvider.title} API key`}
                     {...formMethods.register("apiKey")}
                   />
                   <InputSubtext className="mb-0">
@@ -289,7 +296,7 @@ function AddModelForm({
 
           <div className="mt-4 w-full">
             <Button type="submit" className="w-full" disabled={isDisabled()}>
-             测试模型
+              测试模型
             </Button>
             <AddModelButtonSubtext />
           </div>

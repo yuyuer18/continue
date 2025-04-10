@@ -33,6 +33,7 @@ export interface ProviderInfo {
   refPage?: string;
   apiKeyUrl?: string;
   downloadUrl?: string;
+  apiBase?: string;
 }
 
 const completionParamsInputsConfigs = Object.values(completionParamsInputs);
@@ -274,11 +275,12 @@ Select the \`GPT-4o\` model below to complete your provider configuration, but n
   ollama: {
     title: "Ollama",
     provider: "ollama",
+    apiBase: "http://localhost:11434/v1/",
     description:
-      "One of the fastest ways to get started with local models on Mac, Linux, or Windows",
+      "在 Mac、Linux 或 Windows 上开始使用本地模型的最快方法",
     longDescription:
-      'To get started with Ollama, follow these steps:\n1. Download from [ollama.ai](https://ollama.ai/download) and open the application\n2. Open a terminal and run `ollama run <MODEL_NAME>`. Example model names are `codellama:7b-instruct` or `llama2:7b-text`. You can find the full list [here](https://ollama.ai/library).\n3. Make sure that the model name used in step 2 is the same as the one in config.json (e.g. `model="codellama:7b-instruct"`)\n4. Once the model has finished downloading, you can start asking questions through Continue.',
-    icon: "ollama.png",
+      'ollama 是一个开源的 LLM 推理框架，提供高性能的解决方案。要开始使用 ollama，请访问 [ollama.ai](https://ollama.ai/) 以获取更多信息.',
+    icon: "ollama2.png",
     tags: [ModelProviderTags.Local, ModelProviderTags.OpenSource],
     packages: [
       {
@@ -292,9 +294,33 @@ Select the \`GPT-4o\` model below to complete your provider configuration, but n
     ],
     collectInputFor: [
       ...completionParamsInputsConfigs,
+      { ...apiBaseInput, defaultValue: "http://ollama-4090.amarsoft.com" },
+    ],
+  },
+  vllm: {
+    title: "vllm-API",
+    provider: "vllm",
+    apiBase: "http://vllm-l20.amarsoft.com/v1/",
+    description:
+      "简单、快速、廉价的大语言模型的推理提供高性能的解决方案。",
+    longDescription:
+      'vllm 是一个开源的 LLM 推理框架，提供高性能的解决方案。要开始使用 vllm，请访问 [vllm.ai](https://vllm.ai/) 以获取更多信息。',
+    icon: "vllm-logo.png",
+    tags: [ModelProviderTags.Local, ModelProviderTags.OpenSource],
+    packages: [
+      {
+        ...models.AUTODETECT,
+        params: {
+          ...models.AUTODETECT.params,
+          title: "VLLM",
+        },
+      },
+      ...openSourceModels,
+    ],
+    collectInputFor: [
+      ...completionParamsInputsConfigs,
       { ...apiBaseInput, defaultValue: "http://localhost:11434" },
     ],
-    downloadUrl: "https://ollama.ai/download",
   },
   cohere: {
     title: "Cohere",

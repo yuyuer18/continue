@@ -8,7 +8,7 @@
     "dev": "vite",
     "cp": "sh cp-dist.sh",
     "tsc:check": "tsc -p ./ --noEmit",
-    "build": "tsc && vite build && npm run cp",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

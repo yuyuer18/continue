@@ -24,7 +24,7 @@ const StopButton = styled.div`
 function GeneratingIndicator() {
   return (
     <div className="text-xs text-gray-400">
-      <span>Generating</span>
+      <span>生成中</span>
       <AnimatedEllipsis />
     </div>
   );
