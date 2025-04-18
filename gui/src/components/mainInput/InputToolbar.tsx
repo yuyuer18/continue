@@ -148,6 +148,9 @@ function InputToolbar(props: InputToolbarProps) {
                       for (const file of files) {
                         props.onImageFileSelected?.(file);
                       }
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
                     }}
                   />
                   <HoverItem className="">
@@ -158,8 +161,8 @@ function InputToolbar(props: InputToolbarProps) {
                         fileInputRef.current?.click();
                       }}
                     />
-                    <ToolTip id="image-tooltip" place="top-middle">
-                      上传图片
+                    <ToolTip id="image-tooltip" place="top">
+                      Attach an image
                     </ToolTip>
                   </HoverItem>
                 </>
@@ -171,8 +174,8 @@ function InputToolbar(props: InputToolbarProps) {
                   className="h-3 w-3 hover:brightness-125"
                 />
 
-                <ToolTip id="add-context-item-tooltip" place="top-middle">
-                  增加上下文 (files, docs, urls, etc.)
+                <ToolTip id="add-context-item-tooltip" place="top">
+                  添加上下文（文件、文档、网址等）。
                 </ToolTip>
               </HoverItem>
             )}

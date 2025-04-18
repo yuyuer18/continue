@@ -12,7 +12,11 @@ export const runTerminalCommandTool: Tool = {
   function: {
     name: BuiltInToolNames.RunTerminalCommand,
     description:
-      "在当前目录中运行终端命令。shell 没有状态，不会记住任何以前的命令。不要执行需要特殊 /admin 权限的操作.",
+      "在当前终端运行命令.\
+      终端状态是无状态的，不会记住上一个命令.\
+      当在后台运行命令时，始终建议使用 shell 命令来停止它；绝不要建议使用 Ctrl+C。\
+      当建议后续的 shell 命令时，始终将它们格式化为 shell 命令块。\
+      不要执行需要特殊 / 管理员权限的操作。",
     parameters: {
       type: "object",
       required: ["command"],
@@ -20,7 +24,12 @@ export const runTerminalCommandTool: Tool = {
         command: {
           type: "string",
           description:
-            "The command to run. This will be passed directly into the IDE shell.",
+            "运行的命令。这将直接传入 IDE 终端中.",
+        },
+        waitForCompletion: {
+          type: "boolean",
+          description:
+            "是否在返回前等待命令完成。默认值为 true。设置为 false 以在后台运行命令。设置为 true 以在前台运行命令并等待收集输出。",
         },
       },
     },

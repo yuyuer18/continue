@@ -1,3 +1,4 @@
+import { BlockType } from "@continuedev/config-yaml";
 import {
   ArrowTopRightOnSquareIcon,
   PlusIcon,
@@ -7,12 +8,7 @@ import { GhostButton } from "../../..";
 import { useAuth } from "../../../../context/Auth";
 import { IdeMessengerContext } from "../../../../context/IdeMessenger";
 import { useAppDispatch } from "../../../../redux/hooks";
-import {
-  setDialogMessage,
-  setShowDialog,
-} from "../../../../redux/slices/uiSlice";
 import { fontSize } from "../../../../util";
-import AddDocsDialog from "../../../dialogs/AddDocsDialog";
 
 export function ExploreBlocksButton(props: { blockType: string }) {
   const { selectedProfile } = useAuth();
@@ -22,7 +18,7 @@ export function ExploreBlocksButton(props: { blockType: string }) {
   const isLocal = selectedProfile?.profileType === "local";
 
   const Icon = isLocal ? PlusIcon : ArrowTopRightOnSquareIcon;
-    const getBlockName = (blockType: string) => {
+  const getBlockName = (blockType: string) => {
     switch (blockType) {
       case "docs":
         return "docs";
@@ -35,35 +31,39 @@ export function ExploreBlocksButton(props: { blockType: string }) {
       default:
         return "API文档";
     }
-  }
+  };
 
   const text = `${isLocal ? "添加" : "Explore"} ${
     props.blockType === "mcpServers"
       ? "MCP 服务"
-      : getBlockName(props.blockType.charAt(0).toUpperCase() + props.blockType.slice(1))
+      : getBlockName(
+          props.blockType.charAt(0).toUpperCase() + props.blockType.slice(1),
+        )
   }`;
-
-
 
   const handleClick = () => {
     if (isLocal) {
-      console.log("isLocal", props.blockType);
+      ideMessenger.request("config/addLocalWorkspaceBlock", {
+        blockType: props.blockType as BlockType,
+      });
       switch (props.blockType) {
-        case "docs":
-          dispatch(setShowDialog(true));
-          dispatch(setDialogMessage(<AddDocsDialog />));
-          break;
         case "prompts": // 新增提示词
           ideMessenger.post("handleGeneratePrompt", {
-            fileName: 'random',
-            prompts:`name: 提示词主题\ndescription: 提示词描述\n---\n该程序请采用Vue2+ElementUI架构\n表单使用a3-ow-info组件`
+            fileName: "random",
+            prompts: `name: 提示词主题\ndescription: 提示词描述\n---\n该程序请采用Vue2+ElementUI架构\n表单使用a3-ow-info组件`,
           });
           break;
-        default:
-          ideMessenger.request("config/openProfile", {
-            profileId: selectedProfile.id,
-          });
       }
+      // switch (props.blockType) {
+      //   case "docs":
+      //     dispatch(setShowDialog(true));
+      //     dispatch(setDialogMessage(<AddDocsDialog />));
+      //     break;
+      //   default:
+      //     ideMessenger.request("config/openProfile", {
+      //       profileId: selectedProfile.id,
+      //     });
+      // }
     } else {
       ideMessenger.request("controlPlane/openUrl", {
         path: `new?type=block&blockType=${props.blockType}`,
@@ -84,7 +84,7 @@ export function ExploreBlocksButton(props: { blockType: string }) {
       }}
     >
       <div className="flex items-center justify-center gap-1">
-        <Icon className="h-2.5 w-2.5 pr-1" />
+        <Icon className="h-3 w-3 pr-1" />
         <span className="text-[11px]">{text}</span>
       </div>
     </GhostButton>

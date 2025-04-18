@@ -13,6 +13,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import styled from "styled-components";
 import { Button, lightGray, vscBackground } from "../../components";
+import AcceptRejectAllButtons from "../../components/AcceptRejectAllButtons";
 import CodeToEditCard from "../../components/CodeToEditCard";
 import FeedbackDialog from "../../components/dialogs/FeedbackDialog";
 import FreeTrialOverDialog from "../../components/dialogs/FreeTrialOverDialog";
@@ -24,7 +25,6 @@ import ContinueInputBox from "../../components/mainInput/ContinueInputBox";
 import { resolveEditorContent } from "../../components/mainInput/TipTapEditor/utils";
 import { useOnboardingCard } from "../../components/OnboardingCard";
 import StepContainer from "../../components/StepContainer";
-import AcceptRejectAllButtons from "../../components/StepContainer/AcceptRejectAllButtons";
 import { TabBar } from "../../components/TabBar/TabBar";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useWebviewListener } from "../../hooks/useWebviewListener";
@@ -37,6 +37,7 @@ import {
   newSession,
   selectIsInEditMode,
   selectIsSingleRangeEditOrInsertion,
+  updateToolCallOutput
 } from "../../redux/slices/sessionSlice";
 import {
   setDialogEntryOn,
@@ -54,7 +55,6 @@ import {
 } from "../../util/freeTrial";
 import getMultifileEditPrompt from "../../util/getMultifileEditPrompt";
 import { getLocalStorage, setLocalStorage } from "../../util/localStorage";
-import ConfigErrorIndicator from "./ConfigError";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
 import { ToolCallDiv } from "./ToolCallDiv";
@@ -273,6 +273,21 @@ export function Chat() {
     [mainTextInputRef],
   );
 
+  // Handle partial tool call output for streaming updates
+  useWebviewListener(
+    "toolCallPartialOutput",
+    async (data) => {
+        // Update tool call output in Redux store
+        dispatch(
+          updateToolCallOutput({
+            toolCallId: data.toolCallId,
+            contextItems: data.contextItems,
+          }),
+        );
+    },
+    [dispatch],
+  );
+
   const isLastUserInput = useCallback(
     (index: number): boolean => {
       return !history
@@ -436,7 +451,6 @@ export function Chat() {
                 </div>
               )}
             </div>
-            <ConfigErrorIndicator />
           </div>
 
           {hasPendingApplies && isSingleRangeEditOrInsertion && (

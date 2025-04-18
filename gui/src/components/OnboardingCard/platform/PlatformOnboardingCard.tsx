@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../../../context/Auth";
 import { useAppSelector } from "../../../redux/hooks";
 import { getLocalStorage, setLocalStorage } from "../../../util/localStorage";
 import Alert from "../../gui/Alert";
@@ -20,10 +21,19 @@ interface OnboardingCardProps {
 export function PlatformOnboardingCard({ isDialog }: OnboardingCardProps) {
   const onboardingCard = useOnboardingCard();
   const config = useAppSelector((store) => store.config.config);
+  const auth = useAuth();
   const [currentTab, setCurrentTab] = useState<"main" | "local">("main");
 
   if (getLocalStorage("onboardingStatus") === undefined) {
     setLocalStorage("onboardingStatus", "Started");
+  }
+
+  function onGetStarted() {
+    auth.login(true).then((success) => {
+      if (success) {
+        onboardingCard.close(isDialog);
+      }
+    });
   }
 
   return (
@@ -40,11 +50,11 @@ export function PlatformOnboardingCard({ isDialog }: OnboardingCardProps) {
         ) : (
           <div className="mt-4 flex flex-col">
             <Alert type="info">
-            通过修改 "Local"，KodeMate AI 将使用本地配置文件进行配置。您可以在
-              <code className="text-vsc-background">config.yaml</code> 文件配置. 如果您只是想使用 Ollama
-              并希望通过 Kodemate AI 进行配置, 点击{" "}
-              <a href="#" onClick={() => setCurrentTab("main")}>
-                这里
+              通过选择此选项，KodemateAI 将由本地的 config.yaml
+              文件进行配置。如果只是想使用 Ollama 并且仍然希望通过 Kodemate AI
+              管理你的配置，请点击。{" "}
+              <a href="#" onClick={onGetStarted}>
+                此处
               </a>
             </Alert>
             <OnboardingLocalTab isDialog={isDialog} />
