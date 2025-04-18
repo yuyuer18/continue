@@ -246,13 +246,13 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
       // Trigger warning message
       ideMessenger.ide.showToast(
         "warning",
-        fileSize > 0 ? "File exceeds context length" : "Can't load the file",
+        fileSize > 0 ? "文件超出上下文长度。" : "无法加载文件",
         {
           modal: true,
           detail:
             fileSize > 0
-              ? `'${item.title}' is ${formatFileSize(fileSize)} which exceeds the allowed context length and connot be processed by the model`
-              : `'${item.title}' could not be loaded. Please check if the file exists and has the correct permissions.`,
+              ? `'${item.title}' is ${formatFileSize(fileSize)} 该内容超出了允许的上下文长度，无法由模型处理。`
+              : `'${item.title}' 无法加载。请检查文件是否存在以及是否具有正确的权限。`,
         },
       );
     } else {
