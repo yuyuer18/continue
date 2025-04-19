@@ -46,14 +46,14 @@ export function ExploreBlocksButton(props: { blockType: string }) {
       ideMessenger.request("config/addLocalWorkspaceBlock", {
         blockType: props.blockType as BlockType,
       });
-      switch (props.blockType) {
-        case "prompts": // 新增提示词
-          ideMessenger.post("handleGeneratePrompt", {
-            fileName: "random",
-            prompts: `name: 提示词主题\ndescription: 提示词描述\n---\n该程序请采用Vue2+ElementUI架构\n表单使用a3-ow-info组件`,
-          });
-          break;
-      }
+      // switch (props.blockType) {
+      //   case "prompts": // 新增提示词
+      //     ideMessenger.post("handleGeneratePrompt", {
+      //       fileName: "random",
+      //       prompts: `name: 提示词主题\ndescription: 提示词描述\n---\n该程序请采用Vue2+ElementUI架构\n表单使用a3-ow-info组件`,
+      //     });
+      //     break;
+      // }
       // switch (props.blockType) {
       //   case "docs":
       //     dispatch(setShowDialog(true));

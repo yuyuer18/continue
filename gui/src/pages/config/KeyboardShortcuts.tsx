@@ -30,11 +30,11 @@ function KeyboardShortcut(props: KeyboardShortcutProps) {
 const vscodeShortcuts: Omit<KeyboardShortcutProps, "isEven">[] = [
   {
     shortcut: "cmd '",
-    description: "Toggle Selected Model",
+    description: "切换模型",
   },
   {
     shortcut: "cmd I",
-    description: "Edit highlighted code",
+    description: "编辑突出显示的代码",
   },
   {
     shortcut: "cmd L",
@@ -109,19 +109,19 @@ const jetbrainsShortcuts: Omit<KeyboardShortcutProps, "isEven">[] = [
   },
   {
     shortcut: "cmd shift backspace",
-    description: "Reject Diff",
+    description: "拒绝差异",
   },
   {
     shortcut: "cmd shift enter",
-    description: "Accept Diff",
+    description: "接受差异",
   },
   {
     shortcut: "alt shift J",
-    description: "Quick Input",
+    description: "快速输入",
   },
   {
     shortcut: "alt cmd J",
-    description: "Toggle Sidebar",
+    description: "切换侧边栏",
   },
 ];
 
@@ -132,7 +132,7 @@ function KeyboardShortcuts() {
 
   return (
     <div className="h-full overflow-auto p-5">
-      <h3 className="mb-5 text-xl">Keyboard shortcuts</h3>
+      <h3 className="mb-5 text-xl">快捷键</h3>
       <div>
         {shortcuts.map((shortcut, i) => {
           return (

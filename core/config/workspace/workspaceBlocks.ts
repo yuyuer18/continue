@@ -29,23 +29,23 @@ function getContentsForNewBlock(blockType: BlockType): ConfigYaml {
       ];
       break;
     case "rules":
-      configYaml.rules = ["Always give concise responses"];
+      configYaml.rules = ["始终给出简洁的答案", "使用中文回答"];
       break;
     case "docs":
       configYaml.docs = [
         {
-          name: "New docs",
-          startUrl: "https://docs.continue.dev",
+          name: "A3UI API Docs",
+          startUrl: "http://192.168.65.227:3000/vue-a3ui-doc/api-docs",
         },
       ];
       break;
     case "prompts":
       configYaml.prompts = [
         {
-          name: "New prompt",
-          description: "New prompt",
+          name: "前端开发提示词",
+          description: "采用A3UI开发的前端开发提示词",
           prompt:
-            "Please write a thorough suite of unit tests for this code, making sure to cover all relevant edge cases",
+            "该工程采用Vue3+ElementPlus架构\n表单使用a3-ow-info组件\n请给出一个Vue3+ElementPlus的表单示例代码",
         },
       ];
       break;
@@ -71,7 +71,7 @@ export async function createNewWorkspaceBlockFile(
   const workspaceDirs = await ide.getWorkspaceDirs();
   if (workspaceDirs.length === 0) {
     throw new Error(
-      "No workspace directories found. Make sure you've opened a folder in your IDE.",
+      "未找到工作区目录。请确保你已在集成开发环境中打开了一个文件夹。",
     );
   }
 

@@ -54,15 +54,15 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
       return rule.name;
     } else {
       if (rule.source === ".continuerules") {
-        return "Project rules";
+        return "项目规则";
       } else if (rule.source === "default") {
-        return "Default chat system message";
+        return "默认规则 (Default rules)";
       } else if (rule.source === "json-systemMessage") {
         return "JSON systemMessage)";
       } else if (rule.source === "model-chat-options") {
-        return "Base System Chat Message";
+        return "基础系统对话规则";
       } else {
-        return "Assistant rule";
+        return "AI助手规则";
       }
     }
   }, [rule]);

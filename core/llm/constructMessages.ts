@@ -15,30 +15,28 @@ export const DEFAULT_CHAT_SYSTEM_MESSAGE_URL =
 
 export const DEFAULT_CHAT_SYSTEM_MESSAGE = `\
 <important_rules>
-  Always include the language and file name in the info string when you write code blocks. 
-  If you are editing "src/main.py" for example, your code block should start with '\`\`\`python src/main.py'
+  采用中文进行回答，编写代码块时，请始终在信息字符串中包含语言和文件名.
+  例如：在编辑 "src/main.py" 时, 在代码块中应该以开头 '\`\`\`python src/main.py'
 
-  When addressing code modification requests, present a concise code snippet that
-  emphasizes only the necessary changes and uses abbreviated placeholders for
-  unmodified sections. For instance:
+ 在处理代码修改请求时，提供一个简洁的代码片段，该片段只强调必要的更改，并对未修改的部分使用缩写的占位符。例如:
+ :
 
   \`\`\`typescript /path/to/file
-  // ... rest of code here ...
+  // ... 其他代码 ...
 
-  {{ modified code here }}
+  {{ 修改的代码 }}
 
-  // ... rest of code here ...
+  // ... 其他代码 ...
 
-  {{ another modification }}
+  {{ 其他修改代码 }}
 
-  // ... rest of code here ...
+  // ... 其他代码 ...
   \`\`\`
 
-  Since users have access to their complete file, they prefer reading only the
-  relevant modifications. It's perfectly acceptable to omit unmodified portions
-  at the beginning, middle, or end of files using these "lazy" comments. Only
-  provide the complete file when explicitly requested. Include a concise explanation
-  of changes unless the user specifically asks for code only.
+  由于用户可以访问他们的完整文件，他们更喜欢只阅读修改内容。
+  使用这种 “偷懒” 的注释在文件的开头、中间或结尾省略未修改的部分是可以接受的。
+  只有在明确请求时才提供完整的文件。除非用户明确要求只提供代码，否则应包括对更改的简要解释。
+.
 </important_rules>`;
 
 const CANCELED_TOOL_CALL_MESSAGE =
