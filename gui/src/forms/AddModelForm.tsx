@@ -1,11 +1,11 @@
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { useContext, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
 import { Button, Input, InputSubtext, StyledActionButton } from "../components";
 import AddModelButtonSubtext from "../components/AddModelButtonSubtext";
 import Alert from "../components/gui/Alert";
 import ModelSelectionListbox from "../components/modelSelection/ModelSelectionListbox";
+import { useAuth } from "../context/Auth";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import { completionParamsInputs } from "../pages/AddNewModel/configs/completionParamsInputs";
 import { DisplayInfo } from "../pages/AddNewModel/configs/models";
@@ -13,7 +13,8 @@ import {
   ProviderInfo,
   providers,
 } from "../pages/AddNewModel/configs/providers";
-import { setDefaultModel } from "../redux/slices/configSlice";
+import { useAppDispatch } from "../redux/hooks";
+import { updateSelectedModelByRole } from "../redux/thunks";
 import { FREE_TRIAL_LIMIT_REQUESTS, hasPassedFTL } from "../util/freeTrial";
 
 interface QuickModelSetupProps {
@@ -33,22 +34,27 @@ function AddModelForm({
   const [selectedProvider, setSelectedProvider] = useState<ProviderInfo>(
     providers["openai"]!,
   );
+  const dispatch = useAppDispatch();
+  const { selectedProfile } = useAuth();
 
   const [selectedModel, setSelectedModel] = useState(
     selectedProvider.packages[0],
   );
 
   const formMethods = useForm();
-  const dispatch = useDispatch();
   const ideMessenger = useContext(IdeMessengerContext);
 
   const popularProviderTitles = [
-    providers["openai"]?.title || "",
-    providers["anthropic"]?.title || "",
-    providers["mistral"]?.title || "",
-    providers["gemini"]?.title || "",
-    providers["azure"]?.title || "",
+    // providers["openai"]?.title || "",
+    // providers["anthropic"]?.title || "",
+    // providers["mistral"]?.title || "",
+    // providers["gemini"]?.title || "",
+    // providers["azure"]?.title || "",
     providers["ollama"]?.title || "",
+    providers["vllm"]?.title || "",
+    providers["deepseek"]?.title || "",
+    providers["moonshot"]?.title || "",
+    ,
   ];
 
   const allProviders = Object.entries(providers)
@@ -61,9 +67,7 @@ function AddModelForm({
     .filter((provider) => popularProviderTitles.includes(provider.title))
     .sort((a, b) => a.title.localeCompare(b.title));
 
-  const otherProviders = allProviders
-    .filter((provider) => !popularProviderTitles.includes(provider.title))
-    .sort((a, b) => a.title.localeCompare(b.title));
+  const otherProviders: any[] = [];
 
   const selectedProviderApiKeyUrl = selectedModel.params.model.startsWith(
     "codestral",
@@ -115,7 +119,13 @@ function AddModelForm({
       profileId: "local",
     });
 
-    dispatch(setDefaultModel({ title: model.title, force: true }));
+    dispatch(
+      updateSelectedModelByRole({
+        selectedProfile,
+        role: "chat",
+        modelTitle: model.title,
+      }),
+    );
 
     onDone();
   }
@@ -161,18 +171,6 @@ function AddModelForm({
                 topOptions={popularProviders}
                 otherOptions={otherProviders}
               />
-              <InputSubtext className="mb-0">
-                没找到你需要的模型提供者?{" "}
-                <a
-                  className="cursor-pointer text-inherit underline hover:text-inherit"
-                  onClick={() =>
-                    ideMessenger.post("openUrl", MODEL_PROVIDERS_URL)
-                  }
-                >
-                  点击这里
-                </a>{" "}
-                查看更多
-              </InputSubtext>
             </div>
 
             {selectedProvider.downloadUrl && (
@@ -227,6 +225,23 @@ function AddModelForm({
               </div>
             )}
 
+            {selectedProvider.apiBase && (
+              <div>
+                <>
+                  <label className="mb-1 block text-sm font-medium">
+                    服务地址
+                  </label>
+                  <Input
+                    id="apiBase"
+                    className="w-full"
+                    placeholder={`请输入 ${selectedProvider.title} 服务地址`}
+                    {...formMethods.register("apiBase")}
+                  />
+                  <InputSubtext className="mb-0"></InputSubtext>
+                </>
+              </div>
+            )}
+
             {selectedProvider.apiKeyUrl && (
               <div>
                 <>
@@ -236,7 +251,7 @@ function AddModelForm({
                   <Input
                     id="apiKey"
                     className="w-full"
-                    placeholder={`Enter your ${selectedProvider.title} API key`}
+                    placeholder={`请输入 ${selectedProvider.title} API key`}
                     {...formMethods.register("apiKey")}
                   />
                   <InputSubtext className="mb-0">
@@ -289,7 +304,7 @@ function AddModelForm({
 
           <div className="mt-4 w-full">
             <Button type="submit" className="w-full" disabled={isDisabled()}>
-             测试模型
+              测试模型
             </Button>
             <AddModelButtonSubtext />
           </div>

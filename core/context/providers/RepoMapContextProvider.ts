@@ -22,8 +22,8 @@ const ENTIRE_PROJECT_ITEM: ContextSubmenuItem = {
 class RepoMapContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "repo-map",
-    displayTitle: "Repository Map",
-    description: "Select a folder",
+    displayTitle: "存储库地图",
+    description: "选择一个文件夹",
     type: "submenu",
   };
 
@@ -34,7 +34,7 @@ class RepoMapContextProvider extends BaseContextProvider {
     return [
       {
         name: "Repository Map",
-        description: "Overview of the repository structure",
+        description: "存储库结构概述",
         content: await generateRepoMap(extras.llm, extras.ide, {
           dirUris: query === ENTIRE_PROJECT_ITEM.id ? undefined : [query],
           outputRelativeUriPaths: true,
@@ -54,7 +54,7 @@ class RepoMapContextProvider extends BaseContextProvider {
     const folders = await walkDirs(
       args.ide,
       {
-        onlyDirs: true,
+        include: "dirs",
         source: "load submenu items - repo map",
       },
       workspaceDirs,

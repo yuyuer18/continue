@@ -1,8 +1,8 @@
 {
   "name": "kodemate-ai",
   "icon": "media/icon.png",
-  "author": "Amarsoft Dev, Inc",
-  "version": "1.1.16",
+  "author": "Amarsoft.com",
+  "version": "1.1.24",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
@@ -92,11 +92,6 @@
           "default": true,
           "markdownDescription": "Continue collects anonymous usage data, cleaned of PII, to help us improve the product for our users. Read more  at [continue.dev › Telemetry](https://docs.continue.dev/telemetry)."
         },
-        "continue.enableContinueForTeams": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Enable Continue for teams beta features. To sign in, click the gear icon to go to the settings page, and click Sign In."
-        },
         "continue.showInlineTip": {
           "type": "boolean",
           "default": true,
@@ -126,6 +121,11 @@
           "type": "boolean",
           "default": false,
           "markdownDescription": "Pause Continue's codebase index on start."
+        },
+        "continue.enableConsole": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable a console to log and explore model inputs and outputs. It can be found in the bottom panel."
         },
         "continue.remoteConfigServerUrl": {
           "type": "string",
@@ -257,6 +257,13 @@
         "command": "continue.viewLogs",
         "category": "Continue",
         "title": "查看对话历史",
+        "group": "Continue"
+      },
+      {
+        "command": "continue.clearConsole",
+        "category": "Continue",
+        "title": "清除控制台",
+        "icon": "$(clear-all)",
         "group": "Continue"
       },
       {
@@ -533,6 +540,11 @@
           "command": "continue.openConfigPage",
           "group": "navigation@4",
           "when": "view == Amarsoft.kodemate-aiGUIView"
+        },
+        {
+          "command": "continue.clearConsole",
+          "group": "navigation@1",
+          "when": "view == Amarsoft.kodemate-aiGUIView"
         }
       ],
       "editor/title": [
@@ -561,6 +573,13 @@
           "title": "KodeMateAi+",
           "icon": "media/sidebar-icon.png"
         }
+      ],
+      "panel": [
+        {
+          "id": "continueConsole",
+          "title": "Continue Console",
+          "icon": "$(window)"
+        }
       ]
     },
     "views": {
@@ -572,6 +591,16 @@
           "icon": "media/sidebar-icon.png",
           "visibility": "visible"
         }
+      ],
+      "continueConsole": [
+        {
+          "type": "webview",
+          "id": "continue.continueConsoleView",
+          "name": "Continue Console",
+          "icon": "$(window)",
+          "visibility": "visible",
+          "when": "config.continue.enableConsole"
+        }
       ]
     },
     "jsonValidation": [
@@ -582,6 +611,10 @@
       {
         "fileMatch": ".continuerc.json",
         "url": "./continue_rc_schema.json"
+      },
+      {
+        "fileMatch": "**/config.yaml",
+        "url": "./config-yaml-schema.json"
       }
     ]
   },
@@ -601,6 +634,7 @@
     "build-test": "npm run esbuild && node esbuild.test.mjs",
     "test": "npm run build-test && node ./out/runTestOnVSCodeHost.js",
     "quick-test": "npm run build-test && node ./out/runTestOnVSCodeHost.js",
+    "write-build-timestamp": "node scripts/write-build-timestamp.js",
     "prepackage": "node scripts/prepackage.js",
     "package": "node scripts/package.js",
     "package-all": "node scripts/package-all.js",
@@ -627,7 +661,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
-    "@nestjs/common": "^8.4.7",
+    "@nestjs/common": "^11.0.16",
     "@openapitools/openapi-generator-cli": "^2.5.2",
     "@types/chai": "^5.0.1",
     "@types/cors": "^2.8.17",
@@ -653,7 +687,7 @@
     "ovsx": "^0.8.3",
     "rimraf": "^5.0.5",
     "typescript": "^5.6.3",
-    "vite": "^4.3.9",
+    "vite": "^4.5.13",
     "vsce": "^2.15.0",
     "vscode-extension-tester": "^8.10.0"
   },

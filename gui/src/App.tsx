@@ -1,12 +1,11 @@
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import Layout from "./components/Layout";
+import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
 import useSetup from "./hooks/useSetup";
-import A3CloudPromptManager from "./pages/a3";
-import { AddNewModel, ConfigureProvider } from "./pages/AddNewModel";
+import A3CloudPromptManager from "./pages/a3/index";
 import ConfigPage from "./pages/config";
-import ConfigErrorPage from "./pages/config-error";
 import ErrorPage from "./pages/error";
 import Chat from "./pages/gui";
 import History from "./pages/history";
@@ -40,18 +39,6 @@ const router = createMemoryRouter([
         element: <Stats />,
       },
       {
-        path: "/addModel",
-        element: <AddNewModel />,
-      },
-      {
-        path: "/addModel/provider/:providerName",
-        element: <ConfigureProvider />,
-      },
-      {
-        path: ROUTES.CONFIG_ERROR,
-        element: <ConfigErrorPage />,
-      },
-      {
         path: ROUTES.CONFIG,
         element: <ConfigPage />,
       },
@@ -71,9 +58,11 @@ function SetupListeners() {
 function App() {
   return (
     <VscThemeProvider>
-      <SubmenuContextProvidersProvider>
-        <RouterProvider router={router} />
-      </SubmenuContextProvidersProvider>
+      <MainEditorProvider>
+        <SubmenuContextProvidersProvider>
+          <RouterProvider router={router} />
+        </SubmenuContextProvidersProvider>
+      </MainEditorProvider>
       <SetupListeners />
     </VscThemeProvider>
   );

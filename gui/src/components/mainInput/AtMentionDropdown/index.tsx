@@ -5,6 +5,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Editor } from "@tiptap/react";
+import { RangeInFile } from "core";
 import {
   forwardRef,
   useContext,
@@ -24,6 +25,8 @@ import {
   vscQuickInputBackground,
 } from "../..";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
+import { useAppSelector } from "../../../redux/hooks";
+import { selectSelectedChatModel } from "../../../redux/slices/configSlice";
 import { setDialogMessage, setShowDialog } from "../../../redux/slices/uiSlice";
 import { fontSize } from "../../../util";
 import FileIcon from "../../FileIcon";
@@ -138,10 +141,28 @@ interface AtMentionDropdownProps {
   onClose: () => void;
 }
 
+const formatFileSize = (fileSize: number) => {
+  const KB = 1000;
+  const MB = 1000_000;
+  const GB = 1000_000_000;
+
+  if (fileSize > GB) {
+    return `${(fileSize / GB).toFixed(1)} GB`;
+  } else if (fileSize > MB) {
+    return `${(fileSize / MB).toFixed(1)} MB`;
+  } else if (fileSize > KB) {
+    return `${(fileSize / KB).toFixed(1)} KB`;
+  }
+
+  return `${fileSize} byte${fileSize > 1 ? "s" : ""}`;
+};
+
 const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   const dispatch = useDispatch();
 
   const ideMessenger = useContext(IdeMessengerContext);
+
+  const selectedModelTitle = useAppSelector(selectSelectedChatModel);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -156,6 +177,88 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   >(undefined);
 
   const [allItems, setAllItems] = useState<ComboBoxItem[]>([]);
+
+  async function isItemTooBig(
+    name: string,
+    query: string,
+  ): Promise<[boolean, number]> {
+    const selectedCode: RangeInFile[] = [];
+    // Get context item from core
+    const contextResult = await ideMessenger.request(
+      "context/getContextItems",
+      {
+        name,
+        query,
+        fullInput: "",
+        selectedCode,
+        selectedModelTitle: selectedModelTitle?.title ?? "",
+      },
+    );
+
+    if (contextResult.status === "error") {
+      return [false, -1];
+    }
+
+    const item = contextResult.content[0];
+
+    // Check if the context item exceeds the context length of the selected model
+    const result = await ideMessenger.request("isItemTooBig", {
+      item,
+      selectedModelTitle: selectedModelTitle?.title,
+    });
+
+    if (result.status === "error") {
+      return [false, -1];
+    }
+
+    const size = new Blob([item.content]).size;
+
+    return [result.content, size];
+  }
+
+  function handleItemTooBig(
+    fileExceeds: boolean,
+    fileSize: number,
+    item: ComboBoxItem,
+  ) {
+    if (fileExceeds) {
+      props.editor
+        .chain()
+        .focus()
+        .command(({ tr, state }) => {
+          const text = state.doc.textBetween(
+            0,
+            state.selection.from,
+            "\n",
+            "\n",
+          ); // Get the text before the cursor
+          const lastAtIndex = text.lastIndexOf("@");
+
+          if (lastAtIndex !== -1) {
+            // Delete text after the last "@"
+            tr.delete(lastAtIndex + 1, state.selection.from);
+            return true;
+          }
+          return false;
+        })
+        .run();
+
+      // Trigger warning message
+      ideMessenger.ide.showToast(
+        "warning",
+        fileSize > 0 ? "文件超出上下文长度。" : "无法加载文件",
+        {
+          modal: true,
+          detail:
+            fileSize > 0
+              ? `'${item.title}' is ${formatFileSize(fileSize)} 该内容超出了允许的上下文长度，无法由模型处理。`
+              : `'${item.title}' 无法加载。请检查文件是否存在以及是否具有正确的权限。`,
+        },
+      );
+    } else {
+      props.command({ ...item, itemType: item.type });
+    }
+  }
 
   useEffect(() => {
     const items = [...props.items];
@@ -193,7 +296,7 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
           }
           props.onClose(); // Escape the mention list after creating a new prompt file
         },
-        description: "创建 .prompt 文件",
+        description: "创建.prompt文件",
       });
     }
     setLoadingSubmenuItem(items.find((item) => item.id === "loading"));
@@ -243,7 +346,13 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
     }
 
     if (item) {
-      props.command({ ...item, itemType: item.type });
+      if (item.type === "file" && item.query) {
+        isItemTooBig(item.type, item.query).then(([fileExceeds, fileSize]) =>
+          handleItemTooBig(fileExceeds, fileSize, item),
+        );
+      } else {
+        props.command({ ...item, itemType: item.type });
+      }
     }
   };
 

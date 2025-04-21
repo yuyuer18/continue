@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { defaultBorderRadius, lightGray, vscBackground } from "../..";
 import { getFontSize } from "../../../util";
-import StyledMarkdownPreview from "../../markdown/StyledMarkdownPreview";
+import StyledMarkdownPreview from "../../StyledMarkdownPreview";
 
 const SpoilerButton = styled.div`
   background-color: ${vscBackground};
@@ -124,10 +124,10 @@ function ThinkingBlockPeek({
             <ButtonContent>
               {inProgress ? (
                 <ThinkingText>
-                  {redactedThinking ? "Redacted Thinking" : "Thinking"}
+                  {redactedThinking ? "修订思考中..." : "思考中..."}
                 </ThinkingText>
               ) : redactedThinking ? (
-                "Redacted Thinking"
+                "修订思考中..."
               ) : (
                 "思考" +
                 (elapsedTime ? ` for ${elapsedTime}` : "") +
@@ -155,7 +155,7 @@ function ThinkingBlockPeek({
         >
           {redactedThinking ? (
             <div className="pl-4 text-xs text-gray-400">
-              Thinking content redacted due to safety reasons.
+              出于安全原因，回复内容被编辑。
             </div>
           ) : (
             <>

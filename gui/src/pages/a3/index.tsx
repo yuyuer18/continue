@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../components/PageHeader";
+import { IdeMessengerContext } from "../../context/IdeMessenger";
 import styles from './index.module.css';
-
 interface ServiceInfo {
     id: string;
     name: string;
@@ -47,10 +47,20 @@ const services: ServiceInfo[] = [
     }
 ];
 
+// 添加一个常量用于 localStorage 的 key
+const SERVER_URL_KEY = 'a3cloud_server_url';
+const DEFAULT_SERVER_URL = 'http://localhost:3000';
+
 const A3CloudPromptManager: React.FC = () => {
+    // 修改 useState 初始化部分，使用 localStorage 中的值
+    const [serverUrl, setServerUrl] = useState(() => {
+        const savedUrl = localStorage.getItem(SERVER_URL_KEY);
+        return savedUrl || DEFAULT_SERVER_URL;
+    });
     const [prompt, setPrompt] = useState('');
     const [selectedService, setSelectedService] = useState('A3UI');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const ideMessenger = useContext(IdeMessengerContext);
 
     // 获取所有唯一的标签
     const allTags = Array.from(new Set(services.flatMap(service => service.tags)));
@@ -71,7 +81,19 @@ const A3CloudPromptManager: React.FC = () => {
 
     const navigate = useNavigate();
     const handleGeneratePrompt = () => {
-        console.log(`Generating prompt for ${selectedService}: ${prompt}`);
+        ideMessenger.post("handleGeneratePrompt", { 
+            selectedService: selectedService,
+            serverUrl: serverUrl,  // 添加服务器地址
+            fileName: selectedService
+
+        });
+    };
+
+    // 修改 setServerUrl 的处理函数
+    const handleServerUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newUrl = e.target.value;
+        setServerUrl(newUrl);
+        localStorage.setItem(SERVER_URL_KEY, newUrl);
     };
 
     return (
@@ -152,17 +174,18 @@ const A3CloudPromptManager: React.FC = () => {
             </div>
             <div className={styles.inputContainer}>
                 <label 
-                    htmlFor="prompt" 
+                    htmlFor="serverUrl" 
                     className={styles.inputLabel}
                 >
-                    输入提示词:
+                    提示词服务器:
                 </label>
                 <input
-                    id="prompt"
+                    id="serverUrl"
                     type="text"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
+                    value={serverUrl}
+                    onChange={handleServerUrlChange}
                     className={styles.input}
+                    placeholder="请输入提示词服务器地址"
                 />
             </div>
         </div>

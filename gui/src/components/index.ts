@@ -166,7 +166,6 @@ export const GhostButton = styled.button`
 
   &:hover:enabled {
     cursor: pointer;
-    filter: brightness(125%);
   }
 `;
 

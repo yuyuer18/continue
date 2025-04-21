@@ -1,18 +1,18 @@
-import FileIcon from "../FileIcon";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
-import StyledMarkdownPreview from "../markdown/StyledMarkdownPreview";
-import { getMarkdownLanguageTagForFile } from "core/util";
-import styled from "styled-components";
 import { CodeToEdit } from "core";
+import { getMarkdownLanguageTagForFile } from "core/util";
 import {
   getLastNUriRelativePathParts,
   getUriPathBasename,
 } from "core/util/uri";
+import { useState } from "react";
+import styled from "styled-components";
+import FileIcon from "../FileIcon";
+import StyledMarkdownPreview from "../StyledMarkdownPreview";
 
 export interface CodeToEditListItemProps {
   code: CodeToEdit;
@@ -56,7 +56,7 @@ export default function CodeToEditListItem({
     isInsertion = start === end;
 
     title += isInsertion
-      ? ` - Inserting at line ${start}`
+      ? ` - 在线插入 ${start}`
       : ` (${start} - ${end})`;
   }
 

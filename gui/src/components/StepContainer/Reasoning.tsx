@@ -10,7 +10,7 @@ import {
   vscQuickInputBackground,
 } from "..";
 import { getFontSize } from "../../util";
-import StyledMarkdownPreview from "../markdown/StyledMarkdownPreview";
+import StyledMarkdownPreview from "../StyledMarkdownPreview";
 
 interface ReasoningProps {
   item: ChatHistoryItem;
@@ -112,7 +112,7 @@ export default function Reasoning(props: ReasoningProps) {
       <SpoilerButton onClick={() => setOpen(!open)}>
         <ButtonContent>
           {isThinking ? (
-            <ThinkingText>Thinking</ThinkingText>
+            <ThinkingText>思考中</ThinkingText>
           ) : (
             `思考 ${reasoningTime}`
           )}

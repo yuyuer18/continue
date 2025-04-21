@@ -63,7 +63,7 @@ const isSingleCharNonModifier = (key: string) =>
 const Shortcut: React.FC<ShortcutProps> = ({ children }) => {
   const platform = getPlatform();
   if (!children || typeof children !== "string") {
-    return <span>Error: Invalid shortcut key</span>;
+    return <span>错误：快捷键无效</span>;
   }
 
   const shortcuts = parseShortcut(children, platform);

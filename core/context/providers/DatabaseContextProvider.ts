@@ -12,8 +12,8 @@ import { BaseContextProvider } from "../index.js";
 class DatabaseContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "database",
-    displayTitle: "Database",
-    description: "Table schemas",
+    displayTitle: "数据库",
+    description: "表模式",
     type: "submenu",
     renderInlineAs: "",
   };
@@ -110,7 +110,7 @@ class DatabaseContextProvider extends BaseContextProvider {
       tables.forEach((tableName) => {
         const contextItem = {
           id: `${connection.name}.${tableName}`,
-          title: `${connection.name}.${tableName} schema`,
+          title: `${connection.name}.${tableName}`,
           description: "",
         };
 

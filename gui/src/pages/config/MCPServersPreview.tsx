@@ -89,7 +89,7 @@ function MCPServerPreview({ server, serverFromYaml }: MCPServerStatusProps) {
                 <code key={idx}>{tool.name}</code>
               ))}
               {server.tools.length === 0 && (
-                <span className="text-lightgray">No tools</span>
+                <span className="text-lightgray">无工具</span>
               )}
             </ToolTip>
           </div>
@@ -104,7 +104,7 @@ function MCPServerPreview({ server, serverFromYaml }: MCPServerStatusProps) {
                 <code key={idx}>{prompt.name}</code>
               ))}
               {server.prompts.length === 0 && (
-                <span className="text-lightgray">No prompts</span>
+                <span className="text-lightgray">无提示词</span>
               )}
             </ToolTip>
           </div>
@@ -119,7 +119,7 @@ function MCPServerPreview({ server, serverFromYaml }: MCPServerStatusProps) {
                 <code key={idx}>{resource.name}</code>
               ))}
               {server.resources.length === 0 && (
-                <span className="text-lightgray">No resources</span>
+                <span className="text-lightgray">无资源</span>
               )}
             </ToolTip>
           </div>

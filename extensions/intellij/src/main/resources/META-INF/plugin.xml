@@ -140,13 +140,13 @@
             <override-text place="GoToAction" text="配置"/>
         </action>
 
-        <action id="continue.openMorePage"
-                class="com.github.continuedev.continueintellijextension.actions.OpenMorePageAction"
-                icon="AllIcons.Actions.MoreHorizontal"
-                text="更多"
-                description="更多">
-            <override-text place="GoToAction" text="更多"/>
-        </action>
+<!--        <action id="continue.openMorePage"-->
+<!--                class="com.github.continuedev.continueintellijextension.actions.OpenMorePageAction"-->
+<!--                icon="AllIcons.Actions.MoreHorizontal"-->
+<!--                text="更多"-->
+<!--                description="更多">-->
+<!--            <override-text place="GoToAction" text="更多"/>-->
+<!--        </action>-->
 
         <group id="ContinueSidebarActionsGroup">
             <reference ref="continue.newContinueSession"/>

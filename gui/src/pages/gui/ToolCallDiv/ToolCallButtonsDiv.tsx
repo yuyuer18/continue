@@ -68,23 +68,23 @@ export function ToolCallButtons(props: ToolCallButtonsProps) {
               minHeight: "40px",
             }}
           >
-            Thinking...
+            思考中...
           </div>
         ) : toolCallState.status === "generated" ? (
           <>
             <RejectButton onClick={() => dispatch(cancelTool())}>
-              Cancel
+              取消
             </RejectButton>
             <AcceptButton
               onClick={() => dispatch(callTool())}
               data-testid="accept-tool-call-button"
             >
-              Continue
+              继续
             </AcceptButton>
           </>
         ) : toolCallState.status === "calling" ? (
           <div className="ml-auto flex items-center gap-4">
-            Loading...
+            加载中...
             <Spinner />
           </div>
         ) : null}

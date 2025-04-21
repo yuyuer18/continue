@@ -9,7 +9,7 @@ class DiffContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "diff",
     displayTitle: "Git Diff",
-    description: "Reference the current git diff",
+    description: "引用当前文件的Git差异",
     type: "normal",
   };
 
@@ -22,7 +22,7 @@ class DiffContextProvider extends BaseContextProvider {
     );
     return [
       {
-        description: "The current git diff",
+        description: "当前的文件的 Git 差异",
         content:
           diff.length === 0
             ? "Git shows no current changes."

@@ -1,12 +1,12 @@
-import { useDispatch } from "react-redux";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
-import { setCurCheckpointIndex } from "../../redux/slices/sessionSlice";
 import { useContext } from "react";
+import { useDispatch } from "react-redux";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useAppSelector } from "../../redux/hooks";
+import { setCurCheckpointIndex } from "../../redux/slices/sessionSlice";
 
 export default function UndoAndRedoButtons() {
   const dispatch = useDispatch();
@@ -45,7 +45,7 @@ export default function UndoAndRedoButtons() {
         onClick={() => handleUndoOrRedo("undo")}
       >
         <ArrowUturnLeftIcon className="mr-2 h-3.5 w-3.5" />
-        Undo changes
+        撤消更改
       </button>
 
       {shouldRenderRedo && (
@@ -54,7 +54,7 @@ export default function UndoAndRedoButtons() {
           onClick={() => handleUndoOrRedo("redo")}
         >
           <ArrowUturnRightIcon className="mr-2 h-3.5 w-3.5" />
-          Redo changes
+          重做更改
         </button>
       )}
     </div>

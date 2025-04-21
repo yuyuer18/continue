@@ -14,7 +14,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { selectUseActiveFile } from "../../redux/selectors";
 import { selectCurrentToolCall } from "../../redux/selectors/selectCurrentToolCall";
-import { selectDefaultModel } from "../../redux/slices/configSlice";
+import { selectSelectedChatModel } from "../../redux/slices/configSlice";
 import {
   selectHasCodeToEdit,
   selectIsInEditMode,
@@ -31,7 +31,7 @@ import { ToolTip } from "../gui/Tooltip";
 import ModelSelect from "../modelSelection/ModelSelect";
 import ModeSelect from "../modelSelection/ModeSelect";
 import { useFontSize } from "../ui/font";
-import HoverItem from "./InputToolbar/bottom/HoverItem";
+import HoverItem from "./InputToolbar/HoverItem";
 
 const StyledDiv = styled.div<{ isHidden?: boolean }>`
   padding-top: 4px;
@@ -87,24 +87,27 @@ interface InputToolbarProps {
   toolbarOptions?: ToolbarOptions;
   disabled?: boolean;
   isMainInput?: boolean;
-  lumpOpen: boolean;
-  setLumpOpen: (open: boolean) => void;
 }
 
 function InputToolbar(props: InputToolbarProps) {
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const defaultModel = useAppSelector(selectDefaultModel);
+  const defaultModel = useAppSelector(selectSelectedChatModel);
   const useActiveFile = useAppSelector(selectUseActiveFile);
   const isInEditMode = useAppSelector(selectIsInEditMode);
   const hasCodeToEdit = useAppSelector(selectHasCodeToEdit);
   const toolCallState = useAppSelector(selectCurrentToolCall);
   const isEditModeAndNoCodeToEdit = isInEditMode && !hasCodeToEdit;
+  const activeToolCallStreamId = useAppSelector(
+    (store) => store.session.activeToolStreamId,
+  );
 
   const isEnterDisabled =
     props.disabled ||
     isEditModeAndNoCodeToEdit ||
-    toolCallState?.status === "generated";
+    toolCallState?.status === "generated" ||
+    !!activeToolCallStreamId;
+
   const toolsSupported = defaultModel && modelSupportsTools(defaultModel);
 
   const supportsImages =
@@ -123,7 +126,7 @@ function InputToolbar(props: InputToolbarProps) {
     <>
       <div
         onClick={props.onClick}
-        className={`find-widget-skip bg-vsc-input-background flex select-none flex-row items-center justify-between gap-1 pt-1 ${props.hidden ? "pointer-events-none cursor-default opacity-0" : "pointer-events-auto cursor-text opacity-100"}`}
+        className={`find-widget-skip bg-vsc-input-background flex select-none flex-row items-center justify-between gap-1 pt-1 ${props.hidden ? "pointer-events-none h-0 cursor-default opacity-0" : "pointer-events-auto cursor-text opacity-100"}`}
         style={{
           fontSize: smallFont,
         }}
@@ -145,6 +148,9 @@ function InputToolbar(props: InputToolbarProps) {
                       for (const file of files) {
                         props.onImageFileSelected?.(file);
                       }
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
                     }}
                   />
                   <HoverItem className="">
@@ -155,8 +161,8 @@ function InputToolbar(props: InputToolbarProps) {
                         fileInputRef.current?.click();
                       }}
                     />
-                    <ToolTip id="image-tooltip" place="top-middle">
-                      上传图片
+                    <ToolTip id="image-tooltip" place="top">
+                      Attach an image
                     </ToolTip>
                   </HoverItem>
                 </>
@@ -168,8 +174,8 @@ function InputToolbar(props: InputToolbarProps) {
                   className="h-3 w-3 hover:brightness-125"
                 />
 
-                <ToolTip id="add-context-item-tooltip" place="top-middle">
-                  增加上下文 (files, docs, urls, etc.)
+                <ToolTip id="add-context-item-tooltip" place="top">
+                  添加上下文（文件、文档、网址等）。
                 </ToolTip>
               </HoverItem>
             )}
@@ -244,7 +250,7 @@ function InputToolbar(props: InputToolbarProps) {
             disabled={isEnterDisabled}
           >
             <span className="hidden md:inline">
-              ⏎ {props.toolbarOptions?.enterText ?? "Enter"}
+              ⏎ {props.toolbarOptions?.enterText ?? "发送"}
             </span>
             <span className="md:hidden">⏎</span>
           </EnterButton>

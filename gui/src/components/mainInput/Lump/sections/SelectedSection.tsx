@@ -1,17 +1,24 @@
+import { useLump } from "../LumpContext";
 import { ContextSection } from "./ContextSection";
 import DocsSection from "./docs/DocsSection";
+import { ErrorSection } from "./ErrorSection";
 import { MCPSection } from "./MCPSection";
 import { ModelsSection } from "./ModelsSection";
 import { PromptsSection } from "./PromptsSection";
 import { RulesSection } from "./RulesSection";
-import { ToolsSection } from "./ToolsSection";
+import { ToolPoliciesSection } from "./tool-policies/ToolPoliciesSection";
 
-interface SelectedSectionProps {
-  selectedSection: string | null;
+export interface SelectedSectionProps {
+  selectChange: (e: any) => void; 
 }
 
-export function SelectedSection(props: SelectedSectionProps) {
-  switch (props.selectedSection) {
+/**
+ * Renders the appropriate section based on the selected section in the Lump context
+ */
+export function SelectedSection(props:SelectedSectionProps) {
+  const { displayedSection } = useLump();
+
+  switch (displayedSection) {
     case "models":
       return <ModelsSection />;
     case "rules":
@@ -19,13 +26,15 @@ export function SelectedSection(props: SelectedSectionProps) {
     case "docs":
       return <DocsSection />;
     case "prompts":
-      return <PromptsSection />;
+      return <PromptsSection selectChange={props.selectChange} />;
     case "context":
       return <ContextSection />;
     case "tools":
-      return <ToolsSection />;
+      return <ToolPoliciesSection />;
     case "mcp":
       return <MCPSection />;
+    case "error":
+      return <ErrorSection />;
     default:
       return null;
   }

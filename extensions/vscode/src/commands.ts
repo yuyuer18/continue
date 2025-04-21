@@ -12,7 +12,10 @@ import { ConfigHandler } from "core/config/ConfigHandler";
 import { ContinueServerClient } from "core/continueServer/stubs/client";
 import { EXTENSION_NAME } from "core/control-plane/env";
 import { Core } from "core/core";
+import { LOCAL_DEV_DATA_VERSION } from "core/data/log";
 import { walkDirAsync } from "core/indexing/walkDir";
+import { isModelInstaller } from "core/llm";
+import { startLocalOllama } from "core/util/ollamaHelper";
 import { getDevDataFilePath } from "core/util/paths";
 import { Telemetry } from "core/util/posthog";
 import readLastLines from "read-last-lines";
@@ -27,8 +30,8 @@ import {
   setupStatusBar,
   StatusBarStatus,
 } from "./autocomplete/statusBar";
+import { ContinueConsoleWebviewViewProvider } from "./ContinueConsoleWebviewViewProvider";
 import { ContinueGUIWebviewViewProvider } from "./ContinueGUIWebviewViewProvider";
-
 import { VerticalDiffManager } from "./diff/vertical/manager";
 import EditDecorationManager from "./quickEdit/EditDecorationManager";
 import { QuickEdit, QuickEditShowParams } from "./quickEdit/QuickEditQuickPick";
@@ -36,9 +39,6 @@ import { Battery } from "./util/battery";
 import { getMetaKeyLabel } from "./util/util";
 import { VsCodeIde } from "./VsCodeIde";
 
-import { LOCAL_DEV_DATA_VERSION } from "core/data/log";
-import { isModelInstaller } from "core/llm";
-import { startLocalOllama } from "core/util/ollamaHelper";
 import type { VsCodeWebviewProtocol } from "./webviewProtocol";
 
 let fullScreenPanel: vscode.WebviewPanel | undefined;
@@ -247,6 +247,7 @@ async function processDiff(
   verticalDiffManager: VerticalDiffManager,
   newFileUri?: string,
   streamId?: string,
+  toolCallId?: string,
 ) {
   captureCommandTelemetry(`${action}Diff`);
 
@@ -280,6 +281,7 @@ async function processDiff(
       streamId,
       status: "closed",
       numDiffs: 0,
+      toolCallId,
     });
   }
 
@@ -316,6 +318,7 @@ const getCommandsMap: (
   ide: VsCodeIde,
   extensionContext: vscode.ExtensionContext,
   sidebar: ContinueGUIWebviewViewProvider,
+  consoleView: ContinueConsoleWebviewViewProvider,
   configHandler: ConfigHandler,
   verticalDiffManager: VerticalDiffManager,
   continueServerClientPromise: Promise<ContinueServerClient>,
@@ -327,6 +330,7 @@ const getCommandsMap: (
   ide,
   extensionContext,
   sidebar,
+  consoleView,
   configHandler,
   verticalDiffManager,
   continueServerClientPromise,
@@ -359,23 +363,23 @@ const getCommandsMap: (
         throw new Error("Config not loaded");
       }
 
-      const modelTitle =
-        config.selectedModelByRole.edit?.title ??
-        (await sidebar.webviewProtocol.request(
-          "getDefaultModelTitle",
-          undefined,
-        ));
+      const llm =
+        config.selectedModelByRole.edit ?? config.selectedModelByRole.chat;
+
+      if (!llm) {
+        throw new Error("No edit or chat model selected");
+      }
 
       void sidebar.webviewProtocol.request("incrementFtc", undefined);
 
-      await verticalDiffManager.streamEdit(
-        config.experimental?.contextMenuPrompts?.[promptName] ?? fallbackPrompt,
-        modelTitle,
-        undefined,
+      await verticalDiffManager.streamEdit({
+        input:
+          config.experimental?.contextMenuPrompts?.[promptName] ?? fallbackPrompt,
+        llm,
         onlyOneInsertion,
-        undefined,
         range,
-      );
+        rules: config.rules,
+      });
     }
     return {
       "continue.acceptDiff": async (newFileUri?: string, streamId?: string) =>
@@ -415,7 +419,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
       },
       // Passthrough for telemetry purposes
       "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -430,7 +434,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
+        vscode.commands.executeCommand("continue.continueGUIView.focus");
       },
       "continue.customQuickActionStreamInlineEdit": async (
         prompt: string,
@@ -634,16 +638,6 @@ const getCommandsMap: (
         editDecorationManager.clear();
         void sidebar.webviewProtocol?.request("exitEditMode", undefined);
       },
-      // "continue.quickEdit": async (args: QuickEditShowParams) => {
-      //   let linesOfCode = undefined;
-      //   if (args.range) {
-      //     linesOfCode = args.range.end.line - args.range.start.line;
-      //   }
-      //   captureCommandTelemetry("quickEdit", {
-      //     linesOfCode,
-      //   });
-      //   quickEdit.show(args);
-      // },
       "continue.writeCommentsForCode": async () => {
         captureCommandTelemetry("writeCommentsForCode");
 
@@ -680,6 +674,9 @@ const getCommandsMap: (
           "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
         );
       },
+      "continue.clearConsole": async () => {
+        consoleView.clearLog();
+      },
       "continue.viewLogs": async () => {
         captureCommandTelemetry("viewLogs");
         vscode.commands.executeCommand("workbench.action.toggleDevTools");
@@ -708,45 +705,11 @@ const getCommandsMap: (
         vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
         sidebar.webviewProtocol?.request("addModel", undefined);
       },
-      "continue.sendMainUserInput": (text: string) => {
-        sidebar.webviewProtocol?.request("userInput", {
-          input: text,
-        });
-      },
-      "continue.selectRange": (startLine: number, endLine: number) => {
-        if (!vscode.window.activeTextEditor) {
-          return;
-        }
-        vscode.window.activeTextEditor.selection = new vscode.Selection(
-          startLine,
-          0,
-          endLine,
-          0,
-        );
-      },
-      "continue.foldAndUnfold": (
-        foldSelectionLines: number[],
-        unfoldSelectionLines: number[],
-      ) => {
-        vscode.commands.executeCommand("editor.unfold", {
-          selectionLines: unfoldSelectionLines,
-        });
-        vscode.commands.executeCommand("editor.fold", {
-          selectionLines: foldSelectionLines,
-        });
-      },
-      "continue.sendToTerminal": (text: string) => {
-        captureCommandTelemetry("sendToTerminal");
-        ide.runCommand(text);
-      },
       "continue.newSession": () => {
         sidebar.webviewProtocol?.request("newSession", undefined);
       },
       "continue.viewHistory": () => {
         vscode.commands.executeCommand("continue.navigateTo", "/history", true);
-      },
-      "continue.a3Help": () => {
-        vscode.commands.executeCommand("continue.navigateTo", "/a3help", true);
       },
       "continue.focusContinueSessionId": async (
         sessionId: string | undefined,
@@ -942,7 +905,7 @@ const getCommandsMap: (
 
         quickPick.items = [
           {
-            label: "$(question) 帮助中心",
+            label: "$(question) 设置",
           },
           {
             label: "$(comment) 对话",
@@ -961,7 +924,7 @@ const getCommandsMap: (
           },
           {
             kind: vscode.QuickPickItemKind.Separator,
-            label: "Switch model",
+            label: "切换模型",
           },
           ...autocompleteModels.map((model) => ({
             label: getAutocompleteStatusBarTitle(selected, model),
@@ -997,9 +960,6 @@ const getCommandsMap: (
             vscode.commands.executeCommand("continue.focusContinueInput");
           } else if (selectedOption === "$(screen-full) 全屏") {
             vscode.commands.executeCommand("continue.toggleFullScreen");
-          } else if (selectedOption === "$(question) 帮助中心") {
-            focusGUI();
-            vscode.commands.executeCommand("continue.navigateTo", "/more", true);
           }
           quickPick.dispose();
         });
@@ -1018,41 +978,41 @@ const getCommandsMap: (
             LOCAL_DEV_DATA_VERSION,
           );
 
-        const lastLines = await readLastLines.read(completionsPath, 2);
-        client.sendFeedback(feedback, lastLines);
-      }
-    },
-    "continue.openMorePage": () => {
-      vscode.commands.executeCommand("continue.navigateTo", "/more", true);
-    },
-    "continue.navigateTo": (path: string, toggle: boolean) => {
-      sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
-      focusGUI();
-    },
-    "continue.startLocalOllama": () => {
-      startLocalOllama(ide);
-    },
-    "continue.installModel": async (
-      modelName: string,
-      llmProvider: ILLM | undefined,
-    ) => {
-      try {
-        if (!isModelInstaller(llmProvider)) {
-          const msg = llmProvider
-            ? `LLM provider '${llmProvider.providerName}' does not support installing models`
-            : "Missing LLM Provider";
-          throw new Error(msg);
+          const lastLines = await readLastLines.read(completionsPath, 2);
+          client.sendFeedback(feedback, lastLines);
         }
-        await installModelWithProgress(modelName, llmProvider);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
-        vscode.window.showErrorMessage(
-          `Failed to install '${modelName}': ${message}`,
-        );
-      }
-    },
+      },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
+      },
+      "continue.navigateTo": (path: string, toggle: boolean) => {
+        sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
+        focusGUI();
+      },
+      "continue.startLocalOllama": () => {
+        startLocalOllama(ide);
+      },
+      "continue.installModel": async (
+        modelName: string,
+        llmProvider: ILLM | undefined,
+      ) => {
+        try {
+          if (!isModelInstaller(llmProvider)) {
+            const msg = llmProvider
+              ? `LLM provider '${llmProvider.providerName}' does not support installing models`
+              : "Missing LLM Provider";
+            throw new Error(msg);
+          }
+          await installModelWithProgress(modelName, llmProvider);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          vscode.window.showErrorMessage(
+            `Failed to install '${modelName}': ${message}`,
+          );
+        }
+      },
+    };
   };
-};
 
 const registerCopyBufferSpy = (
   context: vscode.ExtensionContext,
@@ -1136,6 +1096,7 @@ export function registerAllCommands(
   ide: VsCodeIde,
   extensionContext: vscode.ExtensionContext,
   sidebar: ContinueGUIWebviewViewProvider,
+  consoleView: ContinueConsoleWebviewViewProvider,
   configHandler: ConfigHandler,
   verticalDiffManager: VerticalDiffManager,
   continueServerClientPromise: Promise<ContinueServerClient>,
@@ -1151,6 +1112,7 @@ export function registerAllCommands(
       ide,
       extensionContext,
       sidebar,
+      consoleView,
       configHandler,
       verticalDiffManager,
       continueServerClientPromise,

@@ -1,8 +1,0 @@
-name:als9
-description: als9
------------
-使用vue+elementUI
-与后端交付使用axios ，api接口放在 src/api/ 下，每个模块一个文件，文件名为模块名，如 user.js
-每个功能单独建立一个文件夹，放在 src/views/ 下，文件夹名为模块名，如 user
-css 样式独立里拿出来，放在 src/assets/css/ 下，文件名为模块名，如 user.css
-图片放在 src/assets/img/ 下，文件名为模块名，如 user.png

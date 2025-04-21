@@ -1,15 +1,16 @@
 import { BaseContextProvider } from "../";
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
-  ContextSubmenuItem,
-  LoadSubmenuItemsArgs,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
+    ContextSubmenuItem,
+    LoadSubmenuItemsArgs,
 } from "../../";
 import { MCPManagerSingleton } from "../mcp";
 
 interface MCPContextProviderOptions {
   mcpId: string;
+  serverName: string;
   submenuItems: ContextSubmenuItem[];
 }
 
@@ -17,9 +18,19 @@ class MCPContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "mcp",
     displayTitle: "MCP",
-    description: "Model Context Protocol",
+    description: "MCP模型上下文协议",
     type: "submenu",
   };
+  override get description(): ContextProviderDescription {
+    return {
+      title: `${MCPContextProvider.description.title}-${this.options["mcpId"]}`,
+      displayTitle: this.options["serverName"]
+        ? `${this.options["serverName"]} resources`
+        : "MCP",
+      description: "Model Context Protocol",
+      type: "submenu",
+    };
+  }
 
   static encodeMCPResourceId(mcpId: string, uri: string): string {
     return JSON.stringify({ mcpId, uri });

@@ -1,7 +1,7 @@
 import {
-  ContextItem,
-  ContextProviderDescription,
-  ContextProviderExtras,
+    ContextItem,
+    ContextProviderDescription,
+    ContextProviderExtras,
 } from "../../index.js";
 import { getUriDescription } from "../../util/uri.js";
 import { BaseContextProvider } from "../index.js";
@@ -9,8 +9,8 @@ import { BaseContextProvider } from "../index.js";
 class OpenFilesContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "open",
-    displayTitle: "Open Files",
-    description: "Reference the current open files",
+    displayTitle: "打开的文件",
+    description: "引用当前打开的文件",
     type: "normal",
     renderInlineAs: "",
   };

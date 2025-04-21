@@ -39,15 +39,15 @@ export default function AddFileButton({ onClick }: AddFileButtonProps) {
           className="bg-vsc-editor-background m-0 rounded-md p-0"
         >
           <div
-            className="flex h-5 w-14 items-center justify-center gap-1 hover:brightness-125"
+            className="flex h-5 items-center justify-center gap-1 hover:brightness-125"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onClick();
             }}
           >
-            <PlusIcon className="text-vsc-foreground inline h-2.5 w-2.5 brightness-75" />
-            <span className="text-vsc-foreground text-[10px] brightness-75">
+            <PlusIcon className="text-vsc-foreground inline h-2.5 w-2.5 px-1 brightness-75" />
+            <span className="text-vsc-foreground xs:block hidden text-[10px] brightness-75">
               添加文件
             </span>
           </div>
@@ -58,7 +58,7 @@ export default function AddFileButton({ onClick }: AddFileButtonProps) {
         </ListboxButton>
 
         <ListboxOptions className="bg-vsc-editor-background" anchor="top end">
-          <ListboxOption value="addAllFiles">Add all open files</ListboxOption>
+          <ListboxOption value="addAllFiles">添加所有打开的文件</ListboxOption>
         </ListboxOptions>
       </div>
     </Listbox>

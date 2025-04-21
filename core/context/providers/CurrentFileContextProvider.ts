@@ -9,8 +9,8 @@ import { getUriDescription } from "../../util/uri";
 class CurrentFileContextProvider extends BaseContextProvider {
   static description: ContextProviderDescription = {
     title: "currentFile",
-    displayTitle: "Current File",
-    description: "Reference the currently open file",
+    displayTitle: "当前文件",
+    description: "引用当前文件的内容",
     type: "normal",
     renderInlineAs: "",
   };

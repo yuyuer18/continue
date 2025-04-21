@@ -1,10 +1,10 @@
 import {
-    InputBox,
-    Key,
-    WebDriver,
-    WebElement,
-    WebView,
-    Workbench,
+  InputBox,
+  Key,
+  WebDriver,
+  WebElement,
+  WebView,
+  Workbench,
 } from "vscode-extension-tester";
 
 import { DEFAULT_TIMEOUT } from "../constants";
@@ -16,8 +16,12 @@ export class GUIActions {
     await GUIActions.toggleGui();
     await TestUtils.waitForSuccess(async () => {
       await new Workbench().executeCommand("View: Move View");
-      await (await InputBox.create(DEFAULT_TIMEOUT.MD)).selectQuickPick(4);
-      await (await InputBox.create(DEFAULT_TIMEOUT.MD)).selectQuickPick(14);
+      await (
+        await InputBox.create(DEFAULT_TIMEOUT.MD)
+      ).selectQuickPick("Continue");
+      await (
+        await InputBox.create(DEFAULT_TIMEOUT.MD)
+      ).selectQuickPick("New Secondary Side Bar Entry");
     });
 
     // first call focuses the input
@@ -38,7 +42,7 @@ export class GUIActions {
     for (let i = 0; i < iframes.length; i++) {
       const iframe = iframes[i];
       const src = await iframe.getAttribute("src");
-      if (src.includes("extensionId=Amarsoft.kodemate-ai")) {
+      if (src.includes("extensionId=Continue.continue")) {
         continueIFrame = iframe;
         break;
       }
