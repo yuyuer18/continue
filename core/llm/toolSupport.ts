@@ -122,4 +122,8 @@ export const PROVIDER_TOOL_SUPPORT: Record<
       return true;
     }
   },
+  // fix: vllm部署的模型不支持agent模式
+  vllm: (model) => {
+    return true;
+  }
 };
