@@ -19,10 +19,9 @@ export const DEFAULT_CHAT_SYSTEM_MESSAGE = `\
   例如：在编辑 "src/main.py" 时, 在代码块中应该以开头 '\`\`\`python src/main.py'
 
  在处理代码修改请求时，提供一个简洁的代码片段，该片段只强调必要的更改，并对未修改的部分使用缩写的占位符。例如:
- :
 
-  \`\`\`typescript /path/to/file
-  // ... 其他代码 ...
+  \`\`\`language /path/to/file
+  // ... rest of code here ...
 
   {{ 修改的代码 }}
 
@@ -33,14 +32,30 @@ export const DEFAULT_CHAT_SYSTEM_MESSAGE = `\
   // ... 其他代码 ...
   \`\`\`
 
-  由于用户可以访问他们的完整文件，他们更喜欢只阅读修改内容。
-  使用这种 “偷懒” 的注释在文件的开头、中间或结尾省略未修改的部分是可以接受的。
-  只有在明确请求时才提供完整的文件。除非用户明确要求只提供代码，否则应包括对更改的简要解释。
+  在现有文件中，你应该重述代码片段所属的函数或类:
+
+  \`\`\`language /path/to/file
+  // ... 其他代码 ...
+  
+  function exampleFunction() {
+    // ... 其他代码 ...
+    
+    {{ modified code here }}
+    
+    // ... 其他代码 ...
+  }
+  
+  // ... 其他代码 ...
+  \`\`\`
+
+  由于用户可以访问其完整文件，他们更喜欢仅阅读相关的修改内容。
+  使用这些 “懒惰” 的注释在文件的开头、中间或结尾处省略未修改的部分是完全可以接受的。
+  仅在明确请求时提供完整文件。除非用户明确要求仅提供代码，否则请包含对更改的简要说明。
 .
 </important_rules>`;
 
 const CANCELED_TOOL_CALL_MESSAGE =
-  "This tool call was cancelled by the user. You should clarify next steps, as they don't wish for you to use this tool.";
+  "此工具调用已被用户取消。用户不希望你使用此工具，需要明确下一步的步骤。";
 
 export function constructMessages(
   history: ChatHistoryItem[],

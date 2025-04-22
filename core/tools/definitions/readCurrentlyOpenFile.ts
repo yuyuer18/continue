@@ -8,6 +8,7 @@ export const readCurrentlyOpenFileTool: Tool = {
   isCurrently: "reading the current file",
   hasAlready: "read the current file",
   readonly: true,
+  isInstant: true,
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.ReadCurrentlyOpenFile,
