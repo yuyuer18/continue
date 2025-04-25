@@ -62,8 +62,11 @@ export function getToolCallStatusMessage(
         <span>calling the</span> {defaultToolDescription}
       </>
     );
-  } else if (toolCallState.status === "canceled") {
-    intro = "再次尝试";
+  } else if (
+    toolCallState.status === "canceled" ||
+    toolCallState.status === "errored"
+  ) {
+    intro = "再试一下";
     message = futureMessage;
   }
   return (

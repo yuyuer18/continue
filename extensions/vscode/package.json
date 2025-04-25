@@ -2,7 +2,7 @@
   "name": "kodemate-ai",
   "icon": "media/icon.png",
   "author": "Amarsoft.com",
-  "version": "1.1.24",
+  "version": "1.1.26",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
@@ -24,7 +24,7 @@
   "publisher": "Amarsoft",
   "engines": {
     "vscode": "^1.70.0",
-    "node": ">=20.11.0"
+    "node": ">=20.19.0"
   },
   "engine-strict": true,
   "galleryBanner": {

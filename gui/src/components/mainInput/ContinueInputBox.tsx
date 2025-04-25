@@ -101,7 +101,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = props.isEditMode ? "edit" : "chat";
   const placeholder = props.isEditMode
-    ? "请描述需要如何修改代码 - 使用 “#” 添加文件"
+    ? "描述如何修改，“#” 用于添加文件"
     : undefined;
 
   const toolbarOptions: ToolbarOptions = props.isEditMode
@@ -114,11 +114,14 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
       }
     : {};
   const selectChange = (e: any) => {
-    editorRef.current?.insertPrompt(e)
+    editorRef.current?.insertPrompt(e);
   };
-    
+
   return (
-    <div className={`${props.hidden ? "hidden" : ""}`}>
+    <div
+      className={`${props.hidden ? "hidden" : ""}`}
+      data-testid="continue-input-box"
+    >
       <div className={`relative flex flex-col px-2`}>
         <Lump selectChange={selectChange} />
         <GradientBorder

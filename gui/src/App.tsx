@@ -50,7 +50,7 @@ const router = createMemoryRouter([
   Prevents entire app from rerendering continuously with useSetup in App
   TODO - look into a more redux-esque way to do this
 */
-function SetupListeners() {
+export function SetupListeners() {
   useSetup();
   return <></>;
 }

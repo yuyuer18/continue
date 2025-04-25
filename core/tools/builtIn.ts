@@ -16,4 +16,6 @@ export enum BuiltInToolNames {
   ViewSubdirectory = "查看子目录",
 }
 
-export const BUILT_IN_GROUP_NAME = "内置工具";
+export const BUILT_IN_GROUP_NAME = "内置";
+
+export const CLIENT_TOOLS = [BuiltInToolNames.EditExistingFile];
