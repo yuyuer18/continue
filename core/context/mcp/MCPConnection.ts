@@ -70,7 +70,7 @@ class MCPConnection {
         return new SSEClientTransport(new URL(options.transport.url));
       default:
         throw new Error(
-          `Unsupported transport type: ${(options.transport as any).type}`,
+          `不支持的传输类型: ${(options.transport as any).type}`,
         );
     }
   }
@@ -132,7 +132,7 @@ class MCPConnection {
           await Promise.race([
             new Promise((_, reject) => {
               timeoutController.signal.addEventListener("abort", () => {
-                reject(new Error("Connection timed out"));
+                reject(new Error("连接超时"));
               });
             }),
             (async () => {
@@ -172,7 +172,7 @@ class MCPConnection {
                   );
                   this.resources = resources;
                 } catch (e) {
-                  let errorMessage = `Error loading resources for MCP Server ${this.options.name}`;
+                  let errorMessage = `加载 MCP 服务器资源时出错 ${this.options.name}`;
                   if (e instanceof Error) {
                     errorMessage += `: ${e.message}`;
                   }
@@ -189,7 +189,7 @@ class MCPConnection {
                   );
                   this.tools = tools;
                 } catch (e) {
-                  let errorMessage = `Error loading tools for MCP Server ${this.options.name}`;
+                  let errorMessage = `加载 MCP 服务器工具时出错 ${this.options.name}`;
                   if (e instanceof Error) {
                     errorMessage += `: ${e.message}`;
                   }
@@ -206,7 +206,7 @@ class MCPConnection {
                   );
                   this.prompts = prompts;
                 } catch (e) {
-                  let errorMessage = `Error loading prompts for MCP Server ${this.options.name}`;
+                  let errorMessage = `加载 MCP 服务器提示时出错 ${this.options.name}`;
                   if (e instanceof Error) {
                     errorMessage += `: ${e.message}`;
                   }
@@ -219,12 +219,12 @@ class MCPConnection {
           ]);
         } catch (error) {
           // Otherwise it's a connection error
-          let errorMessage = `Failed to connect to MCP server ${this.options.name}`;
+          let errorMessage = `连接 MCP 服务器失败 ${this.options.name}`;
           if (error instanceof Error) {
             const msg = error.message.toLowerCase();
             if (msg.includes("spawn") && msg.includes("enoent")) {
               const command = msg.split(" ")[1];
-              errorMessage += `command "${command}" not found. To use this MCP server, install the ${command} CLI.`;
+              errorMessage += `命令 "${command}" 未找到。要使用此 MCP 服务器，请安装 ${command} CLI.`;
             } else {
               errorMessage += ": " + error.message;
             }

@@ -86,13 +86,13 @@ function ToolPolicyItem(props: ToolDropdownItemProps) {
       ) : (
         <div className="flex cursor-pointer gap-2">
           {(policy === "allowedWithPermission" || policy === undefined) && (
-            <span className="text-yellow-500">Ask First</span>
+            <span className="text-yellow-500">询问</span>
           )}
           {policy === "allowedWithoutPermission" && (
-            <span className="text-green-500">Automatic</span>
+            <span className="text-green-500">自动</span>
           )}
           {policy === "disabled" && (
-            <span className="text-lightgray">Excluded</span>
+            <span className="text-lightgray">排除不处理</span>
           )}
         </div>
       )}
