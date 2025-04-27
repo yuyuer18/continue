@@ -419,7 +419,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       // Passthrough for telemetry purposes
       "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -434,7 +434,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       "continue.customQuickActionStreamInlineEdit": async (
         prompt: string,
@@ -545,14 +545,8 @@ const getCommandsMap: (
           return;
         }
 
-      editDecorationManager.addDecorations(editor, [range]);
-
-      const rangeInFileWithContents = getRangeInFileWithContents(true, range);
-
-      if (rangeInFileWithContents) {
-        sidebar.webviewProtocol?.request(
-          "addCodeToEdit",
-          rangeInFileWithContents,
+        const existingDiff = verticalDiffManager.getHandlerForFile(
+          editor.document.fileName,
         );
 
         // If there's a diff currently being applied, then we just toggle focus back to the input
@@ -582,7 +576,7 @@ const getCommandsMap: (
         const range =
           args?.range ?? new vscode.Range(startFromCharZero, endAtCharLast);
 
-        editDecorationManager.setDecoration(editor, range);
+        editDecorationManager.addDecorations(editor, [range]);
 
         const rangeInFileWithContents = getRangeInFileWithContents(true, range);
 
@@ -716,6 +710,9 @@ const getCommandsMap: (
       },
       "continue.viewHistory": () => {
         vscode.commands.executeCommand("continue.navigateTo", "/history", true);
+      },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
       },
       "continue.focusContinueSessionId": async (
         sessionId: string | undefined,
@@ -909,38 +906,38 @@ const getCommandsMap: (
               : StatusBarStatus.Disabled;
         }
 
-      quickPick.items = [
-        {
-          label: "$(gear) Open settings",
-        },
-        {
-          label: "$(comment) Open chat",
-          description: getMetaKeyLabel() + " + L",
-        },
-        {
-          label: "$(screen-full) Open full screen chat",
-          description:
-            getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
-        },
-        {
-          label: quickPickStatusText(targetStatus),
-        },
-        {
-          label: "$(feedback) Give feedback",
-        },
-        {
-          kind: vscode.QuickPickItemKind.Separator,
-          label: "Switch model",
-        },
-        ...autocompleteModels.map((model) => ({
-          label: getAutocompleteStatusBarTitle(selected, model),
-          description: getAutocompleteStatusBarDescription(selected, model),
-        })),
-      ];
-      quickPick.onDidAccept(() => {
-        const selectedOption = quickPick.selectedItems[0].label;
-        const targetStatus =
-          getStatusBarStatusFromQuickPickItemLabel(selectedOption);
+        quickPick.items = [
+          {
+            label: "$(gear) 设置",
+          },
+          {
+            label: "$(comment) 对话",
+            description: getMetaKeyLabel() + " + L",
+          },
+          {
+            label: "$(screen-full) 全屏",
+            description:
+              getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
+          },
+          {
+            label: quickPickStatusText(targetStatus),
+          },
+          {
+            label: "$(feedback) 问题反馈",
+          },
+          {
+            kind: vscode.QuickPickItemKind.Separator,
+            label: "切换模型",
+          },
+          ...autocompleteModels.map((model) => ({
+            label: getAutocompleteStatusBarTitle(selected, model),
+            description: getAutocompleteStatusBarDescription(selected, model),
+          })),
+        ];
+        quickPick.onDidAccept(() => {
+          const selectedOption = quickPick.selectedItems[0].label;
+          const targetStatus =
+            getStatusBarStatusFromQuickPickItemLabel(selectedOption);
 
           if (targetStatus !== undefined) {
             setupStatusBar(targetStatus);
@@ -966,40 +963,30 @@ const getCommandsMap: (
             vscode.commands.executeCommand("continue.focusContinueInput");
           } else if (selectedOption === "$(screen-full) 全屏") {
             vscode.commands.executeCommand("continue.toggleFullScreen");
+          } else if (selectedOption === "$(gear) 设置") {
+            vscode.commands.executeCommand("continue.navigateTo", "/config");
           }
-        } else if (selectedOption === "$(feedback) Give feedback") {
-          vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
-        } else if (selectedOption === "$(comment) Open chat") {
-          vscode.commands.executeCommand("continue.focusContinueInput");
-        } else if (selectedOption === "$(screen-full) Open full screen chat") {
-          vscode.commands.executeCommand("continue.toggleFullScreen");
-        } else if (selectedOption === "$(gear) Open settings") {
-          vscode.commands.executeCommand("continue.navigateTo", "/config");
-        }
 
-        quickPick.dispose();
-      });
-      quickPick.show();
-    },
-    "continue.giveAutocompleteFeedback": async () => {
-      const feedback = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        prompt:
-          "Please share what went wrong with the last completion. The details of the completion as well as this message will be sent to the Continue team in order to improve.",
-      });
-      if (feedback) {
-        const client = await continueServerClientPromise;
-        const completionsPath = getDevDataFilePath(
-          "autocomplete",
-          LOCAL_DEV_DATA_VERSION,
-        );
+          quickPick.dispose();
+        });
+        quickPick.show();
+      },
+      "continue.giveAutocompleteFeedback": async () => {
+        const feedback = await vscode.window.showInputBox({
+          ignoreFocusOut: true,
+          prompt:
+            "Please share what went wrong with the last completion. The details of the completion as well as this message will be sent to the Continue team in order to improve.",
+        });
+        if (feedback) {
+          const client = await continueServerClientPromise;
+          const completionsPath = getDevDataFilePath(
+            "autocomplete",
+            LOCAL_DEV_DATA_VERSION,
+          );
 
           const lastLines = await readLastLines.read(completionsPath, 2);
           client.sendFeedback(feedback, lastLines);
         }
-      },
-      "continue.a3Help": () => {
-        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
       },
       "continue.navigateTo": (path: string, toggle: boolean) => {
         sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
