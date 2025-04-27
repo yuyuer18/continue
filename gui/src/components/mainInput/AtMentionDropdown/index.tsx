@@ -245,8 +245,8 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
           modal: true,
           detail:
             fileSize > 0
-              ? `'${item.title}' is ${formatFileSize(fileSize)} 该内容超出了允许的上下文长度，无法由模型处理。`
-              : `'${item.title}' 无法加载。请检查文件是否存在以及是否具有正确的权限。`,
+              ? `'${item.title}' ${formatFileSize(fileSize)} 这超出了允许的上下文长度，模型无法处理`
+              : `'${item.title}' 无法加载。请检查文件是否存在且具有正确的权限.`,
         },
       );
     } else {
@@ -509,7 +509,9 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
                       ) : (
                         <DropdownIcon item={item} className="mr-2" />
                       )}
-                      <span title={item.id} className="whitespace-nowrap">{item.title}</span>
+                      <span title={item.id} className="whitespace-nowrap">
+                        {item.title}
+                      </span>
                       {"  "}
                     </div>
                     <span
