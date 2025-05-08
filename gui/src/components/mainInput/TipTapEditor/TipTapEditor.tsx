@@ -7,7 +7,6 @@ import useIsOSREnabled from "../../../hooks/useIsOSREnabled";
 import useUpdatingRef from "../../../hooks/useUpdatingRef";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { selectSelectedChatModel } from "../../../redux/slices/configSlice";
-import { selectIsInEditMode } from "../../../redux/slices/sessionSlice";
 import InputToolbar, { ToolbarOptions } from "../InputToolbar";
 import { ComboBoxItem } from "../types";
 import { DragOverlay, InputBoxDiv } from "./components";
@@ -49,9 +48,9 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
 
   const defaultModel = useAppSelector(selectSelectedChatModel);
   const isStreaming = useAppSelector((state) => state.session.isStreaming);
-  const isInEditMode = useAppSelector(selectIsInEditMode);
   const historyLength = useAppSelector((store) => store.session.history.length);
 
+  const mode = useAppSelector((store) => store.session.mode);
   const { editor, onEnterRef } = createEditorConfig({
     props,
     ideMessenger,
@@ -83,13 +82,16 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   }, [editor, props.placeholder, historyLength]);
 
   useEffect(() => {
-    if (isInEditMode) {
-      setShouldHideToolbar(false);
-    }
     if (props.isMainInput) {
       editor?.commands.clearContent(true);
     }
-  }, [editor, isInEditMode, props.isMainInput]);
+  }, [editor, props.isMainInput]);
+
+  useEffect(() => {
+    if (mode === "edit") {
+      setShouldHideToolbar(false);
+    }
+  }, [mode]);
 
   const editorFocusedRef = useUpdatingRef(editor?.isFocused, [editor]);
 
@@ -149,7 +151,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
 
   const handleBlur = useCallback(
     (e: React.FocusEvent) => {
-      if (isInEditMode) {
+      if (mode === "edit") {
         return;
       }
       // Check if the new focus target is within our InputBoxDiv
@@ -164,7 +166,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
         setShouldHideToolbar(true);
       }, 100);
     },
-    [isInEditMode, blurTimeout],
+    [mode, blurTimeout],
   );
 
   const handleFocus = useCallback(() => {

@@ -11,10 +11,7 @@ interface KeyboardShortcutProps {
 function KeyboardShortcut(props: KeyboardShortcutProps) {
   return (
     <div
-      className="flex flex-col items-start py-2 sm:flex-row sm:items-center"
-      style={{
-        backgroundColor: props.isEven ? "#1e1e1e" : "transparent",
-      }}
+      className={`flex flex-col items-start p-2 py-2 sm:flex-row sm:items-center ${props.isEven ? "bg-list-active" : ""}`}
     >
       <div className="w-full flex-grow pb-1 pr-4 sm:w-auto sm:pb-0">
         <span className="block break-words text-xs">{props.description}:</span>
@@ -132,7 +129,7 @@ function KeyboardShortcuts() {
 
   return (
     <div className="h-full overflow-auto p-5">
-      <h3 className="mb-5 text-xl">快捷键</h3>
+      <h3 className="mb-5 text-xl">Keyboard shortcuts</h3>
       <div>
         {shortcuts.map((shortcut, i) => {
           return (

@@ -79,11 +79,23 @@ export const PROVIDER_TOOL_SUPPORT: Record<
       return true;
     }
   },
+  mistral: (model) => {
+    // https://docs.mistral.ai/capabilities/function_calling/
+    return !model.toLowerCase().includes("mamba") &&
+      [
+        "codestral",
+        "mistral-large",
+        "mistral-small",
+        "pixtral",
+        "ministral",
+        "mistral-nemo"
+      ].some((part) => model.toLowerCase().includes(part));
+  },
   // https://ollama.com/search?c=tools
   ollama: (model) => {
     let modelName = "";
     // Extract the model name after the last slash to support other registries
-    if(model.includes("/")) {
+    if (model.includes("/")) {
       let parts = model.split('/');
       modelName = parts[parts.length - 1];
     } else {
@@ -125,13 +137,16 @@ export const PROVIDER_TOOL_SUPPORT: Record<
   sambanova: (model) => {
     // https://docs.sambanova.ai/cloud/docs/capabilities/function-calling
     if (
-      model.toLowerCase().startsWith("meta-llama-3")
+      model.toLowerCase().startsWith("meta-llama-3") ||
+      model.toLowerCase().includes("llama-4") ||
+      model.toLowerCase().includes("deepseek")
     ) {
       return true;
     }
   },
-  // fix: vllm部署的模型不支持agent模式
-  vllm: (model) => {
-    return true;
+  deepseek: (model) => {
+    if (model !== "deepseek-reasoner") {
+      return true;
+    }
   }
 };

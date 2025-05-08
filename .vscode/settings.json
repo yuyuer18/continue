@@ -47,7 +47,9 @@
   },
   "eslint.workingDirectories": ["./core"],
   "typescript.tsdk": "node_modules/typescript/lib",
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features"
-  }
+  "conventionalCommits.showNewVersionNotes": false,
+  "conventionalCommits.promptBody": false,
+  "conventionalCommits.promptFooter": false,
+  "conventionalCommits.promptScopes": true,
+  "conventionalCommits.scopes": ["reg"]
 }

@@ -47,7 +47,7 @@ const statusBarItemText = (
   error?: boolean,
 ) => {
   if (error) {
-    return "$(alert) KodeMate AI+ (FATAL ERROR)";
+    return "$(alert) Kodemate AI (配置错误)";
   }
 
   switch (status) {
