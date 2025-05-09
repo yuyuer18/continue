@@ -268,7 +268,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       // Passthrough for telemetry purposes
       "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -283,7 +283,7 @@ const getCommandsMap: (
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       },
       "continue.customQuickActionStreamInlineEdit": async (
         prompt: string,
@@ -323,181 +323,59 @@ const getCommandsMap: (
           }
         }
 
-        const llm =
-          config.selectedModelByRole.edit ?? config.selectedModelByRole.chat;
+        const historyLength = await sidebar.webviewProtocol.request(
+          "getWebviewHistoryLength",
+          undefined,
+          false,
+        );
 
-        if (!llm) {
-          throw new Error("No edit or chat model selected");
-        }
-
-        void sidebar.webviewProtocol.request("incrementFtc", undefined);
-
-        await verticalDiffManager.streamEdit({
-          input:
-            config.experimental?.contextMenuPrompts?.[promptName] ?? fallbackPrompt,
-          llm,
-          onlyOneInsertion,
-          range,
-          rules: config.rules,
-        });
-      }
-    return {
-        "continue.acceptDiff": async (newFileUri?: string, streamId?: string) =>
-          processDiff(
-            "accept",
-            sidebar,
-            ide,
-            verticalDiffManager,
-            newFileUri,
-            streamId,
-          ),
-
-        "continue.rejectDiff": async (newFilepath?: string, streamId?: string) =>
-          processDiff(
-            "reject",
-            sidebar,
-            ide,
-            verticalDiffManager,
-            newFilepath,
-            streamId,
-          ),
-        "continue.acceptVerticalDiffBlock": (fileUri?: string, index?: number) => {
-          captureCommandTelemetry("acceptVerticalDiffBlock");
-          verticalDiffManager.acceptRejectVerticalDiffBlock(true, fileUri, index);
-        },
-        "continue.rejectVerticalDiffBlock": (fileUri?: string, index?: number) => {
-          captureCommandTelemetry("rejectVerticalDiffBlock");
-          verticalDiffManager.acceptRejectVerticalDiffBlock(false, fileUri, index);
-        },
-        "continue.quickFix": async (
-          range: vscode.Range,
-          diagnosticMessage: string,
-        ) => {
-          captureCommandTelemetry("quickFix");
-
-          const prompt = `Please explain the cause of this error and how to solve it: ${diagnosticMessage}`;
-
-          addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
-
-          vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
-        },
-        // Passthrough for telemetry purposes
-        "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
-          captureCommandTelemetry("defaultQuickAction");
-          vscode.commands.executeCommand("continue.focusEdit", args);
-        },
-        "continue.customQuickActionSendToChat": async (
-          prompt: string,
-          range: vscode.Range,
-        ) => {
-          captureCommandTelemetry("customQuickActionSendToChat");
-
-          addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
-
-          vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
-        },
-        "continue.customQuickActionStreamInlineEdit": async (
-          prompt: string,
-          range: vscode.Range,
-        ) => {
-          captureCommandTelemetry("customQuickActionStreamInlineEdit");
-
-          streamInlineEdit("docstring", prompt, false, range);
-        },
-        "continue.codebaseForceReIndex": async () => {
-          core.invoke("index/forceReIndex", undefined);
-        },
-        "continue.rebuildCodebaseIndex": async () => {
-          core.invoke("index/forceReIndex", { shouldClearIndexes: true });
-        },
-        "continue.docsIndex": async () => {
-          core.invoke("context/indexDocs", { reIndex: false });
-        },
-        "continue.docsReIndex": async () => {
-          core.invoke("context/indexDocs", { reIndex: true });
-        },
-        "continue.focusContinueInput": async () => {
-          const isContinueInputFocused = await sidebar.webviewProtocol.request(
-            "isContinueInputFocused",
-            undefined,
-            false,
-          );
-
-          // This is a temporary fix—sidebar.webviewProtocol.request is blocking
-          // when the GUI hasn't yet been setup and we should instead be
-          // immediately throwing an error, or returning a Result object
-          focusGUI();
-          if (!sidebar.isReady) {
-            const isReady = await waitForSidebarReady(sidebar, 5000, 100);
-            if (!isReady) {
-              return;
-            }
-          }
-
-          const historyLength = await sidebar.webviewProtocol.request(
-            "getWebviewHistoryLength",
-            undefined,
-            false,
-          );
-
-          if (isContinueInputFocused) {
-            if (historyLength === 0) {
-              hideGUI();
-            } else {
-              void sidebar.webviewProtocol?.request(
-                "focusContinueInputWithNewSession",
-                undefined,
-                false,
-              );
-            }
+        if (isContinueInputFocused) {
+          if (historyLength === 0) {
+            hideGUI();
           } else {
-            focusGUI();
-            sidebar.webviewProtocol?.request(
+            void sidebar.webviewProtocol?.request(
               "focusContinueInputWithNewSession",
               undefined,
               false,
             );
-            void addHighlightedCodeToContext(sidebar.webviewProtocol);
           }
-        },
-        "continue.focusContinueInputWithoutClear": async () => {
-          const isContinueInputFocused = await sidebar.webviewProtocol.request(
-            "isContinueInputFocused",
+        } else {
+          focusGUI();
+          sidebar.webviewProtocol?.request(
+            "focusContinueInputWithNewSession",
             undefined,
             false,
           );
+          void addHighlightedCodeToContext(sidebar.webviewProtocol);
+        }
+      },
+      "continue.focusContinueInputWithoutClear": async () => {
+        const isContinueInputFocused = await sidebar.webviewProtocol.request(
+          "isContinueInputFocused",
+          undefined,
+          false,
+        );
 
-          // This is a temporary fix—sidebar.webviewProtocol.request is blocking
-          // when the GUI hasn't yet been setup and we should instead be
-          // immediately throwing an error, or returning a Result object
-          focusGUI();
-          if (!sidebar.isReady) {
-            const isReady = await waitForSidebarReady(sidebar, 5000, 100);
-            if (!isReady) {
-              return;
-            }
+        // This is a temporary fix—sidebar.webviewProtocol.request is blocking
+        // when the GUI hasn't yet been setup and we should instead be
+        // immediately throwing an error, or returning a Result object
+        focusGUI();
+        if (!sidebar.isReady) {
+          const isReady = await waitForSidebarReady(sidebar, 5000, 100);
+          if (!isReady) {
+            return;
           }
+        }
 
-          if (isContinueInputFocused) {
-            hideGUI();
-          } else {
-            focusGUI();
-
-            sidebar.webviewProtocol?.request(
-              "focusContinueInputWithoutClear",
-              undefined,
-            );
-
-            void addHighlightedCodeToContext(sidebar.webviewProtocol);
-          }
-        },
-        // QuickEditShowParams are passed from CodeLens, temp fix
-        // until we update to new params specific to Edit
-        "continue.focusEdit": async (args?: QuickEditShowParams) => {
-          captureCommandTelemetry("focusEdit");
+        if (isContinueInputFocused) {
+          hideGUI();
+        } else {
           focusGUI();
 
-          sidebar.webviewProtocol?.request("focusEdit", undefined);
+          sidebar.webviewProtocol?.request(
+            "focusContinueInputWithoutClear",
+            undefined,
+          );
 
           void addHighlightedCodeToContext(sidebar.webviewProtocol);
         }
@@ -562,7 +440,7 @@ const getCommandsMap: (
 
         const terminalContents = await ide.getTerminalContents();
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
         sidebar.webviewProtocol?.request("userInput", {
           input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
@@ -578,7 +456,7 @@ const getCommandsMap: (
       "continue.addModel": () => {
         captureCommandTelemetry("addModel");
 
-        vscode.commands.executeCommand("continue.continueGUIView.focus");
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
         sidebar.webviewProtocol?.request("addModel", undefined);
       },
       "continue.newSession": () => {
@@ -586,6 +464,9 @@ const getCommandsMap: (
       },
       "continue.viewHistory": () => {
         vscode.commands.executeCommand("continue.navigateTo", "/history", true);
+      },
+      "continue.a3Help": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
       },
       "continue.focusContinueSessionId": async (
         sessionId: string | undefined,
@@ -626,7 +507,7 @@ const getCommandsMap: (
 
         // Create the full screen panel
         let panel = vscode.window.createWebviewPanel(
-          "continue.continueGUIView",
+          "Amarsoft.kodemate-aiGUIView",
           "Continue",
           vscode.ViewColumn.One,
           {
@@ -653,630 +534,397 @@ const getCommandsMap: (
               sessionId,
             );
           }
+          panel.reveal();
+          sessionLoader.dispose();
+        });
 
-          // When panel closes, reset the webview and focus
-          panel.onDidDispose(
-            () => {
-              sidebar.resetWebviewProtocolWebview();
-              vscode.commands.executeCommand("continue.focusContinueInput");
-            },
-            null,
-            extensionContext.subscriptions,
-          );
-
-          vscode.commands.executeCommand("workbench.action.copyEditorToNewWindow");
-          vscode.commands.executeCommand("workbench.action.closeAuxiliaryBar");
-        },
-          "continue.openConfigPage": () => {
-            vscode.commands.executeCommand("continue.navigateTo", "/config", false);
+        // When panel closes, reset the webview and focus
+        panel.onDidDispose(
+          () => {
+            sidebar.resetWebviewProtocolWebview();
+            vscode.commands.executeCommand("continue.focusContinueInput");
           },
-          "continue.selectFilesAsContext": async (
-            firstUri: vscode.Uri,
-            uris: vscode.Uri[],
-          ) => {
-          if (uris === undefined) {
-            throw new Error("No files were selected");
-          }
-
-          vscode.commands.executeCommand("continue.continueGUIView.focus");
-
-          for (const uri of uris) {
-            // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
-            const isDirectory = await vscode.workspace.fs
-              .stat(uri)
-              ?.then((stat) => stat.type === vscode.FileType.Directory);
-            if (isDirectory) {
-              for await (const fileUri of walkDirAsync(uri.toString(), ide, {
-                source: "vscode continue.selectFilesAsContext command",
-              })) {
-                await addEntireFileToContext(
-                  vscode.Uri.parse(fileUri),
-                  sidebar.webviewProtocol,
-                  ide.ideUtils
-                );
-              }
-            } else {
-              await addEntireFileToContext(uri, sidebar.webviewProtocol, ide.ideUtils);
-            }
-            lastChar = document.lineAt(lastLine).range.end.character;
-            const endAtCharLast = new vscode.Position(lastLine, lastChar);
-            const range =
-              args?.range ?? new vscode.Range(startFromCharZero, endAtCharLast);
-
-            editDecorationManager.addDecorations(editor, [range]);
-
-            const rangeInFileWithContents = getRangeInFileWithContents(true, range);
-
-            if (rangeInFileWithContents) {
-              sidebar.webviewProtocol?.request(
-                "addCodeToEdit",
-                rangeInFileWithContents,
-              );
-
-              // Un-select the current selection
-              editor.selection = new vscode.Selection(
-                editor.selection.anchor,
-                editor.selection.anchor,
-              );
-            }
-          },
-          "continue.focusEditWithoutClear": async () => {
-            captureCommandTelemetry("focusEditWithoutClear");
-            focusGUI();
-
-            sidebar.webviewProtocol?.request("focusEditWithoutClear", undefined);
-
-            const editor = vscode.window.activeTextEditor;
-
-            if (!editor) {
-              return;
-            }
-
-            const document = editor.document;
-
-            const existingDiff = verticalDiffManager.getHandlerForFile(
-              document.fileName,
-            );
-
-            // If there's a diff currently being applied, then we just toggle focus back to the input
-            if (existingDiff) {
-              sidebar.webviewProtocol?.request("focusContinueInput", undefined);
-              return;
-            }
-
-            const rangeInFileWithContents = getRangeInFileWithContents(false);
-
-            if (rangeInFileWithContents) {
-              sidebar.webviewProtocol?.request(
-                "addCodeToEdit",
-                rangeInFileWithContents,
-              );
-            } else {
-              const contents = document.getText();
-
-              sidebar.webviewProtocol?.request("addCodeToEdit", {
-                filepath: document.uri.toString(),
-                contents,
-              });
-            }
-          },
-            "continue.exitEditMode": async () => {
-              captureCommandTelemetry("exitEditMode");
-              editDecorationManager.clear();
-              void sidebar.webviewProtocol?.request("exitEditMode", undefined);
-            },
-              "continue.writeCommentsForCode": async () => {
-                captureCommandTelemetry("writeCommentsForCode");
-
-                streamInlineEdit(
-                  "comment",
-                  "Write comments for this code. Do not change anything about the code itself.",
-                );
-              },
-                "continue.writeDocstringForCode": async () => {
-                  captureCommandTelemetry("writeDocstringForCode");
-
-                  streamInlineEdit(
-                    "docstring",
-                    "Write a docstring for this code. Do not change anything about the code itself.",
-                    true,
-                  );
-                },
-                  "continue.fixCode": async () => {
-                    captureCommandTelemetry("fixCode");
-
-                    streamInlineEdit(
-                      "fix",
-                      "Fix this code. If it is already 100% correct, simply rewrite the code.",
-                    );
-                  },
-                    "continue.optimizeCode": async () => {
-                      captureCommandTelemetry("optimizeCode");
-                      streamInlineEdit("optimize", "Optimize this code");
-                    },
-                      "continue.fixGrammar": async () => {
-                        captureCommandTelemetry("fixGrammar");
-                        streamInlineEdit(
-                          "fixGrammar",
-                          "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
-                        );
-                      },
-                        "continue.clearConsole": async () => {
-                          consoleView.clearLog();
-                        },
-                          "continue.viewLogs": async () => {
-                            captureCommandTelemetry("viewLogs");
-                            vscode.commands.executeCommand("workbench.action.toggleDevTools");
-                          },
-                            "continue.debugTerminal": async () => {
-                              captureCommandTelemetry("debugTerminal");
-
-                              const terminalContents = await ide.getTerminalContents();
-
-                              vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
-
-                              sidebar.webviewProtocol?.request("userInput", {
-                                input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
-                              });
-                            },
-                              "continue.hideInlineTip": () => {
-                                vscode.workspace
-                                  .getConfiguration(EXTENSION_NAME)
-                                  .update("showInlineTip", false, vscode.ConfigurationTarget.Global);
-                              },
-
-                                // Commands without keyboard shortcuts
-                                "continue.addModel": () => {
-                                  captureCommandTelemetry("addModel");
-
-                                  vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
-                                  sidebar.webviewProtocol?.request("addModel", undefined);
-                                },
-                                  "continue.newSession": () => {
-                                    sidebar.webviewProtocol?.request("newSession", undefined);
-                                  },
-                                    "continue.viewHistory": () => {
-                                      vscode.commands.executeCommand("continue.navigateTo", "/history", true);
-                                    },
-                                      "continue.a3Help": () => {
-                                        vscode.commands.executeCommand("continue.navigateTo", "/a3Help", true);
-                                      },
-                                        "continue.focusContinueSessionId": async (
-                                          sessionId: string | undefined,
-                                        ) => {
-                                          if (!sessionId) {
-                                            sessionId = await vscode.window.showInputBox({
-                                              prompt: "Enter the Session ID",
-                                            });
-                                          }
-                                          void sidebar.webviewProtocol?.request("focusContinueSessionId", {
-                                            sessionId,
-                                          });
-                                        },
-                                          "continue.applyCodeFromChat": () => {
-                                            void sidebar.webviewProtocol.request("applyCodeFromChat", undefined);
-                                          },
-                                            "continue.toggleFullScreen": async () => {
-                                              focusGUI();
-
-                                              const sessionId = await sidebar.webviewProtocol.request(
-                                                "getCurrentSessionId",
-                                                undefined,
-                                              );
-                                              // Check if full screen is already open by checking open tabs
-                                              const fullScreenTab = getFullScreenTab();
-
-                                              if (fullScreenTab && fullScreenPanel) {
-                                                // Full screen open, but not focused - focus it
-                                                fullScreenPanel.reveal();
-                                                return;
-                                              }
-
-                                              // Clear the sidebar to prevent overwriting changes made in fullscreen
-                                              vscode.commands.executeCommand("continue.newSession");
-
-                                              // Full screen not open - open it
-                                              captureCommandTelemetry("openFullScreen");
-
-                                              // Create the full screen panel
-                                              let panel = vscode.window.createWebviewPanel(
-                                                "Amarsoft.kodemate-aiGUIView",
-                                                "Continue",
-                                                vscode.ViewColumn.One,
-                                                {
-                                                  retainContextWhenHidden: true,
-                                                  enableScripts: true,
-                                                },
-                                              );
-                                              fullScreenPanel = panel;
-
-                                              // Add content to the panel
-                                              panel.webview.html = sidebar.getSidebarContent(
-                                                extensionContext,
-                                                panel,
-                                                undefined,
-                                                undefined,
-                                                true,
-                                              );
-
-                                              const sessionLoader = panel.onDidChangeViewState(() => {
-                                                vscode.commands.executeCommand("continue.newSession");
-                                                if (sessionId) {
-                                                  vscode.commands.executeCommand(
-                                                    "continue.focusContinueSessionId",
-                                                    sessionId,
-                                                  );
-                                                }
-                                                panel.reveal();
-                                                sessionLoader.dispose();
-                                              });
-
-                                              // When panel closes, reset the webview and focus
-                                              panel.onDidDispose(
-                                                () => {
-                                                  sidebar.resetWebviewProtocolWebview();
-                                                  vscode.commands.executeCommand("continue.focusContinueInput");
-                                                },
-                                                null,
-                                                extensionContext.subscriptions,
-                                              );
-
-                                              vscode.commands.executeCommand("workbench.action.copyEditorToNewWindow");
-                                              vscode.commands.executeCommand("workbench.action.closeAuxiliaryBar");
-                                            },
-                                              "continue.openConfigPage": () => {
-                                                vscode.commands.executeCommand("continue.navigateTo", "/config", true);
-                                              },
-                                                "continue.selectFilesAsContext": async (
-                                                  firstUri: vscode.Uri,
-                                                  uris: vscode.Uri[],
-                                                ) => {
-                                                  if (uris === undefined) {
-                                                    throw new Error("No files were selected");
-                                                  }
-
-                                                  vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
-
-                                                  for (const uri of uris) {
-                                                    // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
-                                                    const isDirectory = await vscode.workspace.fs
-                                                      .stat(uri)
-                                                      ?.then((stat) => stat.type === vscode.FileType.Directory);
-                                                    if (isDirectory) {
-                                                      for await (const fileUri of walkDirAsync(uri.toString(), ide, {
-                                                        source: "vscode continue.selectFilesAsContext command",
-                                                      })) {
-                                                        addEntireFileToContext(
-                                                          vscode.Uri.parse(fileUri),
-                                                          sidebar.webviewProtocol,
-                                                        );
-                                                      }
-                                                    } else {
-                                                      addEntireFileToContext(uri, sidebar.webviewProtocol);
-                                                    }
-                                                  }
-                                                },
-                                                  "continue.logAutocompleteOutcome": (
-                                                    completionId: string,
-                                                    completionProvider: CompletionProvider,
-                                                  ) => {
-                                                    completionProvider.accept(completionId);
-                                                  },
-                                                    "continue.toggleTabAutocompleteEnabled": () => {
-                                                      captureCommandTelemetry("toggleTabAutocompleteEnabled");
-
-                                                      const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
-                                                      const enabled = config.get("enableTabAutocomplete");
-                                                      const pauseOnBattery = config.get<boolean>(
-                                                        "pauseTabAutocompleteOnBattery",
-                                                      );
-                                                      if (!pauseOnBattery || battery.isACConnected()) {
-                                                        config.update(
-                                                          "enableTabAutocomplete",
-                                                          !enabled,
-                                                          vscode.ConfigurationTarget.Global,
-                                                        );
-                                                      } else {
-                                                        if (enabled) {
-                                                          const paused = getStatusBarStatus() === StatusBarStatus.Paused;
-                                                          if (paused) {
-                                                            setupStatusBar(StatusBarStatus.Enabled);
-                                                          } else {
-                                                            config.update(
-                                                              "enableTabAutocomplete",
-                                                              false,
-                                                              vscode.ConfigurationTarget.Global,
-                                                            );
-                                                          }
-                                                        } else {
-                                                          setupStatusBar(StatusBarStatus.Paused);
-                                                          config.update(
-                                                            "enableTabAutocomplete",
-                                                            true,
-                                                            vscode.ConfigurationTarget.Global,
-                                                          );
-                                                        }
-                                                      }
-                                                    },
-                                                      "continue.openTabAutocompleteConfigMenu": async () => {
-                                                        captureCommandTelemetry("openTabAutocompleteConfigMenu");
-
-                                                        const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
-                                                        const quickPick = vscode.window.createQuickPick();
-
-                                                        const { config: continueConfig } = await configHandler.loadConfig();
-                                                        const autocompleteModels =
-                                                          continueConfig?.modelsByRole.autocomplete ?? [];
-                                                        const selected =
-                                                          continueConfig?.selectedModelByRole?.autocomplete?.title ?? undefined;
-
-                                                        // Toggle between Disabled, Paused, and Enabled
-                                                        const pauseOnBattery =
-                                                          config.get<boolean>("pauseTabAutocompleteOnBattery") &&
-                                                          !battery.isACConnected();
-                                                        const currentStatus = getStatusBarStatus();
-
-                                                        let targetStatus: StatusBarStatus | undefined;
-                                                        if (pauseOnBattery) {
-                                                          // Cycle from Disabled -> Paused -> Enabled
-                                                          targetStatus =
-                                                            currentStatus === StatusBarStatus.Paused
-                                                              ? StatusBarStatus.Enabled
-                                                              : currentStatus === StatusBarStatus.Disabled
-                                                                ? StatusBarStatus.Paused
-                                                                : StatusBarStatus.Disabled;
-                                                        } else {
-                                                          // Toggle between Disabled and Enabled
-                                                          targetStatus =
-                                                            currentStatus === StatusBarStatus.Disabled
-                                                              ? StatusBarStatus.Enabled
-                                                              : StatusBarStatus.Disabled;
-                                                        }
-
-                                                        quickPick.items = [
-                                                          {
-                                                            label: "$(gear) 设置",
-                                                          },
-                                                          {
-                                                            label: "$(comment) 对话",
-                                                            description: getMetaKeyLabel() + " + L",
-                                                          },
-                                                          {
-                                                            label: "$(screen-full) 全屏",
-                                                            description:
-                                                              getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
-                                                          },
-                                                          {
-                                                            label: quickPickStatusText(targetStatus),
-                                                          },
-                                                          {
-                                                            label: "$(feedback) 问题反馈",
-                                                          },
-                                                          {
-                                                            kind: vscode.QuickPickItemKind.Separator,
-                                                            label: "切换模型",
-                                                          },
-                                                          ...autocompleteModels.map((model) => ({
-                                                            label: getAutocompleteStatusBarTitle(selected, model),
-                                                            description: getAutocompleteStatusBarDescription(selected, model),
-                                                          })),
-                                                        ];
-                                                        quickPick.onDidAccept(() => {
-                                                          const selectedOption = quickPick.selectedItems[0].label;
-                                                          const targetStatus =
-                                                            getStatusBarStatusFromQuickPickItemLabel(selectedOption);
-
-                                                          if (targetStatus !== undefined) {
-                                                            setupStatusBar(targetStatus);
-                                                            config.update(
-                                                              "enableTabAutocomplete",
-                                                              targetStatus === StatusBarStatus.Enabled,
-                                                              vscode.ConfigurationTarget.Global,
-                                                            );
-                                                          } else if (
-                                                            autocompleteModels.some((model) => model.title === selectedOption)
-                                                          ) {
-                                                            if (core.configHandler.currentProfile?.profileDescription.id) {
-                                                              core.invoke("config/updateSelectedModel", {
-                                                                profileId:
-                                                                  core.configHandler.currentProfile?.profileDescription.id,
-                                                                role: "autocomplete",
-                                                                title: selectedOption,
-                                                              });
-                                                            }
-                                                          } else if (selectedOption === "$(feedback) 问题反馈") {
-                                                            vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
-                                                          } else if (selectedOption === "$(comment) 对话") {
-                                                            vscode.commands.executeCommand("continue.focusContinueInput");
-                                                          } else if (selectedOption === "$(screen-full) 全屏") {
-                                                            vscode.commands.executeCommand("continue.toggleFullScreen");
-                                                          } else if (selectedOption === "$(gear) 设置") {
-                                                            vscode.commands.executeCommand("continue.navigateTo", "/config");
-                                                          }
-
-                                                          quickPick.dispose();
-                                                        });
-                                                        quickPick.show();
-                                                      },
-                                                        "continue.giveAutocompleteFeedback": async () => {
-                                                          const feedback = await vscode.window.showInputBox({
-                                                            ignoreFocusOut: true,
-                                                            prompt:
-                                                              "Please share what went wrong with the last completion. The details of the completion as well as this message will be sent to the Continue team in order to improve.",
-                                                          });
-                                                          if (feedback) {
-                                                            const client = await continueServerClientPromise;
-                                                            const completionsPath = getDevDataFilePath(
-                                                              "autocomplete",
-                                                              LOCAL_DEV_DATA_VERSION,
-                                                            );
-
-                                                            const lastLines = await readLastLines.read(completionsPath, 2);
-                                                            client.sendFeedback(feedback, lastLines);
-                                                          }
-                                                          await installModelWithProgress(modelName, llmProvider);
-                                                        } catch (e) {
-                                                          const message = e instanceof Error ? e.message : String(e);
-                                                          vscode.window.showErrorMessage(
-                                                            `Failed to install '${modelName}': ${message}`,
-                                                          );
-                                                        }
-        },
-          "continue.convertConfigJsonToConfigYaml": async () => {
-            const configJson = fs.readFileSync(getConfigJsonPath(), "utf-8");
-            const parsed = JSON.parse(configJson);
-            const configYaml = convertJsonToYamlConfig(parsed);
-
-            const configYamlPath = getConfigYamlPath();
-            fs.writeFileSync(configYamlPath, YAML.stringify(configYaml));
-
-            // Open config.yaml
-            await openEditorAndRevealRange(
-              vscode.Uri.file(configYamlPath),
-              undefined,
-              undefined,
-              false,
-            );
-
-            vscode.window
-              .showInformationMessage(
-                "Your config.json has been converted to the new config.yaml format. If you need to switch back to config.json, you can delete or rename config.yaml.",
-                "Read the docs",
-              )
-              .then((selection) => {
-                if (selection === "Read the docs") {
-                  vscode.env.openExternal(
-                    vscode.Uri.parse("https://docs.continue.dev/yaml-migration"),
-                  );
-                }
-              });
-          },
-  };
-
-      const registerCopyBufferService = (
-        context: vscode.ExtensionContext,
-        core: Core,
-      ) => {
-        const typeDisposable = vscode.commands.registerCommand(
-          "editor.action.clipboardCopyAction",
-          async (arg) => doCopy(typeDisposable),
+          null,
+          extensionContext.subscriptions,
         );
 
-        async function doCopy(typeDisposable: any) {
-          typeDisposable.dispose(); // must dispose to avoid endless loops
-
-          await vscode.commands.executeCommand("editor.action.clipboardCopyAction");
-
-          const clipboardText = await vscode.env.clipboard.readText();
-
-          if (clipboardText) {
-            core.invoke("clipboardCache/add", {
-              content: clipboardText,
-            });
-          }
-
-          await context.workspaceState.update("continue.copyBuffer", {
-            text: clipboardText,
-            copiedAt: new Date().toISOString(),
-          });
-
-          // re-register to continue intercepting copy commands
-          typeDisposable = vscode.commands.registerCommand(
-            "editor.action.clipboardCopyAction",
-            async () => doCopy(typeDisposable),
-          );
-          context.subscriptions.push(typeDisposable);
+        vscode.commands.executeCommand("workbench.action.copyEditorToNewWindow");
+        vscode.commands.executeCommand("workbench.action.closeAuxiliaryBar");
+      },
+      "continue.openConfigPage": () => {
+        vscode.commands.executeCommand("continue.navigateTo", "/config", false);
+      },
+      "continue.selectFilesAsContext": async (
+        firstUri: vscode.Uri,
+        uris: vscode.Uri[],
+      ) => {
+        if (uris === undefined) {
+          throw new Error("No files were selected");
         }
 
-        context.subscriptions.push(typeDisposable);
-      };
+        vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
-      async function installModelWithProgress(
-        modelName: string,
-        modelInstaller: ModelInstaller,
-      ) {
-      return vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Installing model '${modelName}'`,
-          cancellable: true,
-        },
-        async (windowProgress, token) => {
-          let currentProgress: number = 0;
-          const progressWrapper = (
-            details: string,
-            worked?: number,
-            total?: number,
-          ) => {
-            let increment = 0;
-            if (worked && total) {
-              const progressValue = Math.round((worked / total) * 100);
-              increment = progressValue - currentProgress;
-              currentProgress = progressValue;
+        for (const uri of uris) {
+          // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
+          const isDirectory = await vscode.workspace.fs
+            .stat(uri)
+            ?.then((stat) => stat.type === vscode.FileType.Directory);
+          if (isDirectory) {
+            for await (const fileUri of walkDirAsync(uri.toString(), ide, {
+              source: "vscode continue.selectFilesAsContext command",
+            })) {
+              await addEntireFileToContext(
+                vscode.Uri.parse(fileUri),
+                sidebar.webviewProtocol,
+                ide.ideUtils
+              );
             }
-            windowProgress.report({ message: details, increment });
-          };
-          const abortController = new AbortController();
-          token.onCancellationRequested(() => {
-            console.log(`Pulling ${modelName} model was cancelled`);
-            abortController.abort();
-          });
-          await modelInstaller.installModel(
-            modelName,
-            abortController.signal,
-            progressWrapper,
+          } else {
+            await addEntireFileToContext(uri, sidebar.webviewProtocol, ide.ideUtils);
+          }
+        }
+      },
+      "continue.logAutocompleteOutcome": (
+        completionId: string,
+        completionProvider: CompletionProvider,
+      ) => {
+        completionProvider.accept(completionId);
+      },
+      "continue.toggleTabAutocompleteEnabled": () => {
+        captureCommandTelemetry("toggleTabAutocompleteEnabled");
+
+        const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+        const enabled = config.get("enableTabAutocomplete");
+        const pauseOnBattery = config.get<boolean>(
+          "pauseTabAutocompleteOnBattery",
+        );
+        if (!pauseOnBattery || battery.isACConnected()) {
+          config.update(
+            "enableTabAutocomplete",
+            !enabled,
+            vscode.ConfigurationTarget.Global,
           );
-        },
-      );
-    }
+        } else {
+          if (enabled) {
+            const paused = getStatusBarStatus() === StatusBarStatus.Paused;
+            if (paused) {
+              setupStatusBar(StatusBarStatus.Enabled);
+            } else {
+              config.update(
+                "enableTabAutocomplete",
+                false,
+                vscode.ConfigurationTarget.Global,
+              );
+            }
+          } else {
+            setupStatusBar(StatusBarStatus.Paused);
+            config.update(
+              "enableTabAutocomplete",
+              true,
+              vscode.ConfigurationTarget.Global,
+            );
+          }
+        }
+      },
+      "continue.openTabAutocompleteConfigMenu": async () => {
+        captureCommandTelemetry("openTabAutocompleteConfigMenu");
 
-    export function registerAllCommands(
-      context: vscode.ExtensionContext,
-      ide: VsCodeIde,
-      extensionContext: vscode.ExtensionContext,
-      sidebar: ContinueGUIWebviewViewProvider,
-      consoleView: ContinueConsoleWebviewViewProvider,
-      configHandler: ConfigHandler,
-      verticalDiffManager: VerticalDiffManager,
-      continueServerClientPromise: Promise<ContinueServerClient>,
-      battery: Battery,
-      quickEdit: QuickEdit,
-      core: Core,
-      editDecorationManager: EditDecorationManager,
-    ) {
-      for (const [command, callback] of Object.entries(
-        getCommandsMap(
-          ide,
-          extensionContext,
-          sidebar,
-          consoleView,
-          configHandler,
-          verticalDiffManager,
-          continueServerClientPromise,
-          battery,
-          quickEdit,
-          core,
-          editDecorationManager,
-        ),
-      )) {
-        context.subscriptions.push(
-          vscode.commands.registerCommand(command, callback),
-        );
-      }
+        const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+        const quickPick = vscode.window.createQuickPick();
 
-      try {
-        registerCopyBufferService(context, core);
-      } catch (e: any) {
-        //Non-critical error, it needs to be intercepted and not prevent the extension from starting
-        console.log("Error registering CopyBufferService: ", e);
-        Telemetry.capture(
-          "vscode_extension_copy_buffer_failure",
+        const { config: continueConfig } = await configHandler.loadConfig();
+        const autocompleteModels =
+          continueConfig?.modelsByRole.autocomplete ?? [];
+        const selected =
+          continueConfig?.selectedModelByRole?.autocomplete?.title ?? undefined;
+
+        // Toggle between Disabled, Paused, and Enabled
+        const pauseOnBattery =
+          config.get<boolean>("pauseTabAutocompleteOnBattery") &&
+          !battery.isACConnected();
+        const currentStatus = getStatusBarStatus();
+
+        let targetStatus: StatusBarStatus | undefined;
+        if (pauseOnBattery) {
+          // Cycle from Disabled -> Paused -> Enabled
+          targetStatus =
+            currentStatus === StatusBarStatus.Paused
+              ? StatusBarStatus.Enabled
+              : currentStatus === StatusBarStatus.Disabled
+                ? StatusBarStatus.Paused
+                : StatusBarStatus.Disabled;
+        } else {
+          // Toggle between Disabled and Enabled
+          targetStatus =
+            currentStatus === StatusBarStatus.Disabled
+              ? StatusBarStatus.Enabled
+              : StatusBarStatus.Disabled;
+        }
+
+        quickPick.items = [
           {
-            stack: extractMinimalStackTraceInfo(e.stack),
-            message: e.message,
+            label: "$(gear) 设置",
           },
+          {
+            label: "$(comment) 对话",
+            description: getMetaKeyLabel() + " + L",
+          },
+          {
+            label: "$(screen-full) 全屏",
+            description:
+              getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
+          },
+          {
+            label: quickPickStatusText(targetStatus),
+          },
+          {
+            label: "$(feedback) 问题反馈",
+          },
+          {
+            kind: vscode.QuickPickItemKind.Separator,
+            label: "Switch model",
+          },
+          ...autocompleteModels.map((model) => ({
+            label: getAutocompleteStatusBarTitle(selected, model),
+            description: getAutocompleteStatusBarDescription(selected, model),
+          })),
+        ];
+        quickPick.onDidAccept(() => {
+          const selectedOption = quickPick.selectedItems[0].label;
+          const targetStatus =
+            getStatusBarStatusFromQuickPickItemLabel(selectedOption);
+
+          if (targetStatus !== undefined) {
+            setupStatusBar(targetStatus);
+            config.update(
+              "enableTabAutocomplete",
+              targetStatus === StatusBarStatus.Enabled,
+              vscode.ConfigurationTarget.Global,
+            );
+          } else if (
+            autocompleteModels.some((model) => model.title === selectedOption)
+          ) {
+            if (core.configHandler.currentProfile?.profileDescription.id) {
+              core.invoke("config/updateSelectedModel", {
+                profileId:
+                  core.configHandler.currentProfile?.profileDescription.id,
+                role: "autocomplete",
+                title: selectedOption,
+              });
+            }
+          } else if (selectedOption === "$(feedback) 问题反馈") {
+            vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
+          } else if (selectedOption === "$(comment) 对话") {
+            vscode.commands.executeCommand("continue.focusContinueInput");
+          } else if (selectedOption === "$(screen-full) 全屏") {
+            vscode.commands.executeCommand("continue.toggleFullScreen");
+          } else if (selectedOption === "$(gear) 设置") {
+            vscode.commands.executeCommand("continue.navigateTo", "/config");
+          }
+
+          quickPick.dispose();
+        });
+        quickPick.show();
+      },
+      "continue.giveAutocompleteFeedback": async () => {
+        const feedback = await vscode.window.showInputBox({
+          ignoreFocusOut: true,
+          prompt:
+            "Please share what went wrong with the last completion. The details of the completion as well as this message will be sent to the Continue team in order to improve.",
+        });
+        if (feedback) {
+          const client = await continueServerClientPromise;
+          const completionsPath = getDevDataFilePath(
+            "autocomplete",
+            LOCAL_DEV_DATA_VERSION,
+          );
+
+          const lastLines = await readLastLines.read(completionsPath, 2);
+          client.sendFeedback(feedback, lastLines);
+        }
+      },
+      "continue.navigateTo": (path: string, toggle: boolean) => {
+        sidebar.webviewProtocol?.request("navigateTo", { path, toggle });
+        focusGUI();
+      },
+      "continue.startLocalOllama": () => {
+        startLocalOllama(ide);
+      },
+      "continue.installModel": async (
+        modelName: string,
+        llmProvider: ILLM | undefined,
+      ) => {
+        try {
+          if (!isModelInstaller(llmProvider)) {
+            const msg = llmProvider
+              ? `LLM provider '${llmProvider.providerName}' does not support installing models`
+              : "Missing LLM Provider";
+            throw new Error(msg);
+          }
+          await installModelWithProgress(modelName, llmProvider);
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          vscode.window.showErrorMessage(
+            `Failed to install '${modelName}': ${message}`,
+          );
+        }
+      },
+      "continue.convertConfigJsonToConfigYaml": async () => {
+        const configJson = fs.readFileSync(getConfigJsonPath(), "utf-8");
+        const parsed = JSON.parse(configJson);
+        const configYaml = convertJsonToYamlConfig(parsed);
+
+        const configYamlPath = getConfigYamlPath();
+        fs.writeFileSync(configYamlPath, YAML.stringify(configYaml));
+
+        // Open config.yaml
+        await openEditorAndRevealRange(
+          vscode.Uri.file(configYamlPath),
+          undefined,
+          undefined,
           false,
-          true,
         );
-      }
+
+        vscode.window
+          .showInformationMessage(
+            "Your config.json has been converted to the new config.yaml format. If you need to switch back to config.json, you can delete or rename config.yaml.",
+            "Read the docs",
+          )
+          .then((selection) => {
+            if (selection === "Read the docs") {
+              vscode.env.openExternal(
+                vscode.Uri.parse("https://docs.continue.dev/yaml-migration"),
+              );
+            }
+          });
+      },
+    };
+  };
+
+const registerCopyBufferService = (
+  context: vscode.ExtensionContext,
+  core: Core,
+) => {
+  const typeDisposable = vscode.commands.registerCommand(
+    "editor.action.clipboardCopyAction",
+    async (arg) => doCopy(typeDisposable),
+  );
+
+  async function doCopy(typeDisposable: any) {
+    typeDisposable.dispose(); // must dispose to avoid endless loops
+
+    await vscode.commands.executeCommand("editor.action.clipboardCopyAction");
+
+    const clipboardText = await vscode.env.clipboard.readText();
+
+    if (clipboardText) {
+      core.invoke("clipboardCache/add", {
+        content: clipboardText,
+      });
     }
+
+    await context.workspaceState.update("continue.copyBuffer", {
+      text: clipboardText,
+      copiedAt: new Date().toISOString(),
+    });
+
+    // re-register to continue intercepting copy commands
+    typeDisposable = vscode.commands.registerCommand(
+      "editor.action.clipboardCopyAction",
+      async () => doCopy(typeDisposable),
+    );
+    context.subscriptions.push(typeDisposable);
+  }
+
+  context.subscriptions.push(typeDisposable);
+};
+
+async function installModelWithProgress(
+  modelName: string,
+  modelInstaller: ModelInstaller,
+) {
+  return vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Installing model '${modelName}'`,
+      cancellable: true,
+    },
+    async (windowProgress, token) => {
+      let currentProgress: number = 0;
+      const progressWrapper = (
+        details: string,
+        worked?: number,
+        total?: number,
+      ) => {
+        let increment = 0;
+        if (worked && total) {
+          const progressValue = Math.round((worked / total) * 100);
+          increment = progressValue - currentProgress;
+          currentProgress = progressValue;
+        }
+        windowProgress.report({ message: details, increment });
+      };
+      const abortController = new AbortController();
+      token.onCancellationRequested(() => {
+        console.log(`Pulling ${modelName} model was cancelled`);
+        abortController.abort();
+      });
+      await modelInstaller.installModel(
+        modelName,
+        abortController.signal,
+        progressWrapper,
+      );
+    },
+  );
+}
+
+export function registerAllCommands(
+  context: vscode.ExtensionContext,
+  ide: VsCodeIde,
+  extensionContext: vscode.ExtensionContext,
+  sidebar: ContinueGUIWebviewViewProvider,
+  consoleView: ContinueConsoleWebviewViewProvider,
+  configHandler: ConfigHandler,
+  verticalDiffManager: VerticalDiffManager,
+  continueServerClientPromise: Promise<ContinueServerClient>,
+  battery: Battery,
+  quickEdit: QuickEdit,
+  core: Core,
+  editDecorationManager: EditDecorationManager,
+) {
+  for (const [command, callback] of Object.entries(
+    getCommandsMap(
+      ide,
+      extensionContext,
+      sidebar,
+      consoleView,
+      configHandler,
+      verticalDiffManager,
+      continueServerClientPromise,
+      battery,
+      quickEdit,
+      core,
+      editDecorationManager,
+    ),
+  )) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(command, callback),
+    );
+  }
+
+  try {
+    registerCopyBufferService(context, core);
+  } catch (e: any) {
+    //Non-critical error, it needs to be intercepted and not prevent the extension from starting
+    console.log("Error registering CopyBufferService: ", e);
+    Telemetry.capture(
+      "vscode_extension_copy_buffer_failure",
+      {
+        stack: extractMinimalStackTraceInfo(e.stack),
+        message: e.message,
+      },
+      false,
+      true,
+    );
+  }
+}
