@@ -397,7 +397,7 @@ const getCommandsMap: (
 
         streamInlineEdit(
           "comment",
-          "Write comments for this code. Do not change anything about the code itself.",
+          "为这段代码编写注释。不要对代码本身做任何修改。",
         );
       },
       "continue.writeDocstringForCode": async () => {
@@ -405,7 +405,7 @@ const getCommandsMap: (
 
         streamInlineEdit(
           "docstring",
-          "Write a docstring for this code. Do not change anything about the code itself.",
+          "为这段代码编写一个文档。不要对代码本身做任何修改.",
           true,
         );
       },
@@ -414,7 +414,7 @@ const getCommandsMap: (
 
         streamInlineEdit(
           "fix",
-          "Fix this code. If it is already 100% correct, simply rewrite the code.",
+          "修复这段代码。如果它已经 100% 正确，只需重写代码。",
         );
       },
       "continue.optimizeCode": async () => {
@@ -425,7 +425,7 @@ const getCommandsMap: (
         captureCommandTelemetry("fixGrammar");
         streamInlineEdit(
           "fixGrammar",
-          "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
+          "如果这篇文章中有任何语法或拼写错误，请改正它们。不要对文章进行其他大幅度修改。",
         );
       },
       "continue.clearConsole": async () => {
@@ -443,7 +443,7 @@ const getCommandsMap: (
         vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
         sidebar.webviewProtocol?.request("userInput", {
-          input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
+          input: `我遇到了以下错误，你能帮忙解释一下如何解决吗?\n\n${terminalContents.trim()}`,
         });
       },
       "continue.hideInlineTip": () => {
@@ -730,7 +730,7 @@ const getCommandsMap: (
         const feedback = await vscode.window.showInputBox({
           ignoreFocusOut: true,
           prompt:
-            "Please share what went wrong with the last completion. The details of the completion as well as this message will be sent to the Continue team in order to improve.",
+            "请分享上一次完成情况出了什么问题。完成情况的详细信息以及这条消息将发送给我们，以便改进。.",
         });
         if (feedback) {
           const client = await continueServerClientPromise;
@@ -787,7 +787,7 @@ const getCommandsMap: (
 
         vscode.window
           .showInformationMessage(
-            "Your config.json has been converted to the new config.yaml format. If you need to switch back to config.json, you can delete or rename config.yaml.",
+            "你的 config.json 已转换为新的 config.yaml 格式。如果你需要切换回 config.json，可以删除或重命名 config.yaml。",
             "Read the docs",
           )
           .then((selection) => {
