@@ -33,9 +33,9 @@ class LlamaEncoding implements Encoding {
 }
 
 class NonWorkerAsyncEncoder implements AsyncEncoder {
-  constructor(private readonly encoding: Encoding) {}
+  constructor(private readonly encoding: Encoding) { }
 
-  async close(): Promise<void> {}
+  async close(): Promise<void> { }
 
   async encode(text: string): Promise<number[]> {
     return this.encoding.encode(text);
@@ -268,7 +268,7 @@ function pruneStringFromTop(
   return encoding.decode(tokens.slice(tokens.length - maxTokens));
 }
 
-const MAX_TOKEN_SAFETY_BUFFER = 1000;
+const MAX_TOKEN_SAFETY_BUFFER = 10000000;
 const TOKEN_SAFETY_PROPORTION = 0.02;
 function getTokenCountingBufferSafety(contextLength: number) {
   return Math.min(
@@ -452,5 +452,6 @@ export {
   pruneLinesFromTop,
   pruneRawPromptFromTop,
   pruneStringFromBottom,
-  pruneStringFromTop,
+  pruneStringFromTop
 };
+
