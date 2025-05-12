@@ -22,6 +22,8 @@ import readLastLines from "read-last-lines";
 import * as vscode from "vscode";
 import * as YAML from "yaml";
 
+import { convertJsonToYamlConfig } from "../../../packages/config-yaml/dist";
+
 import {
   getAutocompleteStatusBarDescription,
   getAutocompleteStatusBarTitle,
@@ -36,17 +38,15 @@ import { ContinueGUIWebviewViewProvider } from "./ContinueGUIWebviewViewProvider
 import { VerticalDiffManager } from "./diff/vertical/manager";
 import EditDecorationManager from "./quickEdit/EditDecorationManager";
 import { QuickEdit, QuickEditShowParams } from "./quickEdit/QuickEditQuickPick";
-import { Battery } from "./util/battery";
-import { getMetaKeyLabel } from "./util/util";
-import { VsCodeIde } from "./VsCodeIde";
-
-import { convertJsonToYamlConfig } from "../../../packages/config-yaml/dist";
 import {
   addCodeToContextFromRange,
   addEntireFileToContext,
   addHighlightedCodeToContext,
 } from "./util/addCode";
+import { Battery } from "./util/battery";
+import { getMetaKeyLabel } from "./util/util";
 import { openEditorAndRevealRange } from "./util/vscode";
+import { VsCodeIde } from "./VsCodeIde";
 
 let fullScreenPanel: vscode.WebviewPanel | undefined;
 
@@ -264,7 +264,7 @@ const getCommandsMap: (
       ) => {
         captureCommandTelemetry("quickFix");
 
-        const prompt = `Please explain the cause of this error and how to solve it: ${diagnosticMessage}`;
+        const prompt = `请解释这个错误的原因以及如何解决它: ${diagnosticMessage}`;
 
         addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
@@ -405,7 +405,7 @@ const getCommandsMap: (
 
         streamInlineEdit(
           "docstring",
-          "为这段代码编写一个文档。不要对代码本身做任何修改.",
+          "为这段代码编写一个文档字符串。不要对代码本身做任何修改。",
           true,
         );
       },
@@ -425,7 +425,7 @@ const getCommandsMap: (
         captureCommandTelemetry("fixGrammar");
         streamInlineEdit(
           "fixGrammar",
-          "如果这篇文章中有任何语法或拼写错误，请改正它们。不要对文章进行其他大幅度修改。",
+          "如果这篇文章中有任何语法或拼写错误，请予以纠正。不要对文章进行其他大幅度修改。",
         );
       },
       "continue.clearConsole": async () => {
@@ -666,7 +666,7 @@ const getCommandsMap: (
             label: "$(gear) 设置",
           },
           {
-            label: "$(comment) 对话",
+            label: "$(comment) 打开对话",
             description: getMetaKeyLabel() + " + L",
           },
           {
@@ -676,6 +676,8 @@ const getCommandsMap: (
           },
           {
             label: quickPickStatusText(targetStatus),
+            description:
+              getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + A",
           },
           {
             label: "$(feedback) 问题反馈",
@@ -714,7 +716,7 @@ const getCommandsMap: (
             }
           } else if (selectedOption === "$(feedback) 问题反馈") {
             vscode.commands.executeCommand("continue.giveAutocompleteFeedback");
-          } else if (selectedOption === "$(comment) 对话") {
+          } else if (selectedOption === "$(comment) 打开对话") {
             vscode.commands.executeCommand("continue.focusContinueInput");
           } else if (selectedOption === "$(screen-full) 全屏") {
             vscode.commands.executeCommand("continue.toggleFullScreen");
@@ -730,7 +732,7 @@ const getCommandsMap: (
         const feedback = await vscode.window.showInputBox({
           ignoreFocusOut: true,
           prompt:
-            "请分享上一次完成情况出了什么问题。完成情况的详细信息以及这条消息将发送给我们，以便改进。.",
+            "请分享上一次完成任务时出现了什么问题。为了改进，此次任务完成的详细信息以及这条消息将发送给开发团队。",
         });
         if (feedback) {
           const client = await continueServerClientPromise;
@@ -787,7 +789,7 @@ const getCommandsMap: (
 
         vscode.window
           .showInformationMessage(
-            "你的 config.json 已转换为新的 config.yaml 格式。如果你需要切换回 config.json，可以删除或重命名 config.yaml。",
+            "Your config.json has been converted to the new config.yaml format. If you need to switch back to config.json, you can delete or rename config.yaml.",
             "Read the docs",
           )
           .then((selection) => {
