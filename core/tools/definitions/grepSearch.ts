@@ -20,7 +20,7 @@ export const grepSearchTool: Tool = {
         query: {
           type: "string",
           description:
-            "The search query to use. Must be a valid ripgrep regex expression, escaped where needed",
+            "要使用的搜索查询。必须是有效的 ripgrep 正则表达式，必要时进行转义",
         },
       },
     },

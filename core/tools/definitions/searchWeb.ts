@@ -20,7 +20,7 @@ export const searchWebTool: Tool = {
       properties: {
         query: {
           type: "string",
-          description: "The natural language search query",
+          description: "自然语言搜索查询",
         },
       },
     },

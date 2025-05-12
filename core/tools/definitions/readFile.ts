@@ -21,7 +21,7 @@ export const readFileTool: Tool = {
         filepath: {
           type: "string",
           description:
-            "The path of the file to read, relative to the root of the workspace (NOT uri or absolute path)",
+            "要读取的文件路径，相对于工作区根目录（不是 uri 或绝对路径）",
         },
       },
     },

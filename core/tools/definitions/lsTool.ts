@@ -26,7 +26,7 @@ export const lsTool: Tool = {
         recursive: {
           type: "boolean",
           description:
-            "If true, lists files and folders recursively. To prevent unexpected large results, use this sparingly",
+            "如果是，则递归列出文件和文件夹。为避免出现意外的大量结果，请谨慎使用此选项。",
         },
       },
     },

@@ -13,7 +13,7 @@ export const createRuleBlock: Tool = {
   function: {
     name: BuiltInToolNames.CreateRuleBlock,
     description:
-      "Creates a persistent rule for all future conversations. For establishing code standards or preferences that should be applied consistently.",
+      "为所有未来的对话创建一个持久规则。用于确立未来代码标准或偏好。.",
     parameters: {
       type: "object",
       required: ["name", "rule"],
@@ -21,17 +21,17 @@ export const createRuleBlock: Tool = {
         name: {
           type: "string",
           description:
-            "Short, descriptive name summarizing the rule's purpose (e.g. 'React Standards', 'Type Hints')",
+            "简要的描述性名称，概括规则的目的（例如 “React 标准”、“类型提示”）",
         },
         rule: {
           type: "string",
           description:
-            "Clear, imperative instruction for future code generation (e.g. 'Use named exports', 'Add Python type hints'). Each rule should focus on one specific standard.",
+            "针对未来代码生成的清晰、必要指令（例如 “使用具名导出”、“添加 Python 类型提示”）。每条规则应专注于一个特定标准.",
         },
         globs: {
           type: "string",
           description:
-            "Optional file patterns to which this rule applies (e.g. ['**/*.{ts,tsx}'] or ['src/**/*.ts', 'tests/**/*.ts'])",
+            "此规则适用的可选文件模式 (如. ['**/*.{ts,tsx}'] 或 ['src/**/*.ts', 'tests/**/*.ts'])",
         },
       },
     },

@@ -3,7 +3,7 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const globSearchTool: Tool = {
   type: "function",
-  displayTitle: "Glob File Search",
+  displayTitle: "全局文件搜索",
   wouldLikeTo: 'find file matches for "{{{ pattern }}}"',
   isCurrently: 'finding file matches for "{{{ pattern }}}"',
   hasAlready: 'retreived file matches for "{{{ pattern }}}"',
@@ -19,7 +19,7 @@ export const globSearchTool: Tool = {
       properties: {
         pattern: {
           type: "string",
-          description: "Glob pattern for file path matching",
+          description: "用于文件路径匹配的全局Glob模式",
         },
       },
     },

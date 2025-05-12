@@ -84,12 +84,9 @@ function ToolPolicyItem(props: ToolDropdownItemProps) {
                   className="flex flex-wrap items-center"
                 >
                   <p className="m-0 p-0">
-                    <span>Duplicate tool name</span>{" "}
+                    <span>工具名重复</span>{" "}
                     <code>{props.tool.function.name}</code>{" "}
-                    <span>
-                      detected. Permissions will conflict and usage may be
-                      unpredictable
-                    </span>
+                    <span>权限将发生冲突，使用情况可能无法预测</span>
                   </p>
                 </ToolTip>
               </>
@@ -119,14 +116,14 @@ function ToolPolicyItem(props: ToolDropdownItemProps) {
             <>
               <span className="text-lightgray sm:hidden">Off</span>
               <span className="text-lightgray hidden sm:inline-block">
-                Excluded
+                排除
               </span>
             </>
           ) : policy === "allowedWithoutPermission" ? (
             <>
               <span className="text-green-500 sm:hidden">Auto</span>
               <span className="hidden text-green-500 sm:inline-block">
-                Automatic
+                自动执行
               </span>
             </>
           ) : (
@@ -134,7 +131,7 @@ function ToolPolicyItem(props: ToolDropdownItemProps) {
             <>
               <span className="text-yellow-500 sm:hidden">Ask</span>
               <span className="hidden text-yellow-500 sm:inline-block">
-                Ask First
+                先询问
               </span>
             </>
           )}
