@@ -21,8 +21,17 @@ export function HelpCenterSection() {
       <h3 className="mb-4 mt-0 text-xl">帮助中心</h3>
       <div className="-mx-4 flex flex-col">
         <MoreHelpRow
-          title="学习文档"
-          description="学习如何使用KodemateAI"
+          title="Continue Hub"
+          description="Visit hub.continue.dev to explore custom assistants and blocks"
+          Icon={ArrowTopRightOnSquareIcon}
+          onClick={() =>
+            ideMessenger.post("openUrl", "https://hub.continue.dev/")
+          }
+        />
+
+        <MoreHelpRow
+          title="Documentation"
+          description="Learn how to configure and use Continue"
           Icon={ArrowTopRightOnSquareIcon}
           onClick={() =>
             ideMessenger.post("openUrl", "https://home.amarsoft.com/")
