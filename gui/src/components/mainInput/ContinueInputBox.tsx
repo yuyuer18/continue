@@ -1,6 +1,6 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { ContextItemWithId, InputModifiers, RuleWithSource } from "core";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 import { defaultBorderRadius, vscBackground } from "..";
 import { useAppSelector } from "../../redux/hooks";
