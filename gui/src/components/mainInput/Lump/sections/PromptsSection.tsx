@@ -4,6 +4,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import { SlashCommandDescription } from "core";
+import { useContext } from "react";
+import { IdeMessengerContext } from "../../../../context/IdeMessenger";
 import { useBookmarkedSlashCommands } from "../../../../hooks/useBookmarkedSlashCommands";
 import { useAppSelector } from "../../../../redux/hooks";
 import { fontSize } from "../../../../util";
@@ -89,12 +91,16 @@ interface promptProps {
 }
 export function PromptsSection({ selectChange }: promptProps) {
   const { isCommandBookmarked, toggleBookmark } = useBookmarkedSlashCommands();
+  const ideMessenger = useContext(IdeMessengerContext);
 
   const slashCommands = useAppSelector(
     (state) => state.config.config.slashCommands ?? [],
   );
-  const handleEdit = (prompt: any) => {
-    // Handle edit action here
+
+  const handleEdit = (_prompt: SlashCommandDescription) => {
+    ideMessenger.post("config/openProfile", {
+      profileId: undefined,
+    });
     selectChange(prompt);
   };
 
