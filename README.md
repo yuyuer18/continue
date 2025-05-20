@@ -8,17 +8,40 @@
 
 <div align="left">
 
-\*\*[Kodemate AI] 是公司一款强大创新的AI辅助编程工具，它为开发人员提供了一个便捷、高效且功能丰富的平台，助力开发者在软件开发过程中发挥更大的创造力。借助精心打造的开源 VS Code 和 JetBrains 扩展程序，开发者无需离开熟悉的集成开发环境（IDE），就能无缝接入 [Kodemate AI] 的强大功能。
+**[Continue](https://docs.continue.dev) enables developers to create, share, and use custom AI code assistants with our
+open-source [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
+and [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension) extensions
+and [hub of models, rules, prompts, docs, and other building blocks](https://hub.continue.dev)**
 
 </div>
 
-<div align="left">
- 
+<div align="center">
+
+<a target="_blank" href="https://opensource.org/licenses/Apache-2.0" style="background:none">
+    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" style="height: 22px;" />
+</a>
+<a target="_blank" href="https://docs.continue.dev" style="background:none">
+    <img src="https://img.shields.io/badge/continue_docs-%23BE1B55" style="height: 22px;" />
+</a>
+<a target="_blank" href="https://changelog.continue.dev" style="background:none">
+    <img src="https://img.shields.io/badge/changelog-%96EFF3" style="height: 22px;" />
+</a>
+<a target="_blank" href="https://discord.gg/vapESyrFmJ" style="background:none">
+    <img src="https://img.shields.io/badge/discord-join-continue.svg?labelColor=191937&color=6F6FF7&logo=discord" style="height: 22px;" />
+</a>
+
 <p></p>
 
-## 对话
+## Agent
 
-[对话]功能 是 Kodemate AI 基于 VS Code 和 JetBrains 等 IDE 深度定制的智能交互模块，通过快捷键唤起聊天窗口、代码右键菜单或自然语言注释指令，支持开发者在不切换应用的前提下，直接与 ** 大型语言模型（LLM）** 对话，实时获取代码解释、调试方案、功能生成等全流程开发支持。
+[Agent](https://continue.dev/docs/agent/how-to-use-it) enables you to make more substantial changes to your codebase
+
+![agent](docs/static/img/agent.gif)
+
+## Chat
+
+[Chat](https://continue.dev/docs/chat/how-to-use-it) makes it easy to ask for help from an LLM without needing to leave
+the IDE
 
 ![chat](docs/static/img/chat.gif)
 
@@ -30,15 +53,11 @@
 
 ## 编辑
 
-[编辑] 是一种无需离开当前文件即可便捷修改代码的方式。
+[Edit](https://continue.dev/docs/edit/how-to-use-it) is a convenient way to modify code without leaving your current
+file
 
 ![edit](docs/static/img/edit.gif)
 
-## A快捷操作ctions
-
-[快捷操作] 是针对常见开发场景的一键式快捷方式，使您能够对代码库进行更实质性的更改
-
-![agent](docs/static/img/agent.gif)
 
 </div>
 
@@ -48,7 +67,8 @@ Learn about how to install and use Continue in the docs [here](https://continue.
 
 ## Contributing
 
-Read the [contributing guide](https://github.com/continuedev/continue/blob/main/CONTRIBUTING.md), and join [#contribute on Discord](https://discord.gg/vapESyrFmJ).
+Read the [contributing guide](https://github.com/continuedev/continue/blob/main/CONTRIBUTING.md), and
+join [#contribute on Discord](https://discord.gg/vapESyrFmJ).
 
 ## License
 

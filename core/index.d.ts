@@ -842,6 +842,7 @@ export interface SlashCommand {
   description: string;
   prompt?: string;
   params?: { [key: string]: any };
+  promptFile?: string
   run: (sdk: ContinueSDK) => AsyncGenerator<string | undefined>;
 }
 
@@ -1193,6 +1194,7 @@ export interface ContinueUIConfig {
   showChatScrollbar?: boolean;
   codeWrap?: boolean;
   showSessionTabs?: boolean;
+  autoAcceptEditToolDiffs?: boolean;
 }
 
 export interface ContextMenuConfig {
@@ -1230,10 +1232,25 @@ export interface ApplyState {
   toolCallId?: string;
 }
 
+export interface StreamDiffLinesPayload {
+  prefix: string;
+  highlighted: string;
+  suffix: string;
+  input: string;
+  language: string | undefined;
+  modelTitle: string | undefined;
+  includeRulesInSystemMessage: boolean;
+}
+
 export interface HighlightedCodePayload {
   rangeInFileWithContents: RangeInFileWithContents;
   prompt?: string;
   shouldRun?: boolean;
+}
+
+export interface AcceptOrRejectDiffPayload {
+  filepath: string;
+  streamId?: string;
 }
 
 export interface RangeInFileWithContents {

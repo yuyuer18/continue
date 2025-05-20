@@ -1,5 +1,6 @@
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
+import { isHubSession } from "core/control-plane/AuthTypes";
 import { SecondaryButton } from "../../components";
 import {
   Popover,
@@ -20,6 +21,11 @@ export function AccountButton() {
     return (
       <SecondaryButton>Kodemate AI</SecondaryButton>
     );
+  }
+
+  // No login button for on-prem deployments
+  if (!isHubSession(session)) {
+    return null;
   }
 
   return (

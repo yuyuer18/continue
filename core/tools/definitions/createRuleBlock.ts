@@ -13,7 +13,7 @@ export const createRuleBlock: Tool = {
   function: {
     name: BuiltInToolNames.CreateRuleBlock,
     description:
-      "为所有未来的对话创建一个持久规则。用于确立未来代码标准或偏好。.",
+      "创建适用于所有未来对话的规则。可以制定统一应用的代码标准或偏好设置。若要修改现有规则，请改用编辑工具.",
     parameters: {
       type: "object",
       required: ["name", "rule"],
