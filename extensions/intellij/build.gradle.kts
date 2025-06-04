@@ -86,10 +86,10 @@ kotlin { jvmToolchain(17) }
 // https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName = properties("pluginName")
-  //  version = properties("platformVersion")
+    version = properties("platformVersion")
     type = properties("platformType")
 //    localPath = "D:\\software\\JetBrains\\ideaIC-2022.3.3"
-    localPath = "/var/jenkins_app/ideaIC"
+//    localPath = "/var/jenkins_app/ideaIC"
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins =
         properties("platformPlugins").map {
