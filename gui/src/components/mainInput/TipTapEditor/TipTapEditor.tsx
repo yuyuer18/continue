@@ -43,14 +43,13 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   const mainEditorContext = useMainEditor();
 
   const ideMessenger = useContext(IdeMessengerContext);
-
   const isOSREnabled = useIsOSREnabled();
 
   const defaultModel = useAppSelector(selectSelectedChatModel);
   const isStreaming = useAppSelector((state) => state.session.isStreaming);
   const historyLength = useAppSelector((store) => store.session.history.length);
+  const isInEdit = useAppSelector((store) => store.session.isInEdit);
 
-  const mode = useAppSelector((store) => store.session.mode);
   const { editor, onEnterRef } = createEditorConfig({
     props,
     ideMessenger,
@@ -88,10 +87,10 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
   }, [editor, props.isMainInput]);
 
   useEffect(() => {
-    if (mode === "edit") {
+    if (isInEdit) {
       setShouldHideToolbar(false);
     }
-  }, [mode]);
+  }, [isInEdit]);
 
   const editorFocusedRef = useUpdatingRef(editor?.isFocused, [editor]);
 
@@ -151,7 +150,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
 
   const handleBlur = useCallback(
     (e: React.FocusEvent) => {
-      if (mode === "edit") {
+      if (isInEdit) {
         return;
       }
       // Check if the new focus target is within our InputBoxDiv
@@ -166,7 +165,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
         setShouldHideToolbar(true);
       }, 100);
     },
-    [mode, blurTimeout],
+    [isInEdit, blurTimeout],
   );
 
   const handleFocus = useCallback(() => {
@@ -246,7 +245,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
         }
         setShowDragOverMsg(false);
         let file = event.dataTransfer.files[0];
-        handleImageFile(ideMessenger, file).then((result) => {
+        void handleImageFile(ideMessenger, file).then((result) => {
           if (!editor) {
             return;
           }
@@ -278,7 +277,7 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
           onAddContextItem={() => insertCharacterWithWhitespace("@")}
           onEnter={onEnterRef.current}
           onImageFileSelected={(file) => {
-            handleImageFile(ideMessenger, file).then((result) => {
+            void handleImageFile(ideMessenger, file).then((result) => {
               if (!editor) {
                 return;
               }

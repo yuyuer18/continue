@@ -15,7 +15,6 @@ import {
 } from "../pages/AddNewModel/configs/providers";
 import { useAppDispatch } from "../redux/hooks";
 import { updateSelectedModelByRole } from "../redux/thunks";
-import { FREE_TRIAL_LIMIT_REQUESTS, hasPassedFTL } from "../util/freeTrial";
 
 interface QuickModelSetupProps {
   onDone: () => void;
@@ -54,11 +53,10 @@ function AddModelForm({
     providers["vllm"]?.title || "",
     providers["deepseek"]?.title || "",
     providers["moonshot"]?.title || "",
-    ,
   ];
 
   const allProviders = Object.entries(providers)
-    .filter(([key]) => !["freetrial", "openai-aiohttp"].includes(key))
+    .filter(([key]) => !["openai-aiohttp"].includes(key))
     .map(([, provider]) => provider)
     .filter((provider) => !!provider)
     .map((provider) => provider!); // for type checking
@@ -76,10 +74,7 @@ function AddModelForm({
     : selectedProvider.apiKeyUrl;
 
   function isDisabled() {
-    if (
-      selectedProvider.downloadUrl ||
-      selectedProvider.provider === "free-trial"
-    ) {
+    if (selectedProvider.downloadUrl) {
       return false;
     }
 
@@ -140,7 +135,8 @@ function AddModelForm({
       <form onSubmit={formMethods.handleSubmit(onSubmit)}>
         <div className="mx-auto max-w-md p-6">
           <h1 className="mb-0 text-center text-2xl">新增对话模型</h1>
-          {!hideFreeTrialLimitMessage && hasPassedFTL() && (
+          {/* TODO sync free trial limit with hub */}
+          {/* {!hideFreeTrialLimitMessage && hasPassedFTL() && (
             <p className="text-sm text-gray-400">
               You've reached the free trial limit of {FREE_TRIAL_LIMIT_REQUESTS}{" "}
               free inputs. To keep using Continue, you can either use your own
@@ -153,7 +149,7 @@ function AddModelForm({
               </a>
               .
             </p>
-          )}
+          )} */}
 
           <div className="my-8 flex flex-col gap-6">
             <div>

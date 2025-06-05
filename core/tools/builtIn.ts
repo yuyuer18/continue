@@ -10,6 +10,7 @@ export enum BuiltInToolNames {
   ViewDiff = "查看差异",
   LSTool = "ls工具",
   CreateRuleBlock = "创建规则块",
+  RequestRule = "内置请求规则",
 
   // excluded from allTools for now
   ViewRepoMap = "查看仓库地图",
@@ -18,4 +19,4 @@ export enum BuiltInToolNames {
 
 export const BUILT_IN_GROUP_NAME = "内置";
 
-export const CLIENT_TOOLS = [BuiltInToolNames.EditExistingFile];
+export const CLIENT_TOOLS_IMPLS = [BuiltInToolNames.EditExistingFile];

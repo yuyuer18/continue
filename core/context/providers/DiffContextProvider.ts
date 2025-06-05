@@ -17,16 +17,15 @@ class DiffContextProvider extends BaseContextProvider {
     query: string,
     extras: ContextProviderExtras,
   ): Promise<ContextItem[]> {
-    const diff = await extras.ide.getDiff(
-      this.options?.includeUnstaged ?? true,
-    );
+    const includeUnstaged = this.options?.includeUnstaged ?? true;
+    const diffs = await extras.ide.getDiff(includeUnstaged); // TODO use diff cache (currently cache always includes unstaged)
     return [
       {
         description: "当前的文件的 Git 差异",
         content:
-          diff.length === 0
+          diffs.length === 0
             ? "Git shows no current changes."
-            : `\`\`\`git diff\n${diff.join("\n")}\n\`\`\``,
+            : `\`\`\`git diff\n${diffs.join("\n")}\n\`\`\``,
         name: "Git Diff",
       },
     ];

@@ -137,8 +137,7 @@ export function PromptsSection({ selectChange }: promptProps) {
           if ("uses" in yamlPrompt) {
             prompt.slug = yamlPrompt.uses;
           } else {
-            prompt.slug =
-              `${selectedProfile?.fullSlug.ownerSlug}/${selectedProfile?.fullSlug.packageSlug}`;
+            prompt.slug = `${selectedProfile?.fullSlug.ownerSlug}/${selectedProfile?.fullSlug.packageSlug}`;
           }
         }
         index = index + 1;

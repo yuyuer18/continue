@@ -1,6 +1,27 @@
 import { Tool } from "../..";
 import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
+import os from "os";
+
+/**
+ * Get the preferred shell for the current platform
+ * @returns The preferred shell command or path
+ */
+export function getPreferredShell(): string {
+  const platform = os.platform();
+
+  if (platform === "win32") {
+    return process.env.COMSPEC || "cmd.exe";
+  } else if (platform === "darwin") {
+    return process.env.SHELL || "/bin/zsh";
+  } else {
+    // Linux and other Unix-like systems
+    return process.env.SHELL || "/bin/bash";
+  }
+}
+
+export const PLATFORM_INFO = `Choose terminal commands and scripts optimized for ${os.platform} and ${os.arch} and shell ${getPreferredShell()}.`;
+
 export const runTerminalCommandTool: Tool = {
   type: "function",
   displayTitle: "Run Terminal Command",
@@ -11,12 +32,12 @@ export const runTerminalCommandTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.RunTerminalCommand,
-    description:
-      "在当前终端运行命令.\
+    description: `在当前终端运行命令.\
       终端状态是无状态的，不会记住上一个命令.\
       当在后台运行命令时，始终建议使用 shell 命令来停止它；绝不要建议使用 Ctrl+C。\
       当建议后续的 shell 命令时，始终将它们格式化为 shell 命令块。\
-      不要执行需要特殊 / 管理员权限的操作。",
+      不要执行需要特殊 / 管理员权限的操作。\
+      ${PLATFORM_INFO}`,
     parameters: {
       type: "object",
       required: ["command"],
@@ -24,12 +45,12 @@ export const runTerminalCommandTool: Tool = {
         command: {
           type: "string",
           description:
-            "运行的命令。这将直接传入 IDE 终端中.",
+            "The command to run. This will be passed directly into the IDE shell.",
         },
         waitForCompletion: {
           type: "boolean",
           description:
-            "是否在返回前等待命令完成。默认值为 true。设置为 false 以在后台运行命令。设置为 true 以在前台运行命令并等待收集输出。",
+            "Whether to wait for the command to complete before returning. Default is true. Set to false to run the command in the background. Set to true to run the command in the foreground and wait to collect the output.",
         },
       },
     },

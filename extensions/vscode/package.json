@@ -2,7 +2,7 @@
   "name": "kodemate-ai",
   "icon": "media/icon.png",
   "author": "Amarsoft.coms",
-  "version": "1.1.36",
+  "version": "1.1.44",
   "repository": {
     "type": "git",
     "url": "https://github.com/yuyuer18/continue"
@@ -41,15 +41,14 @@
   ],
   "keywords": [
     "chatgpt",
+    "cline",
+    "roo",
     "github",
     "copilot",
     "claude",
-    "sonnet",
     "mistral",
     "codestral",
-    "codegpt",
-    "ai",
-    "llama"
+    "ai"
   ],
   "activationEvents": [
     "onUri",
@@ -105,7 +104,7 @@
         "continue.enableQuickActions": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable the experimental Quick Actions feature. Read our walkthrough to learn about configuration and how to share feedback: [continue.dev › Walkthrough: Quick Actions (experimental)](https://docs.continue.dev/features/quick-actions)"
+          "markdownDescription": "Enable the experimental Quick Actions feature. Read our walkthrough to learn about configuration and how to share feedback: [continue.dev › Walkthrough: Quick Actions (experimental)](https://docs.continue.dev/customize/deep-dives/vscode-actions#quick-actions)"
         },
         "continue.enableTabAutocomplete": {
           "type": "boolean",
@@ -338,6 +337,12 @@
         "category": "Continue",
         "title": "焦点AI对话框",
         "group": "Continue"
+      },
+      {
+        "command": "continue.enterEnterpriseLicenseKey",
+        "category": "Continue",
+        "title": "Enter Enterprise License Key",
+        "group": "Continue"
       }
     ],
     "keybindings": [
@@ -457,6 +462,9 @@
         },
         {
           "command": "continue.newSession"
+        },
+        {
+          "command": "continue.enterEnterpriseLicenseKey"
         }
       ],
       "editor/context": [
@@ -659,7 +667,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.6.4",
     "@nestjs/common": "^11.0.16",
-    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "@openapitools/openapi-generator-cli": "^2.20.0",
     "@types/chai": "^5.0.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
@@ -689,7 +697,7 @@
   },
   "dependencies": {
     "@continuedev/config-types": "^1.0.14",
-    "@continuedev/fetch": "^1.0.3",
+    "@continuedev/fetch": "^1.0.10",
     "@electron/rebuild": "^3.2.10",
     "@reduxjs/toolkit": "^1.9.3",
     "@types/node-fetch": "^2.6.11",

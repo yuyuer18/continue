@@ -10,6 +10,7 @@ import ErrorPage from "./pages/error";
 import Chat from "./pages/gui";
 import History from "./pages/history";
 import Stats from "./pages/stats";
+import ThemePage from "./styles/ThemePage";
 import { ROUTES } from "./util/navigation";
 
 const router = createMemoryRouter([
@@ -41,6 +42,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.CONFIG,
         element: <ConfigPage />,
+      },
+      {
+        path: ROUTES.THEME,
+        element: <ThemePage />,
       },
     ],
   },

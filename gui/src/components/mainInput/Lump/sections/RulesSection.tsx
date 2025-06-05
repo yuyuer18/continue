@@ -6,10 +6,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { RuleWithSource } from "core";
 import {
-  DEFAULT_AGENT_SYSTEM_MESSAGE,
-  DEFAULT_AGENT_SYSTEM_MESSAGE_URL,
   DEFAULT_CHAT_SYSTEM_MESSAGE,
   DEFAULT_CHAT_SYSTEM_MESSAGE_URL,
+  DEFAULT_AGENT_SYSTEM_MESSAGE,
+  DEFAULT_AGENT_SYSTEM_MESSAGE_URL,
 } from "core/llm/constructMessages";
 import { useContext, useMemo } from "react";
 import { defaultBorderRadius, vscCommandCenterActiveBorder } from "../../..";
