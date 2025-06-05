@@ -106,7 +106,9 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
 
   const historyKey = isInEdit ? "edit" : "chat";
   const placeholder = isInEdit ? "描述变化" : undefined;
-
+  const selectChange = (e: any) => {
+    editorRef.current?.insertPrompt(e);
+  };
   const toolbarOptions: ToolbarOptions = isInEdit
     ? {
         hideAddContext: false,
