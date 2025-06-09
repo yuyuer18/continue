@@ -1,8 +1,8 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.continuedev.continueintellijextension</id>
-    <name>Continue</name>
-    <vendor url="https://www.continue.dev/">continue-dev</vendor>
+    <name>KodemateAi</name>
+    <vendor url="https://pmc.amarsoft.com">Amarsoft</vendor>
     <change-notes>
         <![CDATA[上海安硕信息技术股份有限公司，KodeMate AI+ AI编程辅助插件 on <a href="https://www.amarsoft.com">Amarsoft.com</a>]]></change-notes>
 
@@ -19,7 +19,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <editorFactoryListener
                 implementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteEditorListener"/>
-        <toolWindow id="KodeMate AI+" anchor="right" icon="/icons/a3.svg"
+        <toolWindow id="KodeMate AI+" anchor="right" icon="/icons/continue.svg"
                     factoryClass="com.github.continuedev.continueintellijextension.toolWindow.ContinuePluginToolWindowFactory"/>
         <projectService id="ContinuePluginService"
                         serviceImplementation="com.github.continuedev.continueintellijextension.services.ContinuePluginService"/>
