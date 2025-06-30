@@ -1,4 +1,5 @@
 import { Tool } from "../..";
+import { EDIT_CODE_INSTRUCTIONS } from "../../llm/constructMessages";
 import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export interface EditToolArgs {
@@ -14,10 +15,10 @@ export const editFileTool: Tool = {
   hasAlready: "edited {{{ filepath }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
+  isInstant: false,
   function: {
     name: BuiltInToolNames.EditExistingFile,
-    description:
-      "使用此工具编辑现有文件。如不知道文件的内容，请先阅读它.",
+    description: `使用此工具编辑现有文件。如果你不知道文件的内容，请先读取它.\n${EDIT_CODE_INSTRUCTIONS}`,
     parameters: {
       type: "object",
       required: ["filepath", "changes"],

@@ -13,10 +13,10 @@ export const createRuleBlock: Tool = {
   function: {
     name: BuiltInToolNames.CreateRuleBlock,
     description:
-      "创建适用于所有未来对话的规则。可以制定统一应用的代码标准或偏好设置。若要修改现有规则，请改用编辑工具.",
+      '创建一个可在未来对话中引用的 “规则”。当你想要确立应始终如一应用的代码标准 / 偏好，或者想要避免再次犯错时，都应使用此功能。若要修改现有规则，请改用编辑工具.',
     parameters: {
       type: "object",
-      required: ["name", "rule", "alwaysApply", "description"],
+      required: ["name", "rule", "description"],
       properties: {
         name: {
           type: "string",
@@ -37,10 +37,10 @@ export const createRuleBlock: Tool = {
           description:
             "此规则适用的可选文件模式 (如. ['**/*.{ts,tsx}'] 或 ['src/**/*.ts', 'tests/**/*.ts'])",
         },
-        alwaysApply: {
-          type: "boolean",
+        regex: {
+          type: "string",
           description:
-            "Whether this rule should always be applied regardless of file pattern matching",
+            "Optional regex patterns to match against file content. Rule applies only to files whose content matches the pattern (e.g. 'useEffect' for React hooks or '\\bclass\\b' for class definitions)",
         },
       },
     },

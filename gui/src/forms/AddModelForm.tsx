@@ -1,8 +1,7 @@
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { useContext, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { Button, Input, InputSubtext, StyledActionButton } from "../components";
-import AddModelButtonSubtext from "../components/AddModelButtonSubtext";
+import { Button, Input, StyledActionButton } from "../components";
 import Alert from "../components/gui/Alert";
 import ModelSelectionListbox from "../components/modelSelection/ModelSelectionListbox";
 import { useAuth } from "../context/Auth";
@@ -14,9 +13,9 @@ import {
   providers,
 } from "../pages/AddNewModel/configs/providers";
 import { useAppDispatch } from "../redux/hooks";
-import { updateSelectedModelByRole } from "../redux/thunks";
+import { updateSelectedModelByRole } from "../redux/thunks/updateSelectedModelByRole";
 
-interface QuickModelSetupProps {
+interface AddModelFormProps {
   onDone: () => void;
   hideFreeTrialLimitMessage?: boolean;
 }
@@ -26,20 +25,18 @@ const MODEL_PROVIDERS_URL =
 const CODESTRAL_URL = "https://console.mistral.ai/codestral";
 const CONTINUE_SETUP_URL = "https://docs.continue.dev/setup/overview";
 
-function AddModelForm({
+export function AddModelForm({
   onDone,
   hideFreeTrialLimitMessage,
-}: QuickModelSetupProps) {
+}: AddModelFormProps) {
   const [selectedProvider, setSelectedProvider] = useState<ProviderInfo>(
     providers["openai"]!,
   );
   const dispatch = useAppDispatch();
   const { selectedProfile } = useAuth();
-
   const [selectedModel, setSelectedModel] = useState(
     selectedProvider.packages[0],
   );
-
   const formMethods = useForm();
   const ideMessenger = useContext(IdeMessengerContext);
 
@@ -95,6 +92,7 @@ function AddModelForm({
   function onSubmit() {
     const apiKey = formMethods.watch("apiKey");
     const hasValidApiKey = apiKey !== undefined && apiKey !== "";
+
     const reqInputFields: Record<string, any> = {};
     for (let input of selectedProvider.collectInputFor ?? []) {
       reqInputFields[input.key] = formMethods.watch(input.key);
@@ -110,11 +108,12 @@ function AddModelForm({
     };
 
     ideMessenger.post("config/addModel", { model });
+
     ideMessenger.post("config/openProfile", {
       profileId: "local",
     });
 
-    dispatch(
+    void dispatch(
       updateSelectedModelByRole({
         selectedProfile,
         role: "chat",
@@ -135,6 +134,7 @@ function AddModelForm({
       <form onSubmit={formMethods.handleSubmit(onSubmit)}>
         <div className="mx-auto max-w-md p-6">
           <h1 className="mb-0 text-center text-2xl">新增对话模型</h1>
+
           {/* TODO sync free trial limit with hub */}
           {/* {!hideFreeTrialLimitMessage && hasPassedFTL() && (
             <p className="text-sm text-gray-400">
@@ -167,6 +167,18 @@ function AddModelForm({
                 topOptions={popularProviders}
                 otherOptions={otherProviders}
               />
+              <span className="text-description-muted mt-1 block text-xs">
+                Don't see your provider?{" "}
+                <a
+                  className="cursor-pointer text-inherit underline hover:text-inherit"
+                  onClick={() =>
+                    ideMessenger.post("openUrl", MODEL_PROVIDERS_URL)
+                  }
+                >
+                  Click here
+                </a>{" "}
+                to view the full list
+              </span>
             </div>
 
             {selectedProvider.downloadUrl && (
@@ -174,7 +186,6 @@ function AddModelForm({
                 <label className="mb-1 block text-sm font-medium">
                   安装指南
                 </label>
-
                 <StyledActionButton onClick={onClickDownloadProvider}>
                   <p className="text-sm underline">
                     {selectedProvider.downloadUrl}
@@ -201,7 +212,7 @@ function AddModelForm({
                     setSelectedModel(match);
                   }
                 }}
-                otherOptions={
+                topOptions={
                   Object.entries(providers).find(
                     ([, provider]) =>
                       provider?.title === selectedProvider.title,
@@ -247,12 +258,13 @@ function AddModelForm({
                   <Input
                     id="apiKey"
                     className="w-full"
-                    placeholder={`请输入 ${selectedProvider.title} API key`}
+                    type="password"
+                    placeholder={`Enter your ${selectedProvider.title} API key`}
                     {...formMethods.register("apiKey")}
                   />
-                  <InputSubtext className="mb-0">
+                  <span className="text-description-muted mt-1 block text-xs">
                     <a
-                      className="cursor-pointer text-inherit underline hover:text-inherit"
+                      className="cursor-pointer text-inherit underline hover:text-inherit hover:brightness-125"
                       onClick={() => {
                         if (selectedProviderApiKeyUrl) {
                           ideMessenger.post(
@@ -264,8 +276,8 @@ function AddModelForm({
                     >
                       点击这里
                     </a>{" "}
-                    创建一个 {selectedProvider.title} API 密钥
-                  </InputSubtext>
+                    to create a {selectedProvider.title} API key
+                  </span>
                 </>
               </div>
             )}
@@ -281,7 +293,7 @@ function AddModelForm({
                     field.key !== "apiKey",
                 )
                 .map((field) => (
-                  <div>
+                  <div key={field.key}>
                     <>
                       <label className="mb-1 block text-sm font-medium">
                         {field.label}
@@ -302,7 +314,20 @@ function AddModelForm({
             <Button type="submit" className="w-full" disabled={isDisabled()}>
               测试模型
             </Button>
-            <AddModelButtonSubtext />
+
+            <span className="text-description-muted block w-full text-center text-xs">
+              This will update your{" "}
+              <span
+                className="cursor-pointer underline hover:brightness-125"
+                onClick={() =>
+                  ideMessenger.post("config/openProfile", {
+                    profileId: undefined,
+                  })
+                }
+              >
+                config file
+              </span>
+            </span>
           </div>
         </div>
       </form>

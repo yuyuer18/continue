@@ -11,6 +11,7 @@ import { findLast } from "../util/findLast";
 import { normalizeToMessageParts } from "../util/messageContent";
 import { isUserOrToolMsg } from "./messages";
 import { getSystemMessageWithRules } from "./rules/getSystemMessageWithRules";
+import { RulePolicies } from "./rules/types";
 
 export const DEFAULT_CHAT_SYSTEM_MESSAGE_URL =
   "https://github.com/continuedev/continue/blob/main/core/llm/constructMessages.ts";
@@ -18,10 +19,14 @@ export const DEFAULT_CHAT_SYSTEM_MESSAGE_URL =
 export const DEFAULT_AGENT_SYSTEM_MESSAGE_URL =
   "https://github.com/continuedev/continue/blob/main/core/llm/constructMessages.ts";
 
-const EDIT_MESSAGE = `\
-在编写代码块时，始终要在信息字符串中包含语言和文件名。例如，如果你正在编辑 “src/main.py”，你的代码块应该以 '\`\`\`python src/main.py'
+export const CODEBLOCK_FORMATTING_INSTRUCTIONS = `\
+  在编写代码块时，始终要在信息字符串中包含语言和文件名。
+  例如，如果你正在编辑 “src/main.py”，你的代码块应该以 '\`\`\`python src/main.py'
+`;
 
-在处理代码修改请求时，提供一个简洁的代码片段，该片段只强调必要的更改，并对未修改的部分使用缩写的占位符。例如:
+export const EDIT_CODE_INSTRUCTIONS = `\
+  在处理代码修改请求时，提供一个简洁的代码片段，
+  只强调必要的更改，并对未修改的部分使用缩写占位符。例如:
 
   \`\`\`language /path/to/file
   // ... 现有代码 ...
@@ -65,16 +70,17 @@ export const DEFAULT_CHAT_SYSTEM_MESSAGE = `\
 如果需要，简要向用户解释他们可以使用模式选择器下拉菜单切换到代理模式，无需提供其他详细信息。
 
 
-${EDIT_MESSAGE}
-</重要规则>`;
+${CODEBLOCK_FORMATTING_INSTRUCTIONS}
+${EDIT_CODE_INSTRUCTIONS}
+</important_rules>`;
 
 export const DEFAULT_AGENT_SYSTEM_MESSAGE = `\
 <重要规则>
  你处于Agent模式
 
 
-${EDIT_MESSAGE}
-</重要规则>`;
+${CODEBLOCK_FORMATTING_INSTRUCTIONS}
+</important_rules>`;
 
 /**
  * Helper function to get the context items for a user message
@@ -106,6 +112,7 @@ export function constructMessages(
   history: ChatHistoryItem[],
   baseChatOrAgentSystemMessage: string | undefined,
   rules: RuleWithSource[],
+  rulePolicies?: RulePolicies,
 ): ChatMessage[] {
   const filteredHistory = history.filter(
     (item) => item.message.role !== "system",
@@ -162,6 +169,7 @@ export function constructMessages(
     rules,
     userMessage: lastUserMsg,
     contextItems: lastUserContextItems,
+    rulePolicies,
   });
 
   if (systemMessage.trim()) {

@@ -6,7 +6,6 @@ import { Editor, JSONContent } from "@tiptap/react";
 import { InputModifiers } from "core";
 import { streamResponse } from "core/llm/stream";
 import { renderChatMessage } from "core/util/messageContent";
-import { usePostHog } from "posthog-js/react";
 import {
   useCallback,
   useContext,
@@ -43,12 +42,12 @@ import {
   setDialogMessage,
   setShowDialog,
 } from "../../redux/slices/uiSlice";
-import { streamResponseThunk } from "../../redux/thunks";
-import { cancelStream } from "../../redux/thunks/cancelStream";
 import { streamEditThunk } from "../../redux/thunks/edit";
 import { loadLastSession } from "../../redux/thunks/session";
+import { streamResponseThunk } from "../../redux/thunks/streamResponse";
 import { isJetBrains, isMetaEquivalentKeyPressed } from "../../util";
 
+import { cancelStream } from "../../redux/thunks/cancelStream";
 import { getLocalStorage, setLocalStorage } from "../../util/localStorage";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
@@ -91,7 +90,6 @@ function fallbackRender({ error, resetErrorBoundary }: any) {
 }
 
 export function Chat() {
-  const posthog = usePostHog();
   const dispatch = useAppDispatch();
   const ideMessenger = useContext(IdeMessengerContext);
   const onboardingCard = useOnboardingCard();
@@ -127,14 +125,14 @@ export function Chat() {
 
   useEffect(() => {
     // Cmd + Backspace to delete current step
-    const listener = (e: any) => {
+    const listener = (e: KeyboardEvent) => {
       if (
         e.key === "Backspace" &&
         (jetbrains ? e.altKey : isMetaEquivalentKeyPressed(e)) &&
         !e.shiftKey
       ) {
-        dispatch(cancelStream());
-        ideMessenger.post("cancelApply", undefined); // just always cancel, if not in applying won't matter
+        void dispatch(cancelStream());
+        if (isInEdit) ideMessenger.post("rejectDiff", {});
       }
     };
     window.addEventListener("keydown", listener);
@@ -142,7 +140,7 @@ export function Chat() {
     return () => {
       window.removeEventListener("keydown", listener);
     };
-  }, [isStreaming, jetbrains]);
+  }, [isStreaming, jetbrains, isInEdit]);
 
   const { widget, highlights } = useFindWidget(
     stepsDivRef,
@@ -200,10 +198,6 @@ export function Chat() {
       //       "error",
       //       "You've reached the free trial limit. Please configure a model to continue.",
       //     );
-
-      //     // Card in chat will only show if no history
-      //     // Also, note that platform card ignore the "Best", always opens to main tab
-      //     onboardingCard.open("Best");
 
       //     // If history, show the dialog, which will automatically close if there is not history
       //     if (history.length) {
@@ -325,7 +319,7 @@ export function Chat() {
                     inputId={item.message.id}
                   />
                 </>
-              ) : item.message.role === "tool" ? null : item.message.role === // /> //   toolCallId={item.message.toolCallId} //   contextItems={item.contextItems} // <ToolOutput
+              ) : item.message.role === "tool" ? null : item.message.role ===
                   "assistant" &&
                 item.message.toolCalls &&
                 item.toolCallState ? (

@@ -25,7 +25,6 @@ import {
   ILLMLogger,
   RuleWithSource,
 } from "../..";
-import { slashFromCustomCommand } from "../../commands";
 import { MCPManagerSingleton } from "../../context/mcp/MCPManagerSingleton";
 import CodebaseContextProvider from "../../context/providers/CodebaseContextProvider";
 import DocsContextProvider from "../../context/providers/DocsContextProvider";
@@ -33,13 +32,14 @@ import FileContextProvider from "../../context/providers/FileContextProvider";
 import { contextProviderClassFromName } from "../../context/providers/index";
 import { ControlPlaneClient } from "../../control-plane/client";
 import TransformersJsEmbeddingsProvider from "../../llm/llms/TransformersJsEmbeddingsProvider";
-import { slashCommandFromPromptFileV1 } from "../../promptFiles/v1/slashCommandFromPromptFile";
-import { getAllPromptFiles } from "../../promptFiles/v2/getPromptFiles";
+import { getAllPromptFiles } from "../../promptFiles/getPromptFiles";
 import { GlobalContext } from "../../util/GlobalContext";
 import { modifyAnyConfigWithSharedConfig } from "../sharedConfig";
 
+import { convertPromptBlockToSlashCommand } from "../../commands/slash/promptBlockSlashCommand";
+import { slashCommandFromPromptFile } from "../../commands/slash/promptFileSlashCommand";
 import { getControlPlaneEnvSync } from "../../control-plane/env";
-import { baseToolDefinitions } from "../../tools";
+import { getToolsForIde } from "../../tools";
 import { getCleanUriPath } from "../../util/uri";
 import { getAllDotContinueDefinitionFiles } from "../loadLocalAssistants";
 import { LocalPlatformClient } from "./LocalPlatformClient";
@@ -97,7 +97,7 @@ async function loadConfigYaml(options: {
   for (const blockType of BLOCK_TYPES) {
     const localBlocks = await getAllDotContinueDefinitionFiles(
       ide,
-      { includeGlobal: true, includeWorkspace: true },
+      { includeGlobal: true, includeWorkspace: true, fileExtType: "yaml" },
       blockType,
     );
     allLocalBlocks.push(
@@ -117,10 +117,15 @@ async function loadConfigYaml(options: {
   //   `Loading config.yaml from ${JSON.stringify(packageIdentifier)} with root path ${rootPath}`,
   // );
 
-  let config =
-    overrideConfigYaml ??
+  const errors: ConfigValidationError[] = [];
+
+  let config: AssistantUnrolled | undefined;
+
+  if (overrideConfigYaml) {
+    config = overrideConfigYaml;
+  } else {
     // This is how we allow use of blocks locally
-    (await unrollAssistant(
+    const unrollResult = await unrollAssistant(
       packageIdentifier,
       new RegistryClient({
         accessToken: await controlPlaneClient.getAccessToken(),
@@ -129,6 +134,7 @@ async function loadConfigYaml(options: {
         rootPath,
       }),
       {
+        renderSecrets: true,
         currentUserSlug: "",
         onPremProxyUrl: null,
         orgScopeId,
@@ -137,19 +143,18 @@ async function loadConfigYaml(options: {
           controlPlaneClient,
           ide,
         ),
-        renderSecrets: true,
         injectBlocks: allLocalBlocks,
       },
-    ));
+    );
+    config = unrollResult.config;
+    if (unrollResult.errors) {
+      errors.push(...unrollResult.errors);
+    }
+  }
 
-  const errors = isAssistantUnrolledNonNullable(config)
-    ? validateConfigYaml(config)
-    : [
-        {
-          fatal: true,
-          message: "Assistant includes blocks that don't exist",
-        },
-      ];
+  if (config && isAssistantUnrolledNonNullable(config)) {
+    errors.push(...validateConfigYaml(config));
+  }
 
   if (errors?.some((error) => error.fatal)) {
     return {
@@ -182,7 +187,7 @@ async function configYamlToContinueConfig(options: {
 
   const continueConfig: ContinueConfig = {
     slashCommands: [],
-    tools: [...baseToolDefinitions],
+    tools: await getToolsForIde(ide),
     mcpServerStatuses: [],
     contextProviders: [],
     modelsByRole: {
@@ -212,7 +217,8 @@ async function configYamlToContinueConfig(options: {
       config: continueConfig,
       errors: [
         {
-          message: "Found missing blocks in config.yaml",
+          message:
+            "Failed to load config due to missing blocks, see which blocks are missing below",
           fatal: true,
         },
       ],
@@ -257,7 +263,7 @@ async function configYamlToContinueConfig(options: {
 
     promptFiles.forEach((file) => {
       try {
-        const slashCommand = slashCommandFromPromptFileV1(
+        const slashCommand = slashCommandFromPromptFile(
           file.path,
           file.content,
         );
@@ -280,7 +286,7 @@ async function configYamlToContinueConfig(options: {
 
   config.prompts?.forEach((prompt) => {
     try {
-      const slashCommand = slashFromCustomCommand(prompt);
+      const slashCommand = convertPromptBlockToSlashCommand(prompt);
       continueConfig.slashCommands?.push(slashCommand);
     } catch (e) {
       localErrors.push({

@@ -51,8 +51,7 @@ export default function AcceptRejectAllButtons({
       >
         <div className="flex flex-row items-center gap-1">
           <XMarkIcon className="text-error h-4 w-4" />
-          <span>Reject</span>
-          <span className="xs:inline-block hidden">全部</span>
+          <span className="hidden sm:inline">拒绝</span>
         </div>
       </button>
       <ToolTip id="reject-shortcut" />
@@ -66,8 +65,7 @@ export default function AcceptRejectAllButtons({
       >
         <div className="flex flex-row items-center gap-1">
           <CheckIcon className="text-success h-4 w-4" />
-          <span>接受</span>
-          <span className="xs:inline-block hidden">All</span>
+          <span className="hidden sm:inline">接受</span>
         </div>
       </button>
       <ToolTip id="accept-shortcut" />

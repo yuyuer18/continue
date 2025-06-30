@@ -12,7 +12,8 @@ export const grepSearchTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.GrepSearch,
-    description: "使用 ripgrep 对存储库执行搜索.",
+    description:
+      "使用 ripgrep 在存储库中执行搜索。输出可能会被截断，因此请使用有针对性的查询。",
     parameters: {
       type: "object",
       required: ["query"],

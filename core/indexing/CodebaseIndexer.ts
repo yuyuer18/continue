@@ -1,7 +1,6 @@
 import * as fs from "fs/promises";
 
 import { ConfigHandler } from "../config/ConfigHandler.js";
-import { IContinueServerClient } from "../continueServer/interface.js";
 import { IDE, IndexingProgressUpdate, IndexTag } from "../index.js";
 import type { FromCoreProtocol, ToCoreProtocol } from "../protocol";
 import type { IMessenger } from "../protocol/messenger";
@@ -44,7 +43,7 @@ export class CodebaseIndexer {
    * - To limit memory usage for indexes that perform computations locally, e.g. FTS
    * - To make as few requests as possible to the embeddings providers
    */
-  filesPerBatch = 500;
+  filesPerBatch = 200;
   private indexingCancellationController: AbortController | undefined;
   private codebaseIndexingState: IndexingProgressUpdate;
   private readonly pauseToken: PauseToken;
@@ -76,16 +75,10 @@ export class CodebaseIndexer {
     this.pauseToken = new PauseToken(initialPaused);
   }
 
-  /**
-   * Set the paused state of the indexer
-   */
   set paused(value: boolean) {
     this.pauseToken.paused = value;
   }
 
-  /**
-   * Get the current paused state of the indexer
-   */
   get paused(): boolean {
     return this.pauseToken.paused;
   }
@@ -236,7 +229,9 @@ export class CodebaseIndexer {
     }
   }
 
-  async *refreshFiles(files: string[]): AsyncGenerator<IndexingProgressUpdate> {
+  private async *refreshFiles(
+    files: string[],
+  ): AsyncGenerator<IndexingProgressUpdate> {
     let progress = 0;
     if (files.length === 0) {
       yield {
@@ -526,7 +521,7 @@ export class CodebaseIndexer {
             repoName,
           )) {
             yield {
-              progress: progress,
+              progress,
               desc,
               status: "indexing",
             };
@@ -549,10 +544,10 @@ export class CodebaseIndexer {
 
   // New methods using messenger directly
 
-  private async updateProgress(update: IndexingProgressUpdate) {
+  private updateProgress(update: IndexingProgressUpdate) {
     this.codebaseIndexingState = update;
     if (this.messenger) {
-      await this.messenger.request("indexProgress", update);
+      void this.messenger.request("indexProgress", update);
     }
   }
 
@@ -582,7 +577,7 @@ export class CodebaseIndexer {
         paths,
         this.indexingCancellationController.signal,
       )) {
-        await this.updateProgress(update);
+        this.updateProgress(update);
 
         if (update.status === "failed") {
           await this.sendIndexingErrorTelemetry(update);
@@ -596,7 +591,7 @@ export class CodebaseIndexer {
     // Directly refresh submenu items
     if (this.messenger) {
       this.messenger.send("refreshSubmenuItems", {
-        providers: "dependsOnIndexing",
+        providers: "all",
       });
     }
     this.indexingCancellationController = undefined;
@@ -613,7 +608,7 @@ export class CodebaseIndexer {
     this.indexingCancellationController = new AbortController();
     try {
       for await (const update of this.refreshFiles(files)) {
-        await this.updateProgress(update);
+        this.updateProgress(update);
 
         if (update.status === "failed") {
           await this.sendIndexingErrorTelemetry(update);
@@ -626,7 +621,9 @@ export class CodebaseIndexer {
 
     // Directly refresh submenu items
     if (this.messenger) {
-      this.messenger.send("refreshSubmenuItems", { providers: "all" });
+      this.messenger.send("refreshSubmenuItems", {
+        providers: "all",
+      });
     }
     this.indexingCancellationController = undefined;
   }
@@ -634,7 +631,7 @@ export class CodebaseIndexer {
   public async handleIndexingError(e: any) {
     if (e instanceof LLMError && this.messenger) {
       // Need to report this specific error to the IDE for special handling
-      await this.messenger.request("reportError", e);
+      void this.messenger.request("reportError", e);
     }
 
     // broadcast indexing error
@@ -644,7 +641,7 @@ export class CodebaseIndexer {
       desc: e.message,
     };
 
-    await this.updateProgress(updateToSend);
+    this.updateProgress(updateToSend);
     void this.sendIndexingErrorTelemetry(updateToSend);
   }
 

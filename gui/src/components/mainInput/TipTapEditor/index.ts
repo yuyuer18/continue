@@ -1,6 +1,3 @@
-export * from "./extensions";
-export * from "./MainEditorProvider";
-export * from "./TipTapEditor";
-export type { TipTapEditorProps } from "./TipTapEditor";
-export * from "./utils";
-
+export { MainEditorProvider, useMainEditor } from "./MainEditorProvider";
+export { TipTapEditor } from "./TipTapEditor";
+export { resolveEditorContent } from "./utils/resolveEditorContent";

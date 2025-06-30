@@ -11,7 +11,7 @@ interface KeyboardShortcutProps {
 function KeyboardShortcut(props: KeyboardShortcutProps) {
   return (
     <div
-      className={`flex flex-col items-start p-2 py-2 sm:flex-row sm:items-center ${props.isEven ? "" : "bg-table-oddRow"}`}
+      className={`flex flex-col items-start p-2 sm:flex-row sm:items-center ${props.isEven ? "" : "bg-table-oddRow"}`}
     >
       <div className="w-full flex-grow pb-1 pr-4 sm:w-auto sm:pb-0">
         <span className="block break-words text-xs">{props.description}:</span>
@@ -74,6 +74,10 @@ const vscodeShortcuts: Omit<KeyboardShortcutProps, "isEven">[] = [
     description: "切换自动补全已启用",
   },
   {
+    shortcut: "cmd alt space",
+    description: "Force an Autocomplete Trigger",
+  },
+  {
     shortcut: "cmd K cmd M",
     description: "切换全屏",
   },
@@ -128,8 +132,8 @@ function KeyboardShortcuts() {
   }, []);
 
   return (
-    <div className="h-full overflow-auto p-5">
-      <h3 className="mb-5 text-xl">Keyboard shortcuts</h3>
+    <div className="h-full overflow-auto">
+      <h3 className="mb-3 text-xl">Keyboard shortcuts</h3>
       <div>
         {shortcuts.map((shortcut, i) => {
           return (

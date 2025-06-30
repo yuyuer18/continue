@@ -8,6 +8,8 @@ import { selectSelectedChatModel } from "../slices/configSlice";
 import {
   abortStream,
   addPromptCompletionPair,
+  setActive,
+  setInactive,
   setToolGenerated,
   streamUpdate,
 } from "../slices/sessionSlice";
@@ -45,6 +47,16 @@ export const streamNormalInput = createAsyncThunk<
       };
     }
 
+    if (state.session.hasReasoningEnabled) {
+      completionOptions = {
+        ...completionOptions,
+        reasoning: true,
+        reasoningBudgetTokens: completionOptions.reasoningBudgetTokens ?? 2048,
+      };
+    }
+
+    dispatch(setActive());
+
     // Send request
     const gen = extra.ideMessenger.llmStreamChat(
       {
@@ -68,7 +80,9 @@ export const streamNormalInput = createAsyncThunk<
       next = await gen.next();
     }
 
-    // Attach prompt log
+    dispatch(setInactive());
+
+    // Attach prompt log and end thinking for reasoning models
     if (next.done && next.value) {
       dispatch(addPromptCompletionPair([next.value]));
 
@@ -82,6 +96,9 @@ export const streamNormalInput = createAsyncThunk<
               modelProvider: selectedChatModel.underlyingProviderName,
               modelTitle: selectedChatModel.title,
               sessionId: state.session.id,
+              ...(state.session.mode === "agent" && {
+                tools: activeTools.map((tool) => tool.function.name),
+              }),
             },
           });
         }

@@ -4,6 +4,7 @@ import {
   PromptTemplates,
 } from "@continuedev/config-yaml";
 import Parser from "web-tree-sitter";
+import { CodebaseIndexer } from "./indexing/CodebaseIndexer";
 import { LLMConfigurationStatuses } from "./llm/constants";
 
 declare global {
@@ -93,6 +94,8 @@ export interface ILLM
     Required<Pick<LLMOptions, RequiredLLMOptions>> {
   get providerName(): string;
   get underlyingProviderName(): string;
+
+  autocompleteOptions?: Partial<TabAutocompleteOptions>;
 
   complete(
     prompt: string,
@@ -563,6 +566,7 @@ export interface LLMOptions {
   uniqueId?: string;
   baseAgentSystemMessage?: string;
   baseChatSystemMessage?: string;
+  autocompleteOptions?: Partial<TabAutocompleteOptions>;
   contextLength?: number;
   maxStopWords?: number;
   completionOptions?: CompletionOptions;
@@ -727,6 +731,8 @@ export interface IDE {
 
   isTelemetryEnabled(): Promise<boolean>;
 
+  isWorkspaceRemote(): Promise<boolean>;
+
   getUniqueId(): Promise<string>;
 
   getTerminalContents(): Promise<string>;
@@ -777,9 +783,9 @@ export interface IDE {
 
   getPinnedFiles(): Promise<string[]>;
 
-  getSearchResults(query: string): Promise<string>;
+  getSearchResults(query: string, maxResults?: number): Promise<string>;
 
-  getFileResults(pattern: string): Promise<string[]>;
+  getFileResults(pattern: string, maxResults?: number): Promise<string[]>;
 
   subprocess(command: string, cwd?: string): Promise<[string, string]>;
 
@@ -829,15 +835,45 @@ export interface ContinueSDK {
   config: ContinueConfig;
   fetch: FetchFunction;
   completionOptions?: LLMFullCompletionOptions;
+  abortController: AbortController;
 }
 
-export interface SlashCommand {
+/* Be careful changing SlashCommand or SlashCommandDescription, config.ts can break */
+export interface SlashCommandDescription {
   name: string;
   description: string;
   prompt?: string;
   params?: { [key: string]: any };
-  promptFile?: string;
+}
+
+export interface SlashCommand extends SlashCommandDescription {
   run: (sdk: ContinueSDK) => AsyncGenerator<string | undefined>;
+}
+
+export interface SlashCommandWithSource extends SlashCommandDescription {
+  run?: (sdk: ContinueSDK) => AsyncGenerator<string | undefined>; // Optional - only needed for legacy
+  source: SlashCommandSource;
+  promptFile?: string;
+  overrideSystemMessage?: string;
+}
+
+export type SlashCommandSource =
+  | "built-in-legacy"
+  | "built-in"
+  | "json-custom-command"
+  | "config-ts-slash-command"
+  | "yaml-prompt-block"
+  | "mcp-prompt"
+  | "prompt-file-v1"
+  | "prompt-file-v2"
+  | "invokable-rule";
+
+export interface SlashCommandDescWithSource extends SlashCommandDescription {
+  isLegacy: boolean; // Maps to if slashcommand.run exists
+  source: SlashCommandSource;
+  promptFile?: string;
+  mcpServerName?: string;
+  mcpArgs?: MCPPromptArgs;
 }
 
 // Config
@@ -940,8 +976,6 @@ export interface ContextProviderWithParams {
   params: { [key: string]: any };
 }
 
-export type SlashCommandDescription = Omit<SlashCommand, "run">;
-
 export interface CustomCommand {
   name: string;
   prompt: string;
@@ -969,6 +1003,7 @@ export interface ToolExtras {
     contextItems: ContextItem[];
   }) => void;
   config: ContinueConfig;
+  codeBaseIndexer?: CodebaseIndexer;
 }
 
 export interface Tool {
@@ -989,6 +1024,7 @@ export interface Tool {
   uri?: string;
   faviconUrl?: string;
   group: string;
+  originalFunctionName?: string;
 }
 
 interface ToolChoice {
@@ -1000,6 +1036,7 @@ interface ToolChoice {
 
 export interface ConfigDependentToolParams {
   rules: RuleWithSource[];
+  enableExperimentalTools: boolean;
 }
 
 export type GetTool = (params: ConfigDependentToolParams) => Tool;
@@ -1090,6 +1127,7 @@ export interface RerankerDescription {
   params?: { [key: string]: any };
 }
 
+// TODO: We should consider renaming this to AutocompleteOptions.
 export interface TabAutocompleteOptions {
   disable: boolean;
   maxPromptTokens: number;
@@ -1105,6 +1143,7 @@ export interface TabAutocompleteOptions {
   useCache: boolean;
   onlyMyCode: boolean;
   useRecentlyEdited: boolean;
+  useRecentlyOpened: boolean;
   disableInFiles?: string[];
   useImports?: boolean;
   showWhateverWeHaveAtXMs?: number;
@@ -1161,14 +1200,16 @@ export type MCPConnectionStatus =
   | "error"
   | "not-connected";
 
+export type MCPPromptArgs = {
+  name: string;
+  description?: string;
+  required?: boolean;
+}[];
+
 export interface MCPPrompt {
   name: string;
   description?: string;
-  arguments?: {
-    name: string;
-    description?: string;
-    required?: boolean;
-  }[];
+  arguments?: MCPPromptArgs;
 }
 
 // Leaving here to ideate on
@@ -1272,12 +1313,20 @@ export interface HighlightedCodePayload {
 }
 
 export interface AcceptOrRejectDiffPayload {
-  filepath: string;
+  filepath?: string;
   streamId?: string;
 }
 
 export interface ShowFilePayload {
   filepath: string;
+}
+
+export interface ApplyToFilePayload {
+  streamId: string;
+  filepath?: string;
+  text: string;
+  toolCallId?: string;
+  isSearchAndReplace?: boolean;
 }
 
 export interface RangeInFileWithContents {
@@ -1325,6 +1374,7 @@ export interface ExperimentalConfig {
   modelRoles?: ExperimentalModelRoles;
   defaultContext?: DefaultContextProvider[];
   promptPath?: string;
+  enableExperimentalTools?: boolean;
 
   /**
    * Quick actions are a way to add custom commands to the Code Lens of
@@ -1433,7 +1483,7 @@ export interface Config {
   /** Request options that will be applied to all models and context providers */
   requestOptions?: RequestOptions;
   /** The list of slash commands that will be available in the sidebar */
-  slashCommands?: SlashCommand[];
+  slashCommands?: (SlashCommand | SlashCommandWithSource)[];
   /** Each entry in this array will originally be a ContextProviderWithParams, the same object from your config.json, but you may add CustomContextProviders.
    * A CustomContextProvider requires you only to define a title and getContextItems function. When you type '@title <query>', Continue will call `getContextItems(query)`.
    */
@@ -1470,7 +1520,7 @@ export interface ContinueConfig {
   // systemMessage?: string;
   completionOptions?: BaseCompletionOptions;
   requestOptions?: RequestOptions;
-  slashCommands: SlashCommand[];
+  slashCommands: SlashCommandWithSource[];
   contextProviders: IContextProvider[];
   disableSessionTitles?: boolean;
   disableIndexing?: boolean;
@@ -1493,7 +1543,7 @@ export interface BrowserSerializedContinueConfig {
   // systemMessage?: string;
   completionOptions?: BaseCompletionOptions;
   requestOptions?: RequestOptions;
-  slashCommands: SlashCommandDescription[];
+  slashCommands: SlashCommandDescWithSource[];
   contextProviders: ContextProviderDescription[];
   disableIndexing?: boolean;
   disableSessionTitles?: boolean;
@@ -1568,8 +1618,14 @@ export interface RuleWithSource {
   slug?: string;
   source: RuleSource;
   globs?: string | string[];
+  regex?: string | string[];
   rule: string;
   description?: string;
   ruleFile?: string;
   alwaysApply?: boolean;
+}
+export interface CompleteOnboardingPayload {
+  mode: OnboardingModes;
+  provider?: string;
+  apiKey?: string;
 }
