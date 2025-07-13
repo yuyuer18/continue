@@ -36,27 +36,27 @@ and [hub of models, rules, prompts, docs, and other building blocks](https://hub
 
 [Agent](https://continue.dev/docs/agent/how-to-use-it) enables you to make more substantial changes to your codebase
 
-![agent](docs/static/img/agent.gif)
+![agent](docs/images/agent.gif)
 
 ## Chat
 
 [Chat](https://continue.dev/docs/chat/how-to-use-it) makes it easy to ask for help from an LLM without needing to leave
 the IDE
 
-![chat](docs/static/img/chat.gif)
+![chat](docs/images/chat.gif)
 
 ## 自动补全
 
 [自动补全] 能在你输入代码时提供内联代码建议。
 
-![自动补全](docs/static/img/autocomplete.gif)
+![autocomplete](docs/images/autocomplete.gif)
 
 ## 编辑
 
 [Edit](https://continue.dev/docs/edit/how-to-use-it) is a convenient way to modify code without leaving your current
 file
 
-![edit](docs/static/img/edit.gif)
+![edit](docs/images/edit.gif)
 
 </div>
 

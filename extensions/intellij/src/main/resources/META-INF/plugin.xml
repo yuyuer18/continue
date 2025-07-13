@@ -19,7 +19,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <editorFactoryListener
                 implementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteEditorListener"/>
-        <toolWindow id="KodeMate AI+" anchor="right" icon="/icons/continue.svg"
+        <toolWindow id="Continue" anchor="right" icon="com.github.continuedev.continueintellijextension.Icons.Continue"
                     factoryClass="com.github.continuedev.continueintellijextension.toolWindow.ContinuePluginToolWindowFactory"/>
         <projectService id="ContinuePluginService"
                         serviceImplementation="com.github.continuedev.continueintellijextension.services.ContinuePluginService"/>
@@ -37,11 +37,6 @@
         <actionPromoter order="last"
                         implementation="com.github.continuedev.continueintellijextension.actions.ContinueActionPromote"/>
         <errorHandler implementation="com.github.continuedev.continueintellijextension.error.ContinueErrorSubmitter"/>
-    </extensions>
-
-    <resource-bundle>messages.MyBundle</resource-bundle>
-
-    <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity
                 implementation="com.github.continuedev.continueintellijextension.activities.ContinuePluginStartupActivity"/>
         <applicationConfigurable
@@ -73,6 +68,13 @@
             <keyboard-shortcut keymap="Mac OS X"
                                first-keystroke="shift meta ENTER"/>
             <override-text place="GoToAction" text="KodeMate AI+: Accept Diff"/>
+        </action>
+
+        <action id="continue.restartProcess"
+                class="com.github.continuedev.continueintellijextension.actions.RestartContinueProcess"
+                text="Restart Process"
+                description="Restart Process">
+            <override-text place="GoToAction" text="Continue: Restart Process"/>
         </action>
 
         <action id="continue.rejectDiff"

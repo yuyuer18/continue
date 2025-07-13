@@ -154,8 +154,8 @@ function ThinkingBlockPeek({
           }}
         >
           {redactedThinking ? (
-            <div className="pl-4 text-xs text-gray-400">
-              出于安全原因，回复内容被编辑。
+            <div className="text-description-muted pl-4 text-xs">
+            出于安全原因，思考内容已被编辑。
             </div>
           ) : (
             <>

@@ -7,10 +7,9 @@ import {
 import { RuleWithSource } from "core";
 import {
   DEFAULT_AGENT_SYSTEM_MESSAGE,
-  DEFAULT_AGENT_SYSTEM_MESSAGE_URL,
   DEFAULT_CHAT_SYSTEM_MESSAGE,
-  DEFAULT_CHAT_SYSTEM_MESSAGE_URL,
-} from "core/llm/constructMessages";
+  DEFAULT_SYSTEM_MESSAGES_URL,
+} from "core/llm/defaultSystemMessages";
 import { useContext, useMemo } from "react";
 import { useAuth } from "../../../../context/Auth";
 import { IdeMessengerContext } from "../../../../context/IdeMessenger";
@@ -52,10 +51,12 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
       ideMessenger.post("openFile", {
         path: rule.ruleFile,
       });
-    } else if (rule.source === "default-chat" && mode === "chat") {
-      ideMessenger.post("openUrl", DEFAULT_CHAT_SYSTEM_MESSAGE_URL);
-    } else if (rule.source === "default-agent" && mode === "agent") {
-      ideMessenger.post("openUrl", DEFAULT_AGENT_SYSTEM_MESSAGE_URL);
+    } else if (
+      rule.source === "default-chat" ||
+      rule.source === "default-plan" ||
+      rule.source === "default-agent"
+    ) {
+      ideMessenger.post("openUrl", DEFAULT_SYSTEM_MESSAGES_URL);
     } else {
       ideMessenger.post("config/openProfile", {
         profileId: undefined,
@@ -80,11 +81,13 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
       } else if (rule.source === "default-agent") {
         return "定义 agent 系统消息";
       } else if (rule.source === "json-systemMessage") {
-        return "JSON 系统消息)";
-      } else if (rule.source === "model-agent-options") {
-        return "定义Agent对话规则";
-      } else if (rule.source === "model-chat-options") {
-        return "定义Chat对话规则";
+        return "JSON systemMessage)";
+      } else if (rule.source === "model-options-agent") {
+        return "Base System Agent Message";
+      } else if (rule.source === "model-options-plan") {
+        return "Base System Plan Message";
+      } else if (rule.source === "model-options-chat") {
+        return "Base System Chat Message";
       } else {
         return "AI助手规则";
       }
@@ -215,11 +218,24 @@ export function RulesSection() {
       }
     }
 
-    if (mode === "agent") {
+    if (mode === "chat") {
+      if (config.selectedModelByRole.chat?.baseChatSystemMessage) {
+        rules.unshift({
+          rule: config.selectedModelByRole.chat?.baseChatSystemMessage,
+          source: "model-options-chat",
+        });
+      } else {
+        rules.unshift({
+          rule: DEFAULT_CHAT_SYSTEM_MESSAGE,
+          source: "default-chat",
+        });
+      }
+    } else if (mode === "agent") {
+      // agent
       if (config.selectedModelByRole.chat?.baseAgentSystemMessage) {
         rules.unshift({
           rule: config.selectedModelByRole.chat?.baseAgentSystemMessage,
-          source: "model-agent-options",
+          source: "model-options-agent",
         });
       } else {
         rules.unshift({
@@ -228,15 +244,16 @@ export function RulesSection() {
         });
       }
     } else {
-      if (config.selectedModelByRole.chat?.baseChatSystemMessage) {
+      // plan
+      if (config.selectedModelByRole.chat?.basePlanSystemMessage) {
         rules.unshift({
-          rule: config.selectedModelByRole.chat?.baseChatSystemMessage,
-          source: "model-chat-options",
+          rule: config.selectedModelByRole.chat?.basePlanSystemMessage,
+          source: "model-options-plan",
         });
       } else {
         rules.unshift({
-          rule: DEFAULT_CHAT_SYSTEM_MESSAGE,
-          source: "default-chat",
+          rule: DEFAULT_AGENT_SYSTEM_MESSAGE,
+          source: "default-agent",
         });
       }
     }

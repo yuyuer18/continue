@@ -13,7 +13,7 @@ export const createRuleBlock: Tool = {
   function: {
     name: BuiltInToolNames.CreateRuleBlock,
     description:
-      '创建一个可在未来对话中引用的 “规则”。当你想要确立应始终如一应用的代码标准 / 偏好，或者想要避免再次犯错时，都应使用此功能。若要修改现有规则，请改用编辑工具.',
+      'Creates a "rule" that can be referenced in future conversations. This should be used whenever you want to establish code standards / preferences that should be applied consistently, or when you want to avoid making a mistake again. To modify existing rules, use the edit tool instead.\n\nRule Types:\n- Always: Include only "rule" (always included in model context)\n- Auto Attached: Include "rule", "globs", and/or "regex" (included when files match patterns)\n- Agent Requested: Include "rule" and "description" (AI decides when to apply based on description)\n- Manual: Include only "rule" (only included when explicitly mentioned using @ruleName)',
     parameters: {
       type: "object",
       required: ["name", "rule", "description"],
@@ -30,7 +30,8 @@ export const createRuleBlock: Tool = {
         },
         description: {
           type: "string",
-          description: "Short description of the rule",
+          description:
+            "Description of when this rule should be applied. Required for Agent Requested rules (AI decides when to apply). Optional for other types.",
         },
         globs: {
           type: "string",
@@ -41,6 +42,11 @@ export const createRuleBlock: Tool = {
           type: "string",
           description:
             "Optional regex patterns to match against file content. Rule applies only to files whose content matches the pattern (e.g. 'useEffect' for React hooks or '\\bclass\\b' for class definitions)",
+        },
+        alwaysApply: {
+          type: "boolean",
+          description:
+            "Whether this rule should always be applied. Set to false for Agent Requested and Manual rules. Omit or set to true for Always and Auto Attached rules.",
         },
       },
     },

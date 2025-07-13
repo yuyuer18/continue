@@ -13,7 +13,7 @@ export const globSearchTool: Tool = {
   function: {
     name: BuiltInToolNames.FileGlobSearch,
     description:
-      "在项目中搜索文件。输出可能会被截断；请使用目标模式",
+      "使用全局模式在项目中递归搜索文件。支持 ** 递归目录搜索。输出可能会被截断；使用目标模式",
     parameters: {
       type: "object",
       required: ["pattern"],

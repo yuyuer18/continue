@@ -110,7 +110,7 @@ function IndexingProgress() {
     <div className="mt-4 flex flex-col">
       <div className="mb-0 flex justify-between text-sm">
         <IndexingProgressTitleText update={update} />
-        {update.status !== "loading" && (
+        {!["loading", "waiting"].includes(update.status) && (
           <IndexingProgressIndicator update={update} />
         )}
       </div>
@@ -119,7 +119,8 @@ function IndexingProgress() {
 
       <IndexingProgressSubtext update={update} onClick={onClick} />
 
-      {update.status === "failed" && (
+      {(update.status === "failed" ||
+        (update.warnings && update.warnings.length > 0)) && (
         <div className="mt-4">
           <IndexingProgressErrorText update={update} />
         </div>
