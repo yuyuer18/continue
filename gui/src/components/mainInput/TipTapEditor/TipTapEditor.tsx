@@ -1,7 +1,7 @@
 import { Editor, EditorContent, JSONContent } from "@tiptap/react";
 import { ContextProviderDescription, InputModifiers } from "core";
 import { modelSupportsImages } from "core/llm/autodetect";
-import { forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
 import useIsOSREnabled from "../../../hooks/useIsOSREnabled";
 import useUpdatingRef from "../../../hooks/useUpdatingRef";
@@ -17,7 +17,7 @@ import { createEditorConfig, getPlaceholderText } from "./utils/editorConfig";
 import { handleImageFile } from "./utils/imageUtils";
 import { useEditorEventHandlers } from "./utils/keyHandlers";
 
- export interface TipTapEditorProps {
+export interface TipTapEditorProps {
   availableContextProviders: ContextProviderDescription[];
   availableSlashCommands: ComboBoxItem[];
   isMainInput: boolean;
@@ -34,12 +34,11 @@ import { useEditorEventHandlers } from "./utils/keyHandlers";
   // TODO: This isn't actually used anywhere in this component, but it appears
   // to be pulled into some of our TipTap extensions.
   inputId: string;
-  insertPrompt: (prompt: string) => void;
 }
 
 export const TIPPY_DIV_ID = "tippy-js-div";
 
-export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
+export function TipTapEditor(props: TipTapEditorProps) {
   const dispatch = useAppDispatch();
   const mainEditorContext = useMainEditor();
 
@@ -174,38 +173,6 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
     setShouldHideToolbar(false);
   }, [cancelBlurTimeout]);
 
-  // TODO pass clear blur timeout to model and mode selectors
-  // Seems like unnecessary for now?
-  
-  useImperativeHandle(ref, () => ({
-    insertPrompt: (prompt: any) => {
-      // editor?.commands.insertContent("/");
-      const  attrs = {
-        "action": undefined,
-        "content": prompt.description,
-        "id": prompt.name,
-        "itemType": "slash-command",
-        "label": prompt.name,
-        "name": prompt.name,
-        "title": prompt.name,
-        "type": "slash-command",
-      };
-          editor?.commands.insertPrompt({
-            name: prompt.name,
-            description: prompt.description,
-            prompt: prompt.content||prompt.prompt,
-          });
-      // let inser= editor?.chain().focus()
-      //       .insertContentAt(0, [
-      //         {
-      //           type: 'slash-command' ,
-      //           attrs: attrs,
-      //         }
-      //       ]);
-      // inser?.run();
-    }
-    }));
- 
   return (
     <InputBoxDiv
       onFocus={handleFocus}
@@ -309,6 +276,4 @@ export const TipTapEditor = forwardRef((props:TipTapEditorProps,ref) =>  {
       <div id={TIPPY_DIV_ID} className="fixed z-50" />
     </InputBoxDiv>
   );
-});
-
- 
+}

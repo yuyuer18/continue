@@ -244,7 +244,7 @@ export function AddModelForm({
                     placeholder={`请输入 ${selectedProvider.title} 服务地址`}
                     {...formMethods.register("apiBase")}
                   />
-                  <InputSubtext className="mb-0"></InputSubtext>
+                  <Input className="mb-0"></Input>
                 </>
               </div>
             )}

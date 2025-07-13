@@ -1,6 +1,6 @@
 import { Editor, JSONContent } from "@tiptap/react";
 import { ContextItemWithId, InputModifiers, RuleWithSource } from "core";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import styled, { keyframes } from "styled-components";
 import { defaultBorderRadius, vscBackground } from "..";
 import { useAppSelector } from "../../redux/hooks";
@@ -9,7 +9,7 @@ import { ContextItemsPeek } from "./belowMainInput/ContextItemsPeek";
 import { RulesPeek } from "./belowMainInput/RulesPeek";
 import { ToolbarOptions } from "./InputToolbar";
 import { Lump } from "./Lump";
-import { TipTapEditor, TipTapEditorProps } from "./TipTapEditor";
+import { TipTapEditor } from "./TipTapEditor";
 
 interface ContinueInputBoxProps {
   isLastUserInput: boolean;
@@ -76,7 +76,6 @@ const GradientBorder = styled.div<{
 `;
 
 function ContinueInputBox(props: ContinueInputBoxProps) {
-  const editorRef = useRef<TipTapEditorProps>(null);
   const isStreaming = useAppSelector((state) => state.session.isStreaming);
   const availableSlashCommands = useAppSelector(
     selectSlashCommandComboBoxInputs,
@@ -105,10 +104,8 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
   }, [availableContextProviders, isInEdit]);
 
   const historyKey = isInEdit ? "edit" : "chat";
-  const placeholder = isInEdit ? "描述变化" : undefined;
-  const selectChange = (e: any) => {
-    editorRef.current?.insertPrompt(e);
-  };
+  const placeholder = isInEdit ? "Edit selected code" : undefined;
+
   const toolbarOptions: ToolbarOptions = isInEdit
     ? {
         hideAddContext: false,
@@ -128,7 +125,7 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
       data-testid="continue-input-box"
     >
       <div className={`relative flex flex-col px-2`}>
-        <Lump selectChange={selectChange} />
+        {props.isMainInput && <Lump />}
         <GradientBorder
           loading={isStreaming && props.isLastUserInput ? 1 : 0}
           borderColor={
@@ -137,7 +134,6 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
           borderRadius={defaultBorderRadius}
         >
           <TipTapEditor
-            ref={editorRef}
             editorState={props.editorState}
             onEnter={props.onEnter}
             placeholder={placeholder}
@@ -147,7 +143,6 @@ function ContinueInputBox(props: ContinueInputBoxProps) {
             historyKey={historyKey}
             toolbarOptions={toolbarOptions}
             inputId={props.inputId}
-            insertPrompt={selectChange}
           />
         </GradientBorder>
       </div>
