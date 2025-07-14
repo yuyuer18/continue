@@ -67,36 +67,25 @@ export function OnboardingCardLanding({
       ) : (
         <>
           <p className="mb-5 mt-0 w-full text-sm">
-            Log in to access a free trial of the
+            欢迎使用Kodemate AI 辅助编程工具
             <br />
-            <span
-              className="cursor-pointer underline hover:brightness-125"
-              data-tooltip-id="models-addon-tooltip"
-              onClick={() =>
-                ideMessenger.post("controlPlane/openUrl", {
-                  path: "pricing",
-                })
-              }
-            >
-              Models Add-On
-            </span>
             <ToolTip id="models-addon-tooltip" place="bottom">
               Free trial includes 50 Chat requests and 2,000 autocomplete
               requests
             </ToolTip>
           </p>
 
-          <Button
+          {/* <Button
             onClick={onGetStarted}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
             Log in to Continue Hub
-          </Button>
+          </Button> */}
         </>
       )}
 
       <SecondaryButton onClick={onSelectConfigure} className="w-full">
-        Or, configure your own models
+        配置模型服务
       </SecondaryButton>
     </div>
   );
