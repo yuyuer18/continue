@@ -27,7 +27,7 @@ class ContinuePluginToolWindowFactory : ToolWindowFactory, DumbAware {
     if (action != null) {
       titleActions.add(action)
     }
-
+//    toolWindow.title="KodemateAI"
     toolWindow.setTitleActions(titleActions)
   }
 
