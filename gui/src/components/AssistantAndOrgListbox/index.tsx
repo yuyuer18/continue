@@ -146,7 +146,7 @@ export function AssistantAndOrgListbox() {
 
             {/* Bottom Actions */}
             <div className="border-border border-x-0 border-b-0 border-t border-solid">
-              <ListboxOption
+              {/* <ListboxOption
                 value="new-assistant"
                 fontSizeModifier={-2}
                 className="border-border border-b px-2 py-1.5"
@@ -158,7 +158,7 @@ export function AssistantAndOrgListbox() {
                 >
                   <PlusIcon className="mr-1 h-3 w-3" /> New Assistant
                 </span>
-              </ListboxOption>
+              </ListboxOption> */}
 
               <ListboxOption
                 value="new-assistant"
@@ -180,7 +180,7 @@ export function AssistantAndOrgListbox() {
                       configLoading && "animate-spin-slow",
                     )}
                   />
-                  Reload config
+                 加载配置
                 </span>
               </ListboxOption>
 

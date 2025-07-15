@@ -80,14 +80,10 @@ export function OnboardingCardTabs({
    */
   const tabs = showFreeTrialExceededAlert
     ? [
-        OnboardingModes.MODELS_ADD_ON,
-        OnboardingModes.API_KEY,
         OnboardingModes.LOCAL,
       ]
     : [
-        OnboardingModes.API_KEY,
         OnboardingModes.LOCAL,
-        OnboardingModes.MODELS_ADD_ON,
       ];
   return (
     <div>
