@@ -99,6 +99,8 @@ export interface ILLM
 
   autocompleteOptions?: Partial<TabAutocompleteOptions>;
 
+  lastRequestId?: string;
+
   complete(
     prompt: string,
     signal: AbortSignal,
@@ -122,6 +124,7 @@ export interface ILLM
     messages: ChatMessage[],
     signal: AbortSignal,
     options?: LLMFullCompletionOptions,
+    messageOptions?: MessageOption,
   ): AsyncGenerator<ChatMessage, PromptLog>;
 
   chat(
@@ -129,6 +132,11 @@ export interface ILLM
     signal: AbortSignal,
     options?: LLMFullCompletionOptions,
   ): Promise<ChatMessage>;
+
+  compileChatMessages(
+    messages: ChatMessage[],
+    options: LLMFullCompletionOpeions,
+  ): CompiledChatMessagesReport;
 
   embed(chunks: string[]): Promise<number[][]>;
 
@@ -167,6 +175,11 @@ export interface ModelInstaller {
 }
 
 export type ContextProviderType = "normal" | "query" | "submenu";
+export type ContextIndexingType =
+  | "chunk"
+  | "embeddings"
+  | "fullTextSearch"
+  | "codeSnippets";
 
 export interface ContextProviderDescription {
   title: ContextProviderName;
@@ -174,7 +187,7 @@ export interface ContextProviderDescription {
   description: string;
   renderInlineAs?: string;
   type: ContextProviderType;
-  dependsOnIndexing?: boolean;
+  dependsOnIndexing?: ContextIndexingType[];
 }
 
 export type FetchFunction = (url: string | URL, init?: any) => Promise<any>;
@@ -231,6 +244,7 @@ export interface SiteIndexingConfig {
   maxDepth?: number;
   faviconUrl?: string;
   useLocalCrawling?: boolean;
+  sourceFile?: string;
 }
 
 export interface DocsIndexingDetails {
@@ -249,6 +263,8 @@ export interface IContextProvider {
   ): Promise<ContextItem[]>;
 
   loadSubmenuItems(args: LoadSubmenuItemsArgs): Promise<ContextSubmenuItem[]>;
+
+  get deprecationMessage(): string | null;
 }
 
 export interface Session {
@@ -258,7 +274,7 @@ export interface Session {
   history: ChatHistoryItem[];
 }
 
-export interface SessionMetadata {
+export interface BaseSessionMetadata {
   sessionId: string;
   title: string;
   dateCreated: string;
@@ -294,11 +310,6 @@ export interface FileEdit {
   filepath: string;
   range: Range;
   replacement: string;
-}
-
-export interface ContinueError {
-  title: string;
-  message: string;
 }
 
 export interface CompletionOptions extends BaseCompletionOptions {
@@ -363,10 +374,32 @@ export interface ThinkingChatMessage {
   toolCalls?: ToolCallDelta[];
 }
 
+/**
+ * This is meant to be equivalent to the OpenAI [usage object](https://platform.openai.com/docs/api-reference/chat/object#chat/object-usage)
+ * but potentially with additional information that is needed for other providers.
+ */
+export interface Usage {
+  completionTokens: number;
+  promptTokens: number;
+  promptTokensDetails?: {
+    cachedTokens?: number;
+    /** This an Anthropic-specific property */
+    cacheWriteTokens?: number;
+    audioTokens?: number;
+  };
+  completionTokensDetails?: {
+    acceptedPredictionTokens?: number;
+    reasoningTokens?: number;
+    rejectedPredictionTokens?: number;
+    audioTokens?: number;
+  };
+}
+
 export interface AssistantChatMessage {
   role: "assistant";
   content: MessageContent;
   toolCalls?: ToolCallDelta[];
+  usage?: Usage;
 }
 
 export interface SystemChatMessage {
@@ -424,20 +457,20 @@ export type FileSymbolMap = Record<string, SymbolWithRange[]>;
 
 export interface PromptLog {
   modelTitle: string;
-  completionOptions: CompletionOptions;
+  modelProvider: string;
   prompt: string;
   completion: string;
 }
 
-export type MessageModes = "chat" | "agent" | "plan";
+export type MessageModes = "chat" | "agent" | "plan" | "background";
 
 export type ToolStatus =
-  | "generating"
-  | "generated"
-  | "calling"
-  | "errored"
-  | "done"
-  | "canceled";
+  | "generating" // Tool call arguments are being streamed from the LLM
+  | "generated" // Tool call is complete and ready for execution (awaiting approval)
+  | "calling" // Tool is actively being executed
+  | "errored" // Tool execution failed with an error
+  | "done" // Tool execution completed successfully
+  | "canceled"; // Tool call was canceled by user or system
 
 // Will exist only on "assistant" messages with tool calls
 interface ToolCallState {
@@ -445,6 +478,7 @@ interface ToolCallState {
   toolCall: ToolCall;
   status: ToolStatus;
   parsedArgs: any;
+  processedArgs?: Record<string, any>; // Added in preprocesing step
   output?: ContextItem[];
   tool?: Tool;
 }
@@ -462,10 +496,11 @@ export interface ChatHistoryItem {
   editorState?: any;
   modifiers?: InputModifiers;
   promptLogs?: PromptLog[];
-  toolCallState?: ToolCallState;
+  toolCallStates?: ToolCallState[];
   isGatheringContext?: boolean;
   reasoning?: Reasoning;
   appliedRules?: RuleWithSource[];
+  conversationSummary?: string;
 }
 
 export interface LLMFullCompletionOptions extends BaseCompletionOptions {
@@ -484,12 +519,14 @@ export interface LLMInteractionStartChat extends LLMInteractionBase {
   kind: "startChat";
   messages: ChatMessage[];
   options: CompletionOptions;
+  provider: string;
 }
 
 export interface LLMInteractionStartComplete extends LLMInteractionBase {
   kind: "startComplete";
   prompt: string;
   options: CompletionOptions;
+  provider: string;
 }
 
 export interface LLMInteractionStartFim extends LLMInteractionBase {
@@ -497,6 +534,7 @@ export interface LLMInteractionStartFim extends LLMInteractionBase {
   prefix: string;
   suffix: string;
   options: CompletionOptions;
+  provider: string;
 }
 
 export interface LLMInteractionChunk extends LLMInteractionBase {
@@ -513,6 +551,7 @@ export interface LLMInteractionEnd extends LLMInteractionBase {
   promptTokens: number;
   generatedTokens: number;
   thinkingTokens: number;
+  usage: Usage | undefined;
 }
 
 export interface LLMInteractionSuccess extends LLMInteractionEnd {
@@ -627,6 +666,9 @@ export interface LLMOptions {
   deploymentId?: string;
 
   env?: Record<string, string | number | boolean>;
+
+  sourceFile?: string;
+  isFromAutoDetect?: boolean;
 }
 
 type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
@@ -666,11 +708,24 @@ export type CustomLLM = RequireAtLeastOne<
 
 // IDE
 
-export type DiffLineType = "new" | "old" | "same";
+export type DiffType = "new" | "old" | "same";
 
-export interface DiffLine {
-  type: DiffLineType;
+export interface DiffObject {
+  type: DiffType;
+}
+
+export interface DiffLine extends DiffObject {
   line: string;
+}
+
+interface DiffChar extends DiffObject {
+  char: string;
+  oldIndex?: number; // Character index assuming a flattened line string.
+  newIndex?: number;
+  oldCharIndexInLine?: number; // Character index assuming new lines reset the character index to 0.
+  newCharIndexInLine?: number;
+  oldLineIndex?: number;
+  newLineIndex?: number;
 }
 
 export interface Problem {
@@ -692,6 +747,7 @@ export interface IdeInfo {
   version: string;
   remoteName: string;
   extensionVersion: string;
+  isPrerelease: boolean;
 }
 
 export interface BranchAndDir {
@@ -756,8 +812,6 @@ export interface IDE {
 
   getWorkspaceDirs(): Promise<string[]>;
 
-  getWorkspaceConfigs(): Promise<ContinueRcJson[]>;
-
   fileExists(fileUri: string): Promise<boolean>;
 
   writeFile(path: string, contents: string): Promise<void>;
@@ -767,6 +821,8 @@ export interface IDE {
   openFile(path: string): Promise<void>;
 
   openUrl(url: string): Promise<void>;
+
+  getExternalUri?(uri: string): Promise<string>;
 
   runCommand(command: string, options?: TerminalOptions): Promise<void>;
 
@@ -824,6 +880,10 @@ export interface IDE {
 
   // LSP
   gotoDefinition(location: Location): Promise<RangeInFile[]>;
+  gotoTypeDefinition(location: Location): Promise<RangeInFile[]>; // TODO: add to jetbrains
+  getSignatureHelp(location: Location): Promise<SignatureHelp | null>; // TODO: add to jetbrains
+  getReferences(location: Location): Promise<RangeInFile[]>;
+  getDocumentSymbols(textDocumentIdentifier: string): Promise<DocumentSymbol[]>;
 
   // Callbacks
   onDidChangeActiveTextEditor(callback: (fileUri: string) => void): void;
@@ -861,7 +921,8 @@ export interface SlashCommand extends SlashCommandDescription {
 export interface SlashCommandWithSource extends SlashCommandDescription {
   run?: (sdk: ContinueSDK) => AsyncGenerator<string | undefined>; // Optional - only needed for legacy
   source: SlashCommandSource;
-  promptFile?: string;
+  sourceFile?: string;
+  slug?: string;
   overrideSystemMessage?: string;
 }
 
@@ -879,7 +940,8 @@ export type SlashCommandSource =
 export interface SlashCommandDescWithSource extends SlashCommandDescription {
   isLegacy: boolean; // Maps to if slashcommand.run exists
   source: SlashCommandSource;
-  promptFile?: string;
+  sourceFile?: string;
+  slug?: string;
   mcpServerName?: string;
   mcpArgs?: MCPPromptArgs;
 }
@@ -988,6 +1050,7 @@ export interface CustomCommand {
   name: string;
   prompt: string;
   description?: string;
+  sourceFile?: string;
 }
 
 export interface Prediction {
@@ -1022,7 +1085,6 @@ export interface Tool {
     parameters?: Record<string, any>;
     strict?: boolean | null;
   };
-
   displayTitle: string;
   wouldLikeTo?: string;
   isCurrently?: string;
@@ -1033,6 +1095,22 @@ export interface Tool {
   faviconUrl?: string;
   group: string;
   originalFunctionName?: string;
+  systemMessageDescription?: {
+    prefix: string;
+    exampleArgs?: Array<[string, string | number]>;
+  };
+  defaultToolPolicy?: ToolPolicy;
+  toolCallIcon?: string;
+  preprocessArgs?: (
+    args: Record<string, unknown>,
+    extras: {
+      ide: IDE;
+    },
+  ) => Promise<Record<string, unknown>>;
+  evaluateToolCallPolicy?: (
+    basePolicy: ToolPolicy,
+    parsedArgs: Record<string, unknown>,
+  ) => ToolPolicy;
 }
 
 interface ToolChoice {
@@ -1045,6 +1123,9 @@ interface ToolChoice {
 export interface ConfigDependentToolParams {
   rules: RuleWithSource[];
   enableExperimentalTools: boolean;
+  isSignedIn: boolean;
+  isRemote: boolean;
+  modelName: string | undefined;
 }
 
 export type GetTool = (params: ConfigDependentToolParams) => Tool;
@@ -1076,6 +1157,7 @@ export interface BaseCompletionOptions {
 export interface ModelCapability {
   uploadImage?: boolean;
   tools?: boolean;
+  nextEdit?: boolean;
 }
 
 export interface ModelDescription {
@@ -1105,6 +1187,9 @@ export interface ModelDescription {
   capabilities?: ModelCapability;
   roles?: ModelRole[];
   configurationStatus?: LLMConfigurationStatuses;
+
+  sourceFile?: string;
+  isFromAutoDetect?: boolean;
 }
 
 export interface JSONEmbedOptions {
@@ -1162,6 +1247,7 @@ export interface TabAutocompleteOptions {
   experimental_includeRecentlyVisitedRanges: boolean | number;
   experimental_includeRecentlyEditedRanges: boolean | number;
   experimental_includeDiff: boolean | number;
+  experimental_enableStaticContextualization: boolean;
 }
 
 export interface StdioOptions {
@@ -1170,7 +1256,6 @@ export interface StdioOptions {
   args: string[];
   env?: Record<string, string>;
   cwd?: string;
-  requestOptions?: RequestOptions;
 }
 
 export interface WebSocketOptions {
@@ -1197,18 +1282,12 @@ export type TransportOptions =
   | SSEOptions
   | StreamableHTTPOptions;
 
-export interface MCPOptions {
-  name: string;
-  id: string;
-  transport: TransportOptions;
-  faviconUrl?: string;
-  timeout?: number;
-}
-
 export type MCPConnectionStatus =
+  | "disabled"
   | "connecting"
   | "connected"
   | "error"
+  | "authenticating"
   | "not-connected";
 
 export type MCPPromptArgs = {
@@ -1251,15 +1330,57 @@ export interface MCPTool {
   };
 }
 
-export interface MCPServerStatus extends MCPOptions {
+type BaseInternalMCPOptions = {
+  id: string;
+  name: string;
+  faviconUrl?: string;
+  timeout?: number;
+  requestOptions?: RequestOptions;
+  sourceFile?: string;
+};
+
+export type InternalStdioMcpOptions = BaseInternalMCPOptions & {
+  type?: "stdio";
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  cwd?: string;
+};
+
+export type InternalStreamableHttpMcpOptions = BaseInternalMCPOptions & {
+  type?: "streamable-http";
+  url: string;
+  apiKey?: string;
+};
+
+export type InternalSseMcpOptions = BaseInternalMCPOptions & {
+  type?: "sse";
+  url: string;
+  apiKey?: string;
+};
+
+export type InternalWebsocketMcpOptions = BaseInternalMCPOptions & {
+  type: "websocket"; // websocket requires explicit type
+  url: string;
+};
+
+export type InternalMcpOptions =
+  | InternalStdioMcpOptions
+  | InternalStreamableHttpMcpOptions
+  | InternalSseMcpOptions
+  | InternalWebsocketMcpOptions;
+
+export type MCPServerStatus = InternalMcpOptions & {
   status: MCPConnectionStatus;
   errors: string[];
-
+  infos: string[];
+  isProtectedResource: boolean;
   prompts: MCPPrompt[];
   tools: MCPTool[];
   resources: MCPResource[];
   resourceTemplates: MCPResourceTemplate[];
-}
+  sourceFile?: string;
+};
 
 export interface ContinueUIConfig {
   codeBlockToolbarPosition?: "top" | "bottom";
@@ -1269,7 +1390,7 @@ export interface ContinueUIConfig {
   codeWrap?: boolean;
   showSessionTabs?: boolean;
   autoAcceptEditToolDiffs?: boolean;
-  logEditingData?: boolean;
+  continueAfterToolRejection?: boolean;
 }
 
 export interface ContextMenuConfig {
@@ -1304,10 +1425,14 @@ export interface ApplyState {
   numDiffs?: number;
   filepath?: string;
   fileContent?: string;
+  originalFileContent?: string;
   toolCallId?: string;
+  autoFormattingDiff?: string;
 }
 
-export interface StreamDiffLinesPayload {
+export type StreamDiffLinesType = "edit" | "apply";
+interface StreamDiffLinesOptionsBase {
+  type: StreamDiffLinesType;
   prefix: string;
   highlighted: string;
   suffix: string;
@@ -1317,6 +1442,19 @@ export interface StreamDiffLinesPayload {
   includeRulesInSystemMessage: boolean;
   fileUri?: string;
 }
+
+interface StreamDiffLinesOptionsEdit extends StreamDiffLinesOptionsBase {
+  type: "edit";
+}
+
+interface StreamDiffLinesOptionsApply extends StreamDiffLinesOptionsBase {
+  type: "apply";
+  newCode: string;
+}
+
+type StreamDiffLinesPayload =
+  | StreamDiffLinesOptionsApply
+  | StreamDiffLinesOptionsEdit;
 
 export interface HighlightedCodePayload {
   rangeInFileWithContents: RangeInFileWithContents;
@@ -1363,6 +1501,68 @@ export interface RangeInFileWithNextEditInfo {
 export type SetCodeToEditPayload = RangeInFileWithContents | FileWithContents;
 
 /**
+ * Signature help represents the signature of something
+ * callable. There can be multiple signatures but only one
+ * active and only one active parameter.
+ */
+export class SignatureHelp {
+  /**
+   * One or more signatures.
+   */
+  signatures: SignatureInformation[];
+
+  /**
+   * The active signature.
+   */
+  activeSignature: number;
+
+  /**
+   * The active parameter of the active signature.
+   */
+  activeParameter: number;
+}
+
+/**
+ * Represents the signature of something callable. A signature
+ * can have a label, like a function-name, a doc-comment, and
+ * a set of parameters.
+ */
+export class SignatureInformation {
+  /**
+   * The label of this signature. Will be shown in
+   * the UI.
+   */
+  label: string;
+
+  /**
+   * The parameters of this signature.
+   */
+  parameters: ParameterInformation[];
+
+  /**
+   * The index of the active parameter.
+   *
+   * If provided, this is used in place of {@linkcode SignatureHelp.activeParameter}.
+   */
+  activeParameter?: number;
+}
+
+/**
+ * Represents a parameter of a callable-signature. A parameter can
+ * have a label and a doc-comment.
+ */
+export class ParameterInformation {
+  /**
+   * The label of this signature.
+   *
+   * Either a string or inclusive start and exclusive end offsets within its containing
+   * {@link SignatureInformation.label signature label}. *Note*: A label of type string must be
+   * a substring of its containing signature information's {@link SignatureInformation.label label}.
+   */
+  label: string | [number, number];
+}
+
+/**
  * Represents the configuration for a quick action in the Code Lens.
  * Quick actions are custom commands that can be added to function and class declarations.
  */
@@ -1397,6 +1597,7 @@ export interface ExperimentalConfig {
   defaultContext?: DefaultContextProvider[];
   promptPath?: string;
   enableExperimentalTools?: boolean;
+  onlyUseSystemMessageTools?: boolean;
 
   /**
    * Quick actions are a way to add custom commands to the Code Lens of
@@ -1423,20 +1624,16 @@ export interface ExperimentalConfig {
   useCurrentFileAsContext?: boolean;
 
   /**
-   * If enabled, will save data on the user's editing processes
-   */
-  logEditingData?: boolean;
-
-  /**
-   * If enabled, will enable next edit in place of autocomplete
-   */
-  optInNextEditFeature?: boolean;
-
-  /**
    * If enabled, @codebase will only use tool calling
    * instead of embeddings, FTS, recently edited files, etc.
    */
   codebaseToolCallingOnly?: boolean;
+
+  /**
+   * If enabled, static contextualization will be used to
+   * gather context for the model where necessary.
+   */
+  enableStaticContextualization?: boolean;
 }
 
 export interface AnalyticsConfig {
@@ -1472,6 +1669,7 @@ export interface JSONModelDescription {
   aiGatewaySlug?: string;
   useLegacyCompletionsEndpoint?: boolean;
   deploymentId?: string;
+  isFromAutoDetect?: boolean;
 }
 
 // config.json
@@ -1549,6 +1747,7 @@ export interface Config {
   experimental?: ExperimentalConfig;
   /** Analytics configuration */
   analytics?: AnalyticsConfig;
+  docs?: SiteIndexingConfig[];
   data?: DataDestination[];
 }
 
@@ -1590,7 +1789,7 @@ export interface BrowserSerializedContinueConfig {
   experimental?: ExperimentalConfig;
   analytics?: AnalyticsConfig;
   docs?: SiteIndexingConfig[];
-  tools: Tool[];
+  tools: Omit<Tool, "preprocessArgs", "evaluateToolCallPolicy">[];
   mcpServerStatuses: MCPServerStatus[];
   rules: RuleWithSource[];
   usePlatform: boolean;
@@ -1650,8 +1849,10 @@ export type RuleSource =
   | "model-options-plan"
   | "model-options-agent"
   | "rules-block"
+  | "colocated-markdown"
   | "json-systemMessage"
-  | ".continuerules";
+  | ".continuerules"
+  | "agentFile";
 
 export interface RuleWithSource {
   name?: string;
@@ -1661,11 +1862,85 @@ export interface RuleWithSource {
   regex?: string | string[];
   rule: string;
   description?: string;
-  ruleFile?: string;
+  sourceFile?: string;
   alwaysApply?: boolean;
+  invokable?: boolean;
 }
 export interface CompleteOnboardingPayload {
   mode: OnboardingModes;
   provider?: string;
   apiKey?: string;
+}
+
+export interface CompiledMessagesResult {
+  compiledChatMessages: ChatMessage[];
+  didPrune: boolean;
+  contextPercentage: number;
+}
+
+export interface AddToChatPayload {
+  data: AddToChatPayloadItem[];
+}
+
+interface AddToChatPayloadItem {
+  type: "file" | "folder";
+  fullPath: string;
+  name: string;
+}
+
+export interface MessageOption {
+  precompiled: boolean;
+}
+
+/* LSP-specific interfaces. */
+
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#symbolKind.
+// We shift this one index down to match vscode.SymbolKind.
+export enum SymbolKind {
+  File = 0,
+  Module = 1,
+  Namespace = 2,
+  Package = 3,
+  Class = 4,
+  Method = 5,
+  Property = 6,
+  Field = 7,
+  Constructor = 8,
+  Enum = 9,
+  Interface = 10,
+  Function = 11,
+  Variable = 12,
+  Constant = 13,
+  String = 14,
+  Number = 15,
+  Boolean = 16,
+  Array = 17,
+  Object = 18,
+  Key = 19,
+  Null = 20,
+  EnumMember = 21,
+  Struct = 22,
+  Event = 23,
+  Operator = 24,
+  TypeParameter = 25,
+}
+
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#symbolTag.
+export namespace SymbolTag {
+  export const Deprecated: 1 = 1;
+}
+
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#symbolTag.
+export type SymbolTag = 1;
+
+// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentSymbol.
+export interface DocumentSymbol {
+  name: string;
+  detail?: string;
+  kind: SymbolKind;
+  tags?: SymbolTag[];
+  deprecated?: boolean;
+  range: Range;
+  selectionRange: Range;
+  children?: DocumentSymbol[];
 }

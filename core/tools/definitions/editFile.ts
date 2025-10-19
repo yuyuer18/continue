@@ -7,6 +7,12 @@ export interface EditToolArgs {
   changes: string;
 }
 
+export const NO_PARALLEL_TOOL_CALLING_INSTRUCTION =
+  "This tool CANNOT be called in parallel with other tools.";
+
+const CHANGES_DESCRIPTION =
+  "Any modifications to the file, showing only needed changes. Do NOT wrap this in a codeblock or write anything besides the code changes. In larger files, use brief language-appropriate placeholders for large unmodified sections, e.g. '// ... existing code ...'";
+
 export const editFileTool: Tool = {
   type: "function",
   displayTitle: "Edit File",
@@ -35,5 +41,20 @@ export const editFileTool: Tool = {
         },
       },
     },
+  },
+  defaultToolPolicy: "allowedWithPermission",
+  systemMessageDescription: {
+    prefix: `To edit an EXISTING file, use the ${BuiltInToolNames.EditExistingFile} tool with
+- filepath: the relative filepath to the file.
+- changes: ${CHANGES_DESCRIPTION}
+Only use this tool if you already know the contents of the file. Otherwise, use the ${BuiltInToolNames.ReadFile} or ${BuiltInToolNames.ReadCurrentlyOpenFile} tool to read it first.
+For example:`,
+    exampleArgs: [
+      ["filepath", "path/to/the_file.ts"],
+      [
+        "changes",
+        "// ... existing code ...\nfunction subtract(a: number, b: number): number {\n  return a - b;\n}\n// ... rest of code ...",
+      ],
+    ],
   },
 };

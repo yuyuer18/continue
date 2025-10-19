@@ -19,7 +19,7 @@ class FolderContextProvider extends BaseContextProvider {
     displayTitle: "文件夹",
     description: "输入搜索目录",
     type: "submenu",
-    dependsOnIndexing: true,
+    dependsOnIndexing: ["embeddings", "fullTextSearch", "chunk"],
   };
 
   async getContextItems(

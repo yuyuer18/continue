@@ -5,11 +5,11 @@ import { useContext, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { Input, SecondaryButton } from "..";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
+import DocsIndexingPeeks from "../../pages/config/sections/docs/DocsIndexingPeeks";
 import { useAppSelector } from "../../redux/hooks";
 import { updateIndexingStatus } from "../../redux/slices/indexingSlice";
 import { setDialogMessage, setShowDialog } from "../../redux/slices/uiSlice";
 import { ToolTip } from "../gui/Tooltip";
-import DocsIndexingPeeks from "../mainInput/Lump/sections/docs/DocsIndexingPeeks";
 
 function AddDocsDialog() {
   const posthog = usePostHog();
@@ -94,12 +94,8 @@ function AddDocsDialog() {
                 <div className="flex flex-row items-center gap-1">
                   <span>标题</span>
                   <div>
-                    <InformationCircleIcon
-                      data-tooltip-id={"add-docs-form-title"}
-                      className="text-lightgray h-3.5 w-3.5 select-none"
-                    />
-                    <ToolTip id={"add-docs-form-title"} place="top">
-                      这标题将显示给用户在`@docs`子菜单中
+                    <ToolTip place="top" content="文档的标题，用于显示在IDE中">
+                      <InformationCircleIcon className="text-lightgray h-3.5 w-3.5 select-none" />
                     </ToolTip>
                   </div>
                 </div>
@@ -119,12 +115,8 @@ function AddDocsDialog() {
                     URL地址
                   </span>
                   <div>
-                    <InformationCircleIcon
-                      data-tooltip-id={"add-docs-form-url"}
-                      className="text-lightgray h-3.5 w-3.5 select-none"
-                    />
-                    <ToolTip id={"add-docs-form-url"} place="top">
-                      这是文档的URL地址
+                    <ToolTip place="top" content="开始爬取文档网站的起始位置">
+                      <InformationCircleIcon className="text-lightgray h-3.5 w-3.5 select-none" />
                     </ToolTip>
                   </div>
                 </div>

@@ -78,8 +78,9 @@ declare global {
   
   export interface ILLM extends LLMOptions {
     get providerName(): string;
-  
+
     uniqueId: string;
+    lastRequestId?: string;
     model: string;
   
     title?: string;
@@ -280,11 +281,6 @@ declare global {
     replacement: string;
   }
   
-  export interface ContinueError {
-    title: string;
-    message: string;
-  }
-  
   export interface CompletionOptions extends BaseCompletionOptions {
     model: string;
   }
@@ -387,6 +383,7 @@ declare global {
   
   export interface PromptLog {
     modelTitle: string;
+    modelProvider: string;
     completionOptions: CompletionOptions;
     prompt: string;
     completion: string;
@@ -682,8 +679,6 @@ declare global {
   
     getWorkspaceDirs(): Promise<string[]>;
   
-    getWorkspaceConfigs(): Promise<ContinueRcJson[]>;
-  
     fileExists(filepath: string): Promise<boolean>;
   
     writeFile(path: string, contents: string): Promise<void>;
@@ -692,6 +687,8 @@ declare global {
     openFile(path: string): Promise<void>;
   
     openUrl(url: string): Promise<void>;
+  
+    getExternalUri?(uri: string): Promise<string>;
   
     runCommand(command: string): Promise<void>;
   
@@ -745,6 +742,10 @@ declare global {
   
     // LSP
     gotoDefinition(location: Location): Promise<RangeInFile[]>;
+    gotoTypeDefinition(location: Location): Promise<RangeInFile[]>;
+    getSignatureHelp(location: Location): Promise<SignatureHelp | null>;
+    getReferences(location: Location): Promise<RangeInFile[]>;
+    getDocumentSymbols(textDocumentIdentifier: string): Promise<DocumentSymbol[]>;
   
     // Callbacks
     onDidChangeActiveTextEditor(callback: (filepath: string) => void): void;
@@ -1057,6 +1058,8 @@ declare global {
     numDiffs?: number;
     filepath?: string;
     fileContent?: string;
+    originalFileContent?: string;
+    autoFormattingDiff?: string;
   }
   
   export interface RangeInFileWithContents {
@@ -1122,7 +1125,6 @@ declare global {
      * This is needed to crawl a large number of documentation sites that are dynamically rendered.
      */
     useChromiumForDocsCrawling?: boolean;
-    useTools?: boolean;
     modelContextProtocolServers?: MCPOptions[];
   }
   

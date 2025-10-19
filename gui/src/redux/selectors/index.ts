@@ -10,11 +10,19 @@ export const selectSlashCommandComboBoxInputs = createSelector(
   (slashCommands) => {
     return (
       slashCommands?.map((cmd) => {
+        let content = cmd.prompt;
+
+        // For MCP prompts without content, show that it failed to load
+        if (cmd.source === "mcp-prompt" && !content) {
+          content = "[MCP Prompt - failed to load content during startup]";
+        }
+
         return {
           title: `${cmd.name}`,
           description: cmd.description,
-          content: cmd.prompt,
           type: "slashCommand" as ComboBoxItemType,
+          content: content,
+          source: cmd.source,
         } as ComboBoxItem;
       }) || []
     );

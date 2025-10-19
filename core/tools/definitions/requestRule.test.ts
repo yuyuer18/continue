@@ -10,7 +10,7 @@ describe("getRequestRuleDescription", () => {
         source: "default-chat",
         rule: "Always use semicolons",
         alwaysApply: true,
-        ruleFile: "/path/to/rule1.md",
+        sourceFile: "/path/to/rule1.md",
       },
       {
         name: "Rule with Globs",
@@ -18,14 +18,15 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Use TypeScript",
         globs: "**/*.ts",
-        ruleFile: "/path/to/rule2.md",
+        sourceFile: "/path/to/rule2.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     expect(result).toBe(
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\nNo rules available.",
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
+        "No rules available.",
     );
   });
 
@@ -37,7 +38,7 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Use consistent formatting",
         alwaysApply: false,
-        ruleFile: "/path/to/agent-rule1.md",
+        sourceFile: "/path/to/agent-rule1.md",
       },
       {
         name: "Agent Rule 2",
@@ -45,7 +46,7 @@ describe("getRequestRuleDescription", () => {
         source: "default-agent",
         rule: "Follow naming conventions",
         alwaysApply: false,
-        ruleFile: "/path/to/agent-rule2.md",
+        sourceFile: "/path/to/agent-rule2.md",
       },
       // These should be filtered out
       {
@@ -54,7 +55,7 @@ describe("getRequestRuleDescription", () => {
         source: "default-chat",
         rule: "Always use semicolons",
         alwaysApply: true,
-        ruleFile: "/path/to/rule1.md",
+        sourceFile: "/path/to/rule1.md",
       },
       {
         name: "Rule with Globs",
@@ -62,14 +63,14 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Use TypeScript",
         globs: "**/*.ts",
-        ruleFile: "/path/to/rule2.md",
+        sourceFile: "/path/to/rule2.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Agent Rule 1: First agent-requested rule\n" +
       "Agent Rule 2: Second agent-requested rule";
 
@@ -83,14 +84,14 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Some rule content",
         alwaysApply: false,
-        ruleFile: "/path/to/no-desc-rule.md",
+        sourceFile: "/path/to/no-desc-rule.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Rule Without Description: undefined";
 
     expect(result).toBe(expected);
@@ -103,20 +104,20 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Some rule content",
         alwaysApply: false,
-        ruleFile: "/path/to/no-name-rule.md",
+        sourceFile: "/path/to/no-name-rule.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "undefined: Rule without name";
 
     expect(result).toBe(expected);
   });
 
-  it("should handle rules with missing ruleFile", () => {
+  it("should handle rules with missing sourceFile", () => {
     const rules: RuleWithSource[] = [
       {
         name: "Rule Without File",
@@ -130,7 +131,7 @@ describe("getRequestRuleDescription", () => {
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Rule Without File: Rule without file path";
 
     expect(result).toBe(expected);
@@ -143,7 +144,7 @@ describe("getRequestRuleDescription", () => {
         description: "This should be filtered out",
         source: "rules-block",
         rule: "Some rule",
-        ruleFile: "/path/to/rule.md",
+        sourceFile: "/path/to/rule.md",
         // alwaysApply is undefined, which is truthy in the filter condition
       },
       {
@@ -152,14 +153,14 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Some rule",
         alwaysApply: false,
-        ruleFile: "/path/to/valid-rule.md",
+        sourceFile: "/path/to/valid-rule.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Valid Agent Rule: This should be included";
 
     expect(result).toBe(expected);
@@ -174,7 +175,7 @@ describe("getRequestRuleDescription", () => {
         rule: "Some rule",
         alwaysApply: false,
         globs: "**/*.ts",
-        ruleFile: "/path/to/rule1.md",
+        sourceFile: "/path/to/rule1.md",
       },
       {
         name: "Rule with array globs",
@@ -183,7 +184,7 @@ describe("getRequestRuleDescription", () => {
         rule: "Some rule",
         alwaysApply: false,
         globs: ["**/*.ts", "**/*.js"],
-        ruleFile: "/path/to/rule2.md",
+        sourceFile: "/path/to/rule2.md",
       },
       {
         name: "Valid Agent Rule",
@@ -191,14 +192,14 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Some rule",
         alwaysApply: false,
-        ruleFile: "/path/to/valid-rule.md",
+        sourceFile: "/path/to/valid-rule.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Valid Agent Rule: This should be included";
 
     expect(result).toBe(expected);
@@ -210,7 +211,8 @@ describe("getRequestRuleDescription", () => {
     const result = getRequestRuleDescription(rules);
 
     expect(result).toBe(
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\nNo rules available.",
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
+        "No rules available.",
     );
   });
 
@@ -222,14 +224,14 @@ describe("getRequestRuleDescription", () => {
         source: "rules-block",
         rule: "Follow this guideline",
         alwaysApply: false,
-        ruleFile: "/path/to/single-rule.md",
+        sourceFile: "/path/to/single-rule.md",
       },
     ];
 
     const result = getRequestRuleDescription(rules);
 
     const expected =
-      "Use this tool to select additional rules, specifically based on their descriptions. Available rules:\n" +
+      "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n" +
       "Single Rule: The only agent-requested rule";
 
     expect(result).toBe(expected);

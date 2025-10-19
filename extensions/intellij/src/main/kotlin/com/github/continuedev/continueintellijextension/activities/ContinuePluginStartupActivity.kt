@@ -4,6 +4,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.github.continuedev.continueintellijextension.auth.AuthListener
 import com.github.continuedev.continueintellijextension.auth.ContinueAuthService
 import com.github.continuedev.continueintellijextension.auth.ControlPlaneSessionInfo
+import com.github.continuedev.continueintellijextension.browser.ContinueBrowserService.Companion.getBrowser
 import com.github.continuedev.continueintellijextension.constants.getContinueGlobalPath
 import com.github.continuedev.continueintellijextension.`continue`.*
 import com.github.continuedev.continueintellijextension.listeners.ContinuePluginSelectionListener
@@ -28,7 +29,9 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import javax.swing.*
 import com.intellij.openapi.components.service
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -38,6 +41,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.Function
 
 fun showTutorial(project: Project) {
     val tutorialFileName = getTutorialFileName()
@@ -192,6 +196,41 @@ class ContinuePluginStartupActivity : StartupActivity, DumbAware {
                 }
             })
 
+            // Handle workspace directories changes
+            connection.subscribe(
+                ModuleListener.TOPIC,
+                object : ModuleListener {
+                    override fun modulesAdded(project: Project, modules: MutableList<out Module>) {
+
+                        val allModulePaths = ModuleManager.getInstance(project).modules
+                            .flatMap { module -> ModuleRootManager.getInstance(module).contentRoots.mapNotNull { it.toUriOrNull() } }
+
+                        val topLevelModulePaths = allModulePaths
+                            .filter { modulePath -> allModulePaths.none { it != modulePath && modulePath.startsWith(it) } }
+
+                        continuePluginService.workspacePaths = topLevelModulePaths.toTypedArray();
+                    }
+
+                    override fun moduleRemoved(project: Project, module: Module) {
+                        val removedPaths = ModuleRootManager.getInstance(module).contentRoots.mapNotNull { it.toUriOrNull() } ;
+                        continuePluginService.workspacePaths = continuePluginService.workspacePaths?.toList()?.filter { path -> removedPaths.none {removedPath -> path == removedPath }}?.toTypedArray();
+                    }
+
+                    override fun modulesRenamed(
+                        project: Project,
+                        modules: MutableList<out Module>,
+                        oldNameProvider: Function<in Module, String>
+                    ) {
+                        val allModulePaths = ModuleManager.getInstance(project).modules
+                            .flatMap { module -> ModuleRootManager.getInstance(module).contentRoots.mapNotNull { it.toUriOrNull() } }
+
+                        val topLevelModulePaths = allModulePaths
+                            .filter { modulePath -> allModulePaths.none { it != modulePath && modulePath.startsWith(it) } }
+
+                        continuePluginService.workspacePaths = topLevelModulePaths.toTypedArray()
+                    }
+                }
+            )
 
             connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
                 override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
@@ -212,11 +251,8 @@ class ContinuePluginStartupActivity : StartupActivity, DumbAware {
 
             // Listen for theme changes
             connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-                val colors = GetTheme().getTheme();
-                continuePluginService.sendToWebview(
-                    "jetbrains/setColors",
-                    colors
-                )
+                val colors = GetTheme().getTheme()
+                project.getBrowser()?.sendToWebview("jetbrains/setColors", colors)
             })
 
             // Listen for clicking settings button to start the auth flow

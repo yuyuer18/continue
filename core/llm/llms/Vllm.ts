@@ -25,7 +25,7 @@ class Vllm extends OpenAI {
   constructor(options: LLMOptions) {
     super(options);
 
-    if (options.model === "AUTODETECT") {
+    if (options.isFromAutoDetect) {
       this._setupCompletionOptions();
     }
   }
@@ -45,7 +45,7 @@ class Vllm extends OpenAI {
       // vLLM uses 'results' array instead of 'data'
       if (results.results && Array.isArray(results.results)) {
         const sortedResults = results.results.sort((a, b) => a.index - b.index);
-        return sortedResults.map((result) => result.index);
+        return sortedResults.map((result) => result.relevance_score);
       }
 
       throw new Error(
@@ -72,7 +72,7 @@ class Vllm extends OpenAI {
         const json = await response.json();
         const data = json.data[0];
         this.model = data.id;
-        this.contextLength = Number.parseInt(data.max_model_len);
+        this._contextLength = Number.parseInt(data.max_model_len);
       })
       .catch((e) => {
         console.log(`Failed to list models for vLLM: ${e.message}`);

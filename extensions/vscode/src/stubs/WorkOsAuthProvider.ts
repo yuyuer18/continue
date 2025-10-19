@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { EventEmitter as NodeEventEmitter } from "node:events";
 
 import {
   AuthType,
@@ -7,6 +8,7 @@ import {
   isHubEnv,
 } from "core/control-plane/AuthTypes";
 import { getControlPlaneEnvSync } from "core/control-plane/env";
+import { Logger } from "core/util/Logger";
 import fetch from "node-fetch";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -101,6 +103,10 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
     this.secretStorage = new SecretStorage(context);
 
     // Immediately refresh any existing sessions
+    this.attemptEmitter = new NodeEventEmitter();
+    WorkOsAuthProvider.hasAttemptedRefresh = new Promise((resolve) => {
+      this.attemptEmitter.on("attempted", resolve);
+    });
     void this.refreshSessions();
 
     // Set up a regular interval to refresh tokens
@@ -116,6 +122,13 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
       );
       return decodedToken;
     } catch (e: any) {
+      // Capture JWT decoding failures to Sentry (could indicate token corruption)
+      Logger.error(e, {
+        context: "workOS_auth_jwt_decode",
+        jwtLength: jwt.length,
+        jwtPrefix: jwt.substring(0, 20) + "...", // Safe prefix for debugging
+      });
+
       console.warn(`Error decoding JWT: ${e}`);
       return null;
     }
@@ -147,16 +160,35 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
   public async getSessions(
     scopes?: string[],
   ): Promise<ContinueAuthenticationSession[]> {
-    const data = await this.secretStorage.get(SESSIONS_SECRET_KEY);
-    if (!data) {
-      return [];
-    }
-
+    // await this.hasAttemptedRefresh;
     try {
+      const data = await this.secretStorage.get(SESSIONS_SECRET_KEY);
+      if (!data) {
+        return [];
+      }
+
       const value = JSON.parse(data) as ContinueAuthenticationSession[];
       return value;
     } catch (e: any) {
-      console.warn(`Error parsing sessions.json: ${e}`);
+      // Capture session decrypt and parsing errors to Sentry
+      Logger.error(e, {
+        context: "workOS_sessions_retrieval",
+        errorMessage: e.message,
+      });
+
+      console.warn(`Error retrieving or parsing sessions: ${e.message}`);
+
+      // Delete the corrupted cache file to allow fresh start on next attempt
+      // This handles cases where decryption succeeded but JSON parsing failed
+      try {
+        await this.secretStorage.delete(SESSIONS_SECRET_KEY);
+      } catch (deleteError: any) {
+        console.error(
+          `Failed to delete corrupted sessions cache:`,
+          deleteError.message,
+        );
+      }
+
       return [];
     }
   }
@@ -182,6 +214,8 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
     return this.ideRedirectUri;
   }
 
+  public static hasAttemptedRefresh: Promise<void>;
+  private attemptEmitter: NodeEventEmitter;
   async refreshSessions() {
     // Prevent concurrent refresh operations
     if (this._isRefreshing) {
@@ -192,15 +226,24 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
       this._isRefreshing = true;
       await this._refreshSessions();
     } catch (e) {
+      // Capture session refresh failures to Sentry
+      Logger.error(e, {
+        context: "workOS_auth_session_refresh",
+        authType: controlPlaneEnv.AUTH_TYPE,
+      });
+
       console.error(`Error refreshing sessions: ${e}`);
     } finally {
       this._isRefreshing = false;
     }
   }
 
+  // It is important that every path in this function emits the attempted event
+  // As config loading in core will be locked until refresh is attempted
   private async _refreshSessions(): Promise<void> {
     const sessions = await this.getSessions();
     if (!sessions.length) {
+      this.attemptEmitter.emit("attempted");
       return;
     }
 
@@ -217,6 +260,12 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
           expiresInMs: newSession.expiresInMs,
         });
       } catch (e: any) {
+        // Capture individual session refresh failures to Sentry
+        Logger.error(e, {
+          context: "workOS_individual_session_refresh",
+          sessionId: session.id,
+        });
+
         // If refresh fails (after retries for valid tokens), drop the session
         console.debug(`Error refreshing session token: ${e.message}`);
         this._sessionChangeEmitter.fire({
@@ -247,6 +296,17 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
     try {
       return await this._refreshSession(refreshToken);
     } catch (error: any) {
+      // Capture token refresh retry errors to Sentry
+      Logger.error(error, {
+        attempt,
+        errorMessage: error.message,
+        isAuthError:
+          error.message?.includes("401") ||
+          error.message?.includes("Invalid refresh token") ||
+          error.message?.includes("Unauthorized"),
+      });
+
+      this.attemptEmitter.emit("attempted");
       // Don't retry for auth errors
       if (
         error.message?.includes("401") ||
@@ -270,6 +330,8 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
             .catch(reject);
         }, delay);
       });
+    } finally {
+      this.attemptEmitter.emit("attempted");
     }
   }
 
@@ -360,6 +422,13 @@ export class WorkOsAuthProvider implements AuthenticationProvider, Disposable {
 
       return session;
     } catch (e) {
+      // Capture authentication failures to Sentry
+      Logger.error(e, {
+        context: "workOS_auth_session_creation",
+        scopes: scopes.join(","),
+        authType: controlPlaneEnv.AUTH_TYPE,
+      });
+
       void window.showErrorMessage(`Sign in failed: ${e}`);
       throw e;
     }
@@ -553,7 +622,7 @@ export async function getControlPlaneSessionInfo(
     if (useOnboarding) {
       WorkOsAuthProvider.useOnboardingUri = true;
     }
-
+    await WorkOsAuthProvider.hasAttemptedRefresh;
     const session = await authentication.getSession(
       controlPlaneEnv.AUTH_TYPE,
       [],

@@ -20,6 +20,7 @@ import {
   ILLMLogger,
   LLMFullCompletionOptions,
   LLMOptions,
+  MessageOption,
   ModelCapability,
   ModelInstaller,
   PromptLog,
@@ -27,11 +28,14 @@ import {
   RequestOptions,
   TabAutocompleteOptions,
   TemplateType,
+  Usage,
 } from "../index.js";
+import { isLemonadeInstalled } from "../util/lemonadeHelper.js";
+import { Logger } from "../util/Logger.js";
 import mergeJson from "../util/merge.js";
 import { renderChatMessage } from "../util/messageContent.js";
 import { isOllamaInstalled } from "../util/ollamaHelper.js";
-import { Telemetry } from "../util/posthog.js";
+import { TokensBatchingService } from "../util/TokensBatchingService.js";
 import { withExponentialBackoff } from "../util/withExponentialBackoff.js";
 
 import {
@@ -61,7 +65,6 @@ import {
   toCompleteBody,
   toFimBody,
 } from "./openaiTypeConverters.js";
-
 export class LLMError extends Error {
   constructor(
     message: string,
@@ -143,7 +146,7 @@ export abstract class BaseLLM implements ILLM {
   baseChatSystemMessage?: string;
   basePlanSystemMessage?: string;
   baseAgentSystemMessage?: string;
-  contextLength: number;
+  _contextLength: number | undefined;
   maxStopWords?: number | undefined;
   completionOptions: CompletionOptions;
   requestOptions?: RequestOptions;
@@ -185,12 +188,20 @@ export abstract class BaseLLM implements ILLM {
   maxEmbeddingChunkSize: number;
   maxEmbeddingBatchSize: number;
 
+  //URI to local block defining this LLM
+  sourceFile?: string;
+
+  isFromAutoDetect?: boolean;
+
+  lastRequestId: string | undefined;
+
   private _llmOptions: LLMOptions;
 
   protected openaiAdapter?: BaseLlmApi;
 
   constructor(_options: LLMOptions) {
     this._llmOptions = _options;
+    this.lastRequestId = undefined;
 
     // Set default options
     const options = {
@@ -205,7 +216,7 @@ export abstract class BaseLLM implements ILLM {
       this.providerName === "continue-proxy"
         ? this.model?.split("/").pop() || this.model
         : this.model;
-    const llmInfo = findLlmInfo(modelSearchString);
+    const llmInfo = findLlmInfo(modelSearchString, this.underlyingProviderName);
 
     const templateType =
       options.template ?? autodetectTemplateType(options.model);
@@ -215,8 +226,7 @@ export abstract class BaseLLM implements ILLM {
     this.baseAgentSystemMessage = options.baseAgentSystemMessage;
     this.basePlanSystemMessage = options.basePlanSystemMessage;
     this.baseChatSystemMessage = options.baseChatSystemMessage;
-    this.contextLength =
-      options.contextLength ?? llmInfo?.contextLength ?? DEFAULT_CONTEXT_LENGTH;
+    this._contextLength = options.contextLength ?? llmInfo?.contextLength;
     this.maxStopWords = options.maxStopWords ?? this.maxStopWords;
     this.completionOptions = {
       ...options.completionOptions,
@@ -288,6 +298,12 @@ export abstract class BaseLLM implements ILLM {
     this.embeddingId = `${this.constructor.name}::${this.model}::${this.maxEmbeddingChunkSize}`;
 
     this.autocompleteOptions = options.autocompleteOptions;
+    this.sourceFile = options.sourceFile;
+    this.isFromAutoDetect = options.isFromAutoDetect;
+  }
+
+  get contextLength() {
+    return this._contextLength ?? DEFAULT_CONTEXT_LENGTH;
   }
 
   getConfigurationStatus() {
@@ -326,21 +342,18 @@ export abstract class BaseLLM implements ILLM {
     completion: string,
     thinking: string | undefined,
     interaction: ILLMInteractionLog | undefined,
+    usage: Usage | undefined,
     error?: any,
   ): InteractionStatus {
     let promptTokens = this.countTokens(prompt);
     let generatedTokens = this.countTokens(completion);
     let thinkingTokens = thinking ? this.countTokens(thinking) : 0;
 
-    void Telemetry.capture(
-      "tokens_generated",
-      {
-        model: model,
-        provider: this.providerName,
-        promptTokens: promptTokens,
-        generatedTokens: generatedTokens,
-      },
-      true,
+    TokensBatchingService.getInstance().addTokens(
+      model,
+      this.providerName,
+      promptTokens,
+      generatedTokens,
     );
 
     void DevDataSqliteDb.logTokensGenerated(
@@ -360,13 +373,23 @@ export abstract class BaseLLM implements ILLM {
       },
     });
 
-    if (error !== undefined) {
-      if (error === "cancel" || error.name === "AbortError") {
+    if (typeof error === "undefined") {
+      interaction?.logItem({
+        kind: "success",
+        promptTokens,
+        generatedTokens,
+        thinkingTokens,
+        usage,
+      });
+      return "success";
+    } else {
+      if (error === "cancel" || error?.name?.includes("AbortError")) {
         interaction?.logItem({
           kind: "cancel",
           promptTokens,
           generatedTokens,
           thinkingTokens,
+          usage,
         });
         return "cancelled";
       } else {
@@ -378,17 +401,10 @@ export abstract class BaseLLM implements ILLM {
           promptTokens,
           generatedTokens,
           thinkingTokens,
+          usage,
         });
         return "error";
       }
-    } else {
-      interaction?.logItem({
-        kind: "success",
-        promptTokens,
-        generatedTokens,
-        thinkingTokens,
-      });
-      return "success";
     }
   }
 
@@ -458,6 +474,15 @@ export abstract class BaseLLM implements ILLM {
 
         return resp;
       } catch (e: any) {
+        // Capture all fetch errors to Sentry for monitoring
+        Logger.error(e, {
+          context: "llm_fetch",
+          url: String(input),
+          method: init?.method || "GET",
+          model: this.model,
+          provider: this.providerName,
+        });
+
         // Errors to ignore
         if (e.message.includes("/api/tags")) {
           throw new Error(`Error fetching tags: ${e.message}`);
@@ -479,6 +504,24 @@ export abstract class BaseLLM implements ILLM {
             const message = (await isOllamaInstalled())
               ? "Unable to connect to local Ollama instance. Ollama may not be running."
               : "Unable to connect to local Ollama instance. Ollama may not be installed or may not running.";
+            throw new Error(message);
+          }
+          if (
+            e.code === "ECONNREFUSED" &&
+            e.message.includes("http://localhost:8000")
+          ) {
+            const isInstalled = await isLemonadeInstalled();
+            let message: string;
+            if (process.platform === "linux") {
+              // On Linux, isLemonadeInstalled checks if it's running (via health endpoint)
+              message =
+                "Unable to connect to local Lemonade instance. Please ensure Lemonade is running. Visit http://lemonade-server.ai for setup instructions.";
+            } else {
+              // On Windows, we can check if it's installed
+              message = isInstalled
+                ? "Unable to connect to local Lemonade instance. Lemonade server may not be running."
+                : "Unable to connect to local Lemonade instance. Lemonade may not be installed or may not be running.";
+            }
             throw new Error(message);
           }
         }
@@ -515,21 +558,16 @@ export abstract class BaseLLM implements ILLM {
   }
 
   private _formatChatMessage(msg: ChatMessage): string {
-    let contentToShow = "";
-    if (msg.role === "tool") {
-      contentToShow = msg.content;
-    } else if (msg.role === "assistant" && msg.toolCalls) {
-      contentToShow = msg.toolCalls
-        ?.map(
-          (toolCall) =>
-            `${toolCall.function?.name}(${toolCall.function?.arguments})`,
-        )
-        .join("\n");
-    } else if ("content" in msg) {
-      if (Array.isArray(msg.content)) {
-        msg.content = renderChatMessage(msg);
-      }
-      contentToShow = msg.content;
+    let contentToShow = renderChatMessage(msg);
+    if (msg.role === "assistant" && msg.toolCalls?.length) {
+      contentToShow +=
+        "\n" +
+        msg.toolCalls
+          ?.map(
+            (toolCall) =>
+              `${toolCall.function?.name}(${toolCall.function?.arguments})`,
+          )
+          .join("\n");
     }
 
     return `<${msg.role}>\n${contentToShow}\n\n`;
@@ -559,6 +597,7 @@ export abstract class BaseLLM implements ILLM {
     signal: AbortSignal,
     options: LLMFullCompletionOptions = {},
   ): AsyncGenerator<string> {
+    this.lastRequestId = undefined;
     const { completionOptions, logEnabled } =
       this._parseCompletionOptions(options);
     const interaction = logEnabled
@@ -573,6 +612,7 @@ export abstract class BaseLLM implements ILLM {
         prefix,
         suffix,
         options: completionOptions,
+        provider: this.providerName,
       });
       if (this.llmRequestHook) {
         this.llmRequestHook(completionOptions.model, fimLog);
@@ -587,6 +627,9 @@ export abstract class BaseLLM implements ILLM {
           signal,
         );
         for await (const chunk of stream) {
+          if (!this.lastRequestId && typeof (chunk as any).id === "string") {
+            this.lastRequestId = (chunk as any).id;
+          }
           const result = fromChatCompletionChunk(chunk);
           if (result) {
             const content = renderChatMessage(result);
@@ -595,6 +638,7 @@ export abstract class BaseLLM implements ILLM {
               kind: "chunk",
               chunk: formattedContent,
             });
+
             completion += formattedContent;
             yield content;
           }
@@ -610,6 +654,7 @@ export abstract class BaseLLM implements ILLM {
             kind: "chunk",
             chunk,
           });
+
           completion += chunk;
           yield chunk;
         }
@@ -621,14 +666,24 @@ export abstract class BaseLLM implements ILLM {
         completion,
         undefined,
         interaction,
+        undefined,
       );
     } catch (e) {
+      // Capture FIM (Fill-in-the-Middle) completion failures to Sentry
+      Logger.error(e as Error, {
+        context: "llm_stream_fim",
+        model: completionOptions.model,
+        provider: this.providerName,
+        useOpenAIAdapter: this.shouldUseOpenAIAdapter("streamFim"),
+      });
+
       status = this._logEnd(
         completionOptions.model,
         fimLog,
         completion,
         undefined,
         interaction,
+        undefined,
         e,
       );
       throw e;
@@ -640,6 +695,7 @@ export abstract class BaseLLM implements ILLM {
           completion,
           undefined,
           interaction,
+          undefined,
           "cancel",
         );
       }
@@ -657,6 +713,7 @@ export abstract class BaseLLM implements ILLM {
     signal: AbortSignal,
     options: LLMFullCompletionOptions = {},
   ) {
+    this.lastRequestId = undefined;
     const { completionOptions, logEnabled, raw } =
       this._parseCompletionOptions(options);
     const interaction = logEnabled
@@ -680,6 +737,7 @@ export abstract class BaseLLM implements ILLM {
         kind: "startComplete",
         prompt,
         options: completionOptions,
+        provider: this.providerName,
       });
       if (this.llmRequestHook) {
         this.llmRequestHook(completionOptions.model, prompt);
@@ -695,6 +753,7 @@ export abstract class BaseLLM implements ILLM {
             { ...toCompleteBody(prompt, completionOptions), stream: false },
             signal,
           );
+          this.lastRequestId = response.id ?? this.lastRequestId;
           completion = response.choices[0]?.text ?? "";
           yield completion;
         } else {
@@ -706,6 +765,9 @@ export abstract class BaseLLM implements ILLM {
             },
             signal,
           )) {
+            if (!this.lastRequestId && typeof (chunk as any).id === "string") {
+              this.lastRequestId = (chunk as any).id;
+            }
             const content = chunk.choices[0]?.text ?? "";
             completion += content;
             interaction?.logItem({
@@ -735,14 +797,25 @@ export abstract class BaseLLM implements ILLM {
         completion,
         undefined,
         interaction,
+        undefined,
       );
     } catch (e) {
+      // Capture streaming completion failures to Sentry
+      Logger.error(e as Error, {
+        context: "llm_stream_complete",
+        model: completionOptions.model,
+        provider: this.providerName,
+        useOpenAIAdapter: this.shouldUseOpenAIAdapter("streamComplete"),
+        streamEnabled: completionOptions.stream !== false,
+      });
+
       status = this._logEnd(
         completionOptions.model,
         prompt,
         completion,
         undefined,
         interaction,
+        undefined,
         e,
       );
       throw e;
@@ -754,6 +827,7 @@ export abstract class BaseLLM implements ILLM {
           completion,
           undefined,
           interaction,
+          undefined,
           "cancel",
         );
       }
@@ -761,6 +835,7 @@ export abstract class BaseLLM implements ILLM {
 
     return {
       modelTitle: this.title ?? completionOptions.model,
+      modelProvider: this.underlyingProviderName,
       prompt,
       completion,
       completionOptions,
@@ -772,6 +847,7 @@ export abstract class BaseLLM implements ILLM {
     signal: AbortSignal,
     options: LLMFullCompletionOptions = {},
   ) {
+    this.lastRequestId = undefined;
     const { completionOptions, logEnabled, raw } =
       this._parseCompletionOptions(options);
     const interaction = logEnabled
@@ -795,6 +871,7 @@ export abstract class BaseLLM implements ILLM {
         kind: "startComplete",
         prompt: prompt,
         options: completionOptions,
+        provider: this.providerName,
       });
       if (this.llmRequestHook) {
         this.llmRequestHook(completionOptions.model, prompt);
@@ -812,6 +889,7 @@ export abstract class BaseLLM implements ILLM {
           },
           signal,
         );
+        this.lastRequestId = result.id ?? this.lastRequestId;
         completion = result.choices[0].text;
       } else {
         completion = await this._complete(prompt, signal, completionOptions);
@@ -828,14 +906,24 @@ export abstract class BaseLLM implements ILLM {
         completion,
         undefined,
         interaction,
+        undefined,
       );
     } catch (e) {
+      // Capture completion failures to Sentry
+      Logger.error(e as Error, {
+        context: "llm_complete",
+        model: completionOptions.model,
+        provider: this.providerName,
+        useOpenAIAdapter: this.shouldUseOpenAIAdapter("complete"),
+      });
+
       status = this._logEnd(
         completionOptions.model,
         prompt,
         completion,
         undefined,
         interaction,
+        undefined,
         e,
       );
       throw e;
@@ -847,6 +935,7 @@ export abstract class BaseLLM implements ILLM {
           completion,
           undefined,
           interaction,
+          undefined,
           "cancel",
         );
       }
@@ -865,6 +954,23 @@ export abstract class BaseLLM implements ILLM {
       completion += renderChatMessage(message);
     }
     return { role: "assistant" as const, content: completion };
+  }
+
+  compileChatMessages(
+    message: ChatMessage[],
+    options: LLMFullCompletionOptions,
+  ) {
+    let { completionOptions } = this._parseCompletionOptions(options);
+    completionOptions = this._modifyCompletionOptions(completionOptions);
+
+    return compileChatMessages({
+      modelName: completionOptions.model,
+      msgs: message,
+      knownContextLength: this._contextLength,
+      maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+      supportsImages: this.supportsImages(),
+      tools: options.tools,
+    });
   }
 
   protected modifyChatBody(
@@ -891,7 +997,9 @@ export abstract class BaseLLM implements ILLM {
     _messages: ChatMessage[],
     signal: AbortSignal,
     options: LLMFullCompletionOptions = {},
+    messageOptions?: MessageOption,
   ): AsyncGenerator<ChatMessage, PromptLog> {
+    this.lastRequestId = undefined;
     let { completionOptions, logEnabled } =
       this._parseCompletionOptions(options);
     const interaction = logEnabled
@@ -901,14 +1009,21 @@ export abstract class BaseLLM implements ILLM {
 
     completionOptions = this._modifyCompletionOptions(completionOptions);
 
-    const messages = compileChatMessages({
-      modelName: completionOptions.model,
-      msgs: _messages,
-      contextLength: this.contextLength,
-      maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
-      supportsImages: this.supportsImages(),
-      tools: options.tools,
-    });
+    let messages = _messages;
+
+    // If not precompiled, compile the chat messages
+    if (!messageOptions?.precompiled) {
+      const { compiledChatMessages } = compileChatMessages({
+        modelName: completionOptions.model,
+        msgs: _messages,
+        knownContextLength: this._contextLength,
+        maxTokens: completionOptions.maxTokens ?? DEFAULT_MAX_TOKENS,
+        supportsImages: this.supportsImages(),
+        tools: options.tools,
+      });
+
+      messages = compiledChatMessages;
+    }
 
     const prompt = this.templateMessages
       ? this.templateMessages(messages)
@@ -918,6 +1033,7 @@ export abstract class BaseLLM implements ILLM {
         kind: "startChat",
         messages,
         options: completionOptions,
+        provider: this.providerName,
       });
       if (this.llmRequestHook) {
         this.llmRequestHook(completionOptions.model, prompt);
@@ -926,6 +1042,7 @@ export abstract class BaseLLM implements ILLM {
 
     let thinking = "";
     let completion = "";
+    let usage: Usage | undefined = undefined;
 
     try {
       if (this.templateMessages) {
@@ -952,9 +1069,14 @@ export abstract class BaseLLM implements ILLM {
               { ...body, stream: false },
               signal,
             );
+            this.lastRequestId = response.id ?? this.lastRequestId;
             const msg = fromChatResponse(response);
             yield msg;
             completion = this._formatChatMessage(msg);
+            interaction?.logItem({
+              kind: "message",
+              message: msg,
+            });
           } else {
             // Stream true
             const stream = this.openaiAdapter.chatCompletionStream(
@@ -965,6 +1087,12 @@ export abstract class BaseLLM implements ILLM {
               signal,
             );
             for await (const chunk of stream) {
+              if (
+                !this.lastRequestId &&
+                typeof (chunk as any).id === "string"
+              ) {
+                this.lastRequestId = (chunk as any).id;
+              }
               const result = fromChatCompletionChunk(chunk);
               if (result) {
                 completion += this._formatChatMessage(result);
@@ -992,6 +1120,11 @@ export abstract class BaseLLM implements ILLM {
               kind: "message",
               message: chunk,
             });
+
+            if (chunk.role === "assistant" && chunk.usage) {
+              usage = chunk.usage;
+            }
+
             yield chunk;
           }
         }
@@ -1002,14 +1135,26 @@ export abstract class BaseLLM implements ILLM {
         completion,
         thinking,
         interaction,
+        usage,
       );
     } catch (e) {
+      // Capture chat streaming failures to Sentry
+      Logger.error(e as Error, {
+        context: "llm_stream_chat",
+        model: completionOptions.model,
+        provider: this.providerName,
+        useOpenAIAdapter: this.shouldUseOpenAIAdapter("streamChat"),
+        streamEnabled: completionOptions.stream !== false,
+        templateMessages: !!this.templateMessages,
+      });
+
       status = this._logEnd(
         completionOptions.model,
         prompt,
         completion,
         thinking,
         interaction,
+        usage,
         e,
       );
       throw e;
@@ -1021,6 +1166,7 @@ export abstract class BaseLLM implements ILLM {
           completion,
           undefined,
           interaction,
+          usage,
           "cancel",
         );
       }
@@ -1037,9 +1183,9 @@ export abstract class BaseLLM implements ILLM {
 
     return {
       modelTitle: this.title ?? completionOptions.model,
+      modelProvider: this.underlyingProviderName,
       prompt,
       completion,
-      completionOptions,
     };
   }
 

@@ -101,6 +101,32 @@ allow for changes to your `config.json` and other files during development, with
 
 When using the `Run Continue` task, we automatically tail both prompt logs and IDE logs.
 
+#### Viewing more IDE logs
+
+You can selectively increase the log granularity (e.g., debug-level logs) as follows:
+
+- Navigate to `Help | Diagnostic Tools | Debug Log Settings...`
+- Add a line in the format: `com.intellij.diagnostic:debug`
+
+You can find more information about this feature in [official docs](https://youtrack.jetbrains.com/articles/SUPPORT-A-43/How-to-enable-debug-logging-in-IntelliJ-IDEA).
+
+### Developing `build.plugin.kts`
+
+If in doubt, check out the
+official [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template).
+These templates are the most up-to-date examples of how to correctly customize the plugin build scripts.
+
+Also, check out
+the [useful recipes](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-recipes.html)
+for common problems.
+
+### Adding new extensions in `plugin.xml`
+
+There's a tool called [JetBrains Platform Explorer](https://plugins.jetbrains.com/intellij-platform-explorer) that
+aggregates plugin metadata and allows you to filter by specific
+extension points. If you're having trouble implementing a feature that's not officially documented,
+you can learn from other open source plugins.
+
 ### Reloading changes
 
 - `extensions/intellij`: Attempt to reload changed classes by selecting
@@ -153,55 +179,29 @@ This will generate a .zip file in `./build/distributions` with the version defin
 
 ## Testing
 
-### e2e testing
+Test commands:
 
-#### Overview
+- `./gradlew test` - to run **unit tests**
+- `./gradlew testIntegration` - to run **e2e tests**
 
-The e2e tests are written using [intellij-ui-test-robot](`https://github.com/JetBrains/intellij-ui-test-robot`). The
-README for this project has a lot of helpful info on how to use the library.
+### About e2e tests
 
-Note that these tests fully take control of your mouse while executing.
+The e2e tests are written using [intellij-ide-starter](https://github.com/JetBrains/intellij-ide-starter).
+The first run of the e2e tests may take a while because the required IDE needs
+to be downloaded. Note that these tests
+fully take control of your mouse while executing.
 
 #### Setup
 
 If you are on macOS, you'll need to give IntelliJ permission to control your computer in order to run the e2e tests.
-Open _System Settings_ and select `Privacy & Security` -> `Accessibility` and toggle the switch for IntelliJ.
+Open `System Settings > Privacy & Security > Accessibility` and toggle the switch for IntelliJ.
 
-#### Running the tests
+#### Working with Intellij IDE Starter
 
-Instantiate the test IDE as a background task:
+The testing platform provides a rich DSL for most UI components in IntelliJ. However, if you want to interact with a
+custom element, you can define your own XPath selector.
 
-```sh
-./gradlew clean runIdeForUiTests &
-```
-
-Once the IDE has loaded, you can run the tests. Note that you need to have the test IDE focused in order for the tests
-to run.
-
-```sh
-./gradlew test
-```
-
-Run a single test
-
-```sh
-./gradlew test --tests "com.github.continuedev.continueintellijextension.e2e.TESTNAME"
-```
-
-#### Identifying selectors
-
-While the `runIdeForUiTests` task is running, you can visit the following URL
-to view the UI hierarchy of the running IDE:
-
-<http://127.0.0.1:8082/>
-
-#### Rebuilding the extension
-
-To rebuild the extension with the latest source code, run the following:
-
-```sh
-./gradlew buildPlugin
-```
-
-This will update the contents of the extension that is loaded into the test IDE from
-`build/idea-sandbox/plugins-uiTest/continue-intellij-extension`
+To do this, run an e2e test and visit [localhost:63343/api/remote-driver/](http://localhost:63343/api/remote-driver/) to
+view an HTML representation of the IDE's Swing component tree.
+See [Integration Tests](https://plugins.jetbrains.com/docs/intellij/integration-tests-ui.html#searching-components) for
+more details about this workflow.

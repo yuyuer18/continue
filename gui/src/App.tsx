@@ -36,7 +36,7 @@ const router = createMemoryRouter([
         element: <A3CloudPromptManager />,
       },
       {
-        path: "/stats",
+        path: ROUTES.STATS,
         element: <Stats />,
       },
       {

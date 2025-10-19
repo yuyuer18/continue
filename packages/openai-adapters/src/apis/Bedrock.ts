@@ -16,6 +16,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   ChatCompletion,
   ChatCompletionChunk,
+  ChatCompletionContentPartImage,
   ChatCompletionCreateParams,
   ChatCompletionCreateParamsNonStreaming,
   ChatCompletionCreateParamsStreaming,
@@ -29,6 +30,7 @@ import {
 } from "openai/resources/index";
 
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
+import { fromStatic } from "@aws-sdk/token-providers";
 import { BedrockConfig } from "../types.js";
 import { chatChunk, chatChunkFromDelta, embedding, rerank } from "../util.js";
 import { safeParseArgs } from "../util/parseArgs.js";
@@ -43,7 +45,7 @@ import {
 function getSecureID(): string {
   // Adding a type declaration for the static property
   if (!(getSecureID as any).uuid) {
-    (getSecureID as any).uuid = crypto.randomUUID();
+    (getSecureID as any).uuid = uuidv4();
   }
   return `<!-- SID: ${(getSecureID as any).uuid} -->`;
 }
@@ -80,7 +82,7 @@ export class BedrockApi implements BaseLlmApi {
         secretAccessKey: this.config.env.secretAccessKey,
       };
     }
-    const profile = this.config.env.profile ?? "bedrock";
+    const profile = this.config.env?.profile ?? "bedrock";
     try {
       return await fromNodeProviderChain({
         profile: profile,
@@ -94,9 +96,22 @@ export class BedrockApi implements BaseLlmApi {
     return await fromNodeProviderChain()();
   }
   async getClient(): Promise<BedrockRuntimeClient> {
+    const region = this.config.env?.region;
+
+    // If apiKey is provided, use bearer token authentication
+    if (this.config.apiKey) {
+      return new BedrockRuntimeClient({
+        region,
+        token: fromStatic({
+          token: { token: this.config.apiKey },
+        }),
+      });
+    }
+
+    // Otherwise use IAM credentials (existing behavior)
     const creds = await this.getCreds();
     return new BedrockRuntimeClient({
-      region: this.config.env.region,
+      region,
       credentials: creds,
     });
   }
@@ -120,7 +135,9 @@ export class BedrockApi implements BaseLlmApi {
       case "image_url":
       default:
         try {
-          const [mimeType, base64Data] = part.image_url.url.split(",");
+          const [mimeType, base64Data] = (
+            part as ChatCompletionContentPartImage
+          ).image_url.url.split(",");
           const format = mimeType.split("/")[1]?.split(";")[0] || "jpeg";
           if (
             format === ImageFormat.JPEG ||
@@ -246,7 +263,13 @@ export class BedrockApi implements BaseLlmApi {
         // TOOL CALLS
         if (message.tool_calls) {
           for (const toolCall of message.tool_calls) {
-            if (toolCall.id && toolCall.function?.name) {
+            // Type guard for function tool calls
+            if (
+              toolCall.type === "function" &&
+              "function" in toolCall &&
+              toolCall.id &&
+              toolCall.function?.name
+            ) {
               if (availableTools.has(toolCall.function.name)) {
                 currentBlocks.push({
                   toolUse: {
@@ -265,6 +288,10 @@ export class BedrockApi implements BaseLlmApi {
                   text: toolCallText,
                 });
               }
+            } else {
+              console.warn(
+                `Unsupported tool call type in Bedrock: ${toolCall.type}`,
+              );
             }
           }
         }
@@ -324,15 +351,22 @@ export class BedrockApi implements BaseLlmApi {
 
     if (oaiBody.tools && oaiBody.tools.length > 0) {
       toolConfig = {
-        tools: oaiBody.tools.map((tool) => ({
-          toolSpec: {
-            name: tool.function.name,
-            description: tool.function.description,
-            inputSchema: {
-              json: tool.function.parameters,
-            },
-          },
-        })),
+        tools: oaiBody.tools.map((tool) => {
+          // Type guard for function tools
+          if (tool.type === "function" && "function" in tool) {
+            return {
+              toolSpec: {
+                name: tool.function.name,
+                description: tool.function.description,
+                inputSchema: {
+                  json: tool.function.parameters,
+                },
+              },
+            };
+          } else {
+            throw new Error(`Unsupported tool type in Bedrock: ${tool.type}`);
+          }
+        }),
       } as ToolConfiguration;
 
       // Add cache point if needed
@@ -341,7 +375,9 @@ export class BedrockApi implements BaseLlmApi {
       // }
 
       oaiBody.tools.forEach((tool) => {
-        availableTools.add(tool.function.name);
+        if (tool.type === "function" && "function" in tool) {
+          availableTools.add(tool.function.name);
+        }
       });
     }
 

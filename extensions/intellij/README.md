@@ -9,9 +9,9 @@
 
 你可以连接任何模型和任何上下文信息，以便在集成开发环境（IDE）中构建自定义的自动补全和聊天体验。
 
-</div>
+<p></p>
 
-<div align="center">
+**Ship faster with Continuous AI**
 
 
 ## 聊天功能

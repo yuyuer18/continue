@@ -1,3 +1,4 @@
+import { CompletionUsage } from "openai/resources/completions.mjs";
 import { BaseLlmApi, constructLlmApi } from "../index.js";
 import { LLMConfig } from "../types.js";
 import { TestConfigOptions } from "./main.test.js";
@@ -88,12 +89,35 @@ export function testChat(
       new AbortController().signal,
     );
     let completion = "";
+    let usage: CompletionUsage | undefined = undefined;
     for await (const result of stream) {
-      completion += result.choices[0].delta.content ?? "";
+      completion += result.choices[0]?.delta.content ?? "";
 
-      expect(result.choices.length).toBeGreaterThan(0);
+      if (result.usage) {
+        usage = result.usage;
+      } else {
+        // At the end we expect a final message without choices that shares usage
+        expect(result.choices.length).toBeGreaterThan(0);
+      }
     }
     expect(completion.length).toBeGreaterThan(0);
+
+    if (options?.expectUsage === true) {
+      expect(usage).toBeDefined();
+      expect(usage!.completion_tokens).toBeGreaterThan(0);
+      expect(usage!.prompt_tokens).toBeGreaterThan(0);
+      // Gemini 2.5 models have thinking tokens, so total_tokens >= prompt + completion
+      // Other models should have total_tokens = prompt + completion
+      if (model.includes("gemini-2.5") || model.includes("gemini-2.0")) {
+        expect(usage!.total_tokens).toBeGreaterThanOrEqual(
+          usage!.prompt_tokens + usage!.completion_tokens,
+        );
+      } else {
+        expect(usage!.total_tokens).toEqual(
+          usage!.prompt_tokens + usage!.completion_tokens,
+        );
+      }
+    }
   });
 
   test("should successfully stream multi-part chat with empty text", async () => {
@@ -122,6 +146,10 @@ export function testChat(
     );
     let completion = "";
     for await (const result of stream) {
+      // Skip usage chunks that have empty choices array
+      if (result.choices.length === 0) {
+        continue;
+      }
       completion += result.choices[0].delta.content ?? "";
 
       expect(result.choices.length).toBeGreaterThan(0);
@@ -179,29 +207,48 @@ export function testChat(
     const completion = response.choices[0].message.content;
     expect(typeof completion).toBe("string");
     expect(completion?.length).toBeGreaterThan(0);
+
+    if (options?.expectUsage === true) {
+      expect(response.usage).toBeDefined();
+      expect(response.usage!.completion_tokens).toBeGreaterThan(0);
+      expect(response.usage!.prompt_tokens).toBeGreaterThan(0);
+      // Gemini 2.5 models have thinking tokens, so total_tokens >= prompt + completion
+      // Other models should have total_tokens = prompt + completion
+      if (model.includes("gemini-2.5") || model.includes("gemini-2.0")) {
+        expect(response.usage!.total_tokens).toBeGreaterThanOrEqual(
+          response.usage!.prompt_tokens + response.usage!.completion_tokens,
+        );
+      } else {
+        expect(response.usage!.total_tokens).toEqual(
+          response.usage!.prompt_tokens + response.usage!.completion_tokens,
+        );
+      }
+    }
   });
 
   test("should acknowledge system message in chat", async () => {
-    const response = await api.chatCompletionNonStream(
-      {
-        model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Regardless of what is asked of you, your answer should start with 'RESPONSE: '.",
-          },
-          { role: "user", content: "Who are you?" },
-        ],
-        stream: false,
-      },
-      new AbortController().signal,
-    );
-    expect(response.choices.length).toBeGreaterThan(0);
-    const completion = response.choices[0].message.content;
-    expect(typeof completion).toBe("string");
-    expect(completion?.length).toBeGreaterThan(0);
-    expect(completion?.startsWith("RESPONSE: ")).toBe(true);
+    if (options?.skipSystemMessage !== true) {
+      const response = await api.chatCompletionNonStream(
+        {
+          model,
+          messages: [
+            {
+              role: "system",
+              content:
+                "Regardless of what is asked of you, your answer should start with 'RESPONSE: '.",
+            },
+            { role: "user", content: "Who are you?" },
+          ],
+          stream: false,
+        },
+        new AbortController().signal,
+      );
+      expect(response.choices.length).toBeGreaterThan(0);
+      const completion = response.choices[0].message.content;
+      expect(typeof completion).toBe("string");
+      expect(completion?.length).toBeGreaterThan(0);
+      expect(completion?.startsWith("RESPONSE: ")).toBe(true);
+    }
   });
 
   if (options?.skipTools === false) {
@@ -246,6 +293,10 @@ export function testChat(
         },
         new AbortController().signal,
       )) {
+        // Skip usage chunks that have empty choices array
+        if (chunk.choices.length === 0) {
+          continue;
+        }
         const toolCall = chunk.choices[0].delta.tool_calls?.[0];
         if (!toolCall) {
           continue;
@@ -283,14 +334,14 @@ export function testChat(
                     arguments: '{"name":"Nate"}',
                     name: "say_hello",
                   },
-                  id: "tool_call_1",
+                  id: "toolcall1", // mistral requires alphanumeric length of 9
                   type: "function",
                 },
               ],
             },
             {
               role: "tool",
-              tool_call_id: "tool_call_1",
+              tool_call_id: "toolcall1",
               content: "Nate was greeted",
             },
           ],
@@ -317,6 +368,10 @@ export function testChat(
         },
         new AbortController().signal,
       )) {
+        // Skip usage chunks that have empty choices array
+        if (chunk.choices.length === 0) {
+          continue;
+        }
         response += chunk.choices[0].delta.content ?? "";
       }
 

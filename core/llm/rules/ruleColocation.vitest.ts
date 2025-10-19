@@ -9,8 +9,8 @@ describe("Rule colocation - glob pattern matching", () => {
     generalRule: {
       name: "General Rule",
       rule: "Follow coding standards",
-      source: "rules-block",
-      ruleFile: "src/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/rules.md",
     },
 
     // Redux-specific rule with specific directory/file type pattern
@@ -18,8 +18,8 @@ describe("Rule colocation - glob pattern matching", () => {
       name: "Redux Rule",
       rule: "Use Redux Toolkit",
       globs: "src/redux/**/*.{ts,tsx}",
-      source: "rules-block",
-      ruleFile: "src/redux/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/redux/rules.md",
     },
 
     // Component-specific rule with array of globs
@@ -27,8 +27,8 @@ describe("Rule colocation - glob pattern matching", () => {
       name: "Component Rule",
       rule: "Use functional components",
       globs: ["src/components/**/*.tsx", "src/components/**/*.jsx"],
-      source: "rules-block",
-      ruleFile: "src/components/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/components/rules.md",
     },
 
     // Rule with explicit alwaysApply: true
@@ -37,8 +37,8 @@ describe("Rule colocation - glob pattern matching", () => {
       rule: "Follow these guidelines always",
       alwaysApply: true,
       globs: "src/specific/**/*.ts", // Should be ignored since alwaysApply is true
-      source: "rules-block",
-      ruleFile: ".continue/rules.md",
+      source: "colocated-markdown",
+      sourceFile: ".continue/rules.md",
     },
 
     // Rule with explicit alwaysApply: false
@@ -47,8 +47,8 @@ describe("Rule colocation - glob pattern matching", () => {
       rule: "This rule should only apply to matching files",
       alwaysApply: false,
       // No globs, so should never apply
-      source: "rules-block",
-      ruleFile: ".continue/rules.md",
+      source: "colocated-markdown",
+      sourceFile: ".continue/rules.md",
     },
 
     // Rule with explicit alwaysApply: false but with globs
@@ -57,8 +57,8 @@ describe("Rule colocation - glob pattern matching", () => {
       rule: "Apply only to matching files",
       alwaysApply: false,
       globs: "src/utils/**/*.ts",
-      source: "rules-block",
-      ruleFile: "src/utils/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/utils/rules.md",
     },
   };
 
@@ -127,8 +127,8 @@ describe("Rule colocation - glob pattern matching", () => {
       rule: "Follow nested module standards",
       // Fix: Specify the exact path prefix to restrict to this directory structure
       globs: "src/features/auth/utils/**/*.ts",
-      source: "rules-block",
-      ruleFile: "src/features/auth/utils/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/features/auth/utils/rules.md",
     };
 
     it("should apply nested rules to files in the same directory and subdirectories", () => {
@@ -157,8 +157,8 @@ describe("Rule colocation - glob pattern matching", () => {
       // Note: Negative globs may not be supported by the current implementation
       // Testing with standard pattern instead
       globs: "src/**/[!.]*.ts",
-      source: "rules-block",
-      ruleFile: "src/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/rules.md",
     };
 
     it("should apply to matching files that are not excluded", () => {
@@ -174,8 +174,8 @@ describe("Rule colocation - glob pattern matching", () => {
         // Use a pattern that doesn't match test files
         globs: ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/*.spec.ts"],
         alwaysApply: false,
-        source: "rules-block",
-        ruleFile: "src/rules.md",
+        source: "colocated-markdown",
+        sourceFile: "src/rules.md",
       };
 
       // Using alwaysApply:false with a more specific test

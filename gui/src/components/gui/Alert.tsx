@@ -3,52 +3,99 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-} from "@heroicons/react/24/solid";
-import { ReactNode } from "react";
-import { vscBackground } from "..";
+} from "@heroicons/react/16/solid";
+import { varWithFallback } from "../../styles/theme";
+import { cn } from "../../util/cn";
 
 type AlertTypes = "info" | "success" | "warning" | "error";
+type AlertSize = "sm" | "lg";
 
-export interface AlertProps {
-  children?: ReactNode;
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   type?: AlertTypes;
+  size?: AlertSize;
 }
 
 type AlertConfig = {
   [key in AlertTypes]: {
     Icon: any;
+    iconColor: string;
+    border: string;
+    text: string;
   };
 };
 
 const ALERT_CONFIGS: AlertConfig = {
   info: {
     Icon: InformationCircleIcon,
+    border: "border-info",
+    iconColor: "text-info",
+    text: "text-foreground",
   },
   success: {
     Icon: CheckCircleIcon,
+    border: "border-success",
+    iconColor: "text-success",
+    text: "text-foreground",
   },
   warning: {
     Icon: ExclamationTriangleIcon,
+    border: "border-warning",
+    iconColor: "text-warning",
+    text: "text-foreground",
   },
   error: {
     Icon: ExclamationCircleIcon,
+    border: "border-error",
+    iconColor: "text-error",
+    text: "text-foreground",
   },
 };
 
-function Alert({ children, type = "info" }: AlertProps) {
-  const { Icon } = ALERT_CONFIGS[type];
+const alertSizes = {
+  sm: "px-3 py-2 rounded-md",
+  lg: "px-3 py-2.5 rounded-md",
+};
+
+const iconSizes = {
+  sm: "h-4 w-4",
+  lg: "h-4 w-4",
+};
+
+const spacingSizes = {
+  sm: "ml-2",
+  lg: "ml-2",
+};
+
+function Alert({
+  type = "info",
+  size = "lg",
+  className,
+  children,
+  ...props
+}: AlertProps) {
+  const { Icon, border, text, iconColor } = ALERT_CONFIGS[type];
+
+  const colorMap = {
+    info: varWithFallback("info"),
+    success: varWithFallback("success"),
+    warning: varWithFallback("warning"),
+    error: varWithFallback("error"),
+  };
 
   return (
-    <div className="bg-editor-foreground rounded-lg border-l-4 p-4 opacity-70 shadow-none">
-      <div className="flex items-start">
-        <Icon
-          className="h-6 min-h-5 w-6 min-w-5"
-          style={{ color: vscBackground }}
-        />
-
-        <div className="ml-3" style={{ color: vscBackground }}>
-          {children}
-        </div>
+    <div
+      className={cn(
+        `flex flex-row items-start border-[0.5px] ${border} border-solid shadow-sm ${alertSizes[size]}`,
+        className,
+      )}
+      style={{
+        backgroundColor: `color-mix(in srgb, ${colorMap[type]} 20%, transparent)`,
+      }}
+      {...props}
+    >
+      <Icon className={`flex-shrink-0 ${iconColor} ${iconSizes[size]}`} />
+      <div className="flex flex-1 flex-col">
+        <div className={`${spacingSizes[size]} ${text}`}>{children}</div>
       </div>
     </div>
   );

@@ -117,7 +117,7 @@ describe("PackageIdentifier", () => {
   it("should encode/decode file-based package identifier with relative path", () => {
     const testIdentifier = {
       uriType: "file" as const,
-      filePath: "./path/to/package.yaml",
+      fileUri: "./path/to/package.yaml",
     };
     const encoded = encodePackageIdentifier(testIdentifier);
     expect(encoded).toBe("./path/to/package.yaml");
@@ -129,7 +129,7 @@ describe("PackageIdentifier", () => {
   it("should encode/decode file-based package identifier with absolute path", () => {
     const testIdentifier = {
       uriType: "file" as const,
-      filePath: "/absolute/path/to/package.yaml",
+      fileUri: "/absolute/path/to/package.yaml",
     };
     const encoded = encodePackageIdentifier(testIdentifier);
     expect(encoded).toBe("/absolute/path/to/package.yaml");
@@ -144,7 +144,7 @@ describe("PackageIdentifier", () => {
 
     expect(decoded).toEqual({
       uriType: "file" as const,
-      filePath: "/path/to/package.yaml",
+      fileUri: "/path/to/package.yaml",
     });
   });
 
@@ -157,5 +157,63 @@ describe("PackageIdentifier", () => {
     expect(() => encodePackageIdentifier(invalidIdentifier as any)).toThrow(
       "Unknown URI type: invalid",
     );
+  });
+
+  it("should expand leading tilde when HOME is available", () => {
+    const originalHome = process.env.HOME;
+    const originalUserProfile = process.env.USERPROFILE;
+
+    try {
+      process.env.HOME = "/tmp/test-home";
+      delete process.env.USERPROFILE;
+
+      const decoded = decodePackageIdentifier("~/package.yaml");
+
+      expect(decoded).toEqual({
+        uriType: "file" as const,
+        fileUri: "/tmp/test-home/package.yaml",
+      });
+    } finally {
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
+
+      if (originalUserProfile === undefined) {
+        delete process.env.USERPROFILE;
+      } else {
+        process.env.USERPROFILE = originalUserProfile;
+      }
+    }
+  });
+
+  it("should leave leading tilde when no home directory is available", () => {
+    const originalHome = process.env.HOME;
+    const originalUserProfile = process.env.USERPROFILE;
+
+    try {
+      delete process.env.HOME;
+      delete process.env.USERPROFILE;
+
+      const decoded = decodePackageIdentifier("~/package.yaml");
+
+      expect(decoded).toEqual({
+        uriType: "file" as const,
+        fileUri: "~/package.yaml",
+      });
+    } finally {
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
+
+      if (originalUserProfile === undefined) {
+        delete process.env.USERPROFILE;
+      } else {
+        process.env.USERPROFILE = originalUserProfile;
+      }
+    }
   });
 });

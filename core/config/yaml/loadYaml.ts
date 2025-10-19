@@ -4,11 +4,11 @@ import {
   ConfigResult,
   ConfigValidationError,
   isAssistantUnrolledNonNullable,
-  MCPServer,
+  mergeConfigYamlRequestOptions,
+  mergeUnrolledAssistants,
   ModelRole,
   PackageIdentifier,
   RegistryClient,
-  Rule,
   TEMPLATE_VAR_REGEX,
   unrollAssistant,
   validateConfigYaml,
@@ -17,18 +17,13 @@ import { dirname } from "node:path";
 
 import {
   ContinueConfig,
-  ExperimentalMCPOptions,
-  IContextProvider,
   IDE,
   IdeInfo,
   IdeSettings,
   ILLMLogger,
-  RuleWithSource,
+  InternalMcpOptions,
 } from "../..";
 import { MCPManagerSingleton } from "../../context/mcp/MCPManagerSingleton";
-import DocsContextProvider from "../../context/providers/DocsContextProvider";
-import FileContextProvider from "../../context/providers/FileContextProvider";
-import { contextProviderClassFromName } from "../../context/providers/index";
 import { ControlPlaneClient } from "../../control-plane/client";
 import TransformersJsEmbeddingsProvider from "../../llm/llms/TransformersJsEmbeddingsProvider";
 import { getAllPromptFiles } from "../../promptFiles/getPromptFiles";
@@ -37,43 +32,20 @@ import { modifyAnyConfigWithSharedConfig } from "../sharedConfig";
 
 import { convertPromptBlockToSlashCommand } from "../../commands/slash/promptBlockSlashCommand";
 import { slashCommandFromPromptFile } from "../../commands/slash/promptFileSlashCommand";
+import { loadJsonMcpConfigs } from "../../context/mcp/json/loadJsonMcpConfigs";
 import { getControlPlaneEnvSync } from "../../control-plane/env";
-import { getToolsForIde } from "../../tools";
+import { PolicySingleton } from "../../control-plane/PolicySingleton";
+import { getBaseToolDefinitions } from "../../tools";
 import { getCleanUriPath } from "../../util/uri";
+import { loadConfigContextProviders } from "../loadContextProviders";
 import { getAllDotContinueDefinitionFiles } from "../loadLocalAssistants";
+import { unrollLocalYamlBlocks } from "./loadLocalYamlBlocks";
 import { LocalPlatformClient } from "./LocalPlatformClient";
 import { llmsFromModelConfig } from "./models";
-
-function convertYamlRuleToContinueRule(rule: Rule): RuleWithSource {
-  if (typeof rule === "string") {
-    return {
-      rule: rule,
-      source: "rules-block",
-    };
-  } else {
-    return {
-      source: "rules-block",
-      rule: rule.rule,
-      globs: rule.globs,
-      name: rule.name,
-    };
-  }
-}
-
-function convertYamlMcpToContinueMcp(
-  server: MCPServer,
-): ExperimentalMCPOptions {
-  return {
-    transport: {
-      type: "stdio",
-      command: server.command,
-      args: server.args ?? [],
-      env: server.env,
-      cwd: server.cwd,
-    } as any, // TODO: Fix the mcpServers types in config-yaml (discriminated union)
-    timeout: server.connectionTimeout,
-  };
-}
+import {
+  convertYamlMcpConfigToInternalMcpOptions,
+  convertYamlRuleToContinueRule,
+} from "./yamlToContinueConfig";
 
 async function loadConfigYaml(options: {
   overrideConfigYaml: AssistantUnrolled | undefined;
@@ -93,29 +65,38 @@ async function loadConfigYaml(options: {
   } = options;
 
   // Add local .continue blocks
-  const allLocalBlocks: PackageIdentifier[] = [];
-  for (const blockType of BLOCK_TYPES) {
+  const localBlockPromises = BLOCK_TYPES.map(async (blockType) => {
     const localBlocks = await getAllDotContinueDefinitionFiles(
       ide,
       { includeGlobal: true, includeWorkspace: true, fileExtType: "yaml" },
       blockType,
     );
-    allLocalBlocks.push(
-      ...localBlocks.map((b) => ({
-        uriType: "file" as const,
-        filePath: b.path,
-      })),
-    );
-  }
-
-  const rootPath =
-    packageIdentifier.uriType === "file"
-      ? dirname(getCleanUriPath(packageIdentifier.filePath))
-      : undefined;
+    return localBlocks.map((b) => ({
+      uriType: "file" as const,
+      fileUri: b.path,
+    }));
+  });
+  const localPackageIdentifiers: PackageIdentifier[] = (
+    await Promise.all(localBlockPromises)
+  ).flat();
 
   // logger.info(
   //   `Loading config.yaml from ${JSON.stringify(packageIdentifier)} with root path ${rootPath}`,
   // );
+
+  // Registry client is only used if local blocks are present, but logic same for hub/local assistants
+  const getRegistryClient = async () => {
+    const rootPath =
+      packageIdentifier.uriType === "file"
+        ? dirname(getCleanUriPath(packageIdentifier.fileUri))
+        : undefined;
+    return new RegistryClient({
+      accessToken: await controlPlaneClient.getAccessToken(),
+      apiBase: getControlPlaneEnvSync(ideSettings.continueTestEnvironment)
+        .CONTROL_PLANE_URL,
+      rootPath,
+    });
+  };
 
   const errors: ConfigValidationError[] = [];
 
@@ -123,16 +104,26 @@ async function loadConfigYaml(options: {
 
   if (overrideConfigYaml) {
     config = overrideConfigYaml;
+    if (localPackageIdentifiers.length > 0) {
+      const unrolledLocal = await unrollLocalYamlBlocks(
+        localPackageIdentifiers,
+        ide,
+        await getRegistryClient(),
+        orgScopeId,
+        controlPlaneClient,
+      );
+      if (unrolledLocal.errors) {
+        errors.push(...unrolledLocal.errors);
+      }
+      if (unrolledLocal.config) {
+        config = mergeUnrolledAssistants(config, unrolledLocal.config);
+      }
+    }
   } else {
     // This is how we allow use of blocks locally
     const unrollResult = await unrollAssistant(
       packageIdentifier,
-      new RegistryClient({
-        accessToken: await controlPlaneClient.getAccessToken(),
-        apiBase: getControlPlaneEnvSync(ideSettings.continueTestEnvironment)
-          .CONTROL_PLANE_URL,
-        rootPath,
-      }),
+      await getRegistryClient(),
       {
         renderSecrets: true,
         currentUserSlug: "",
@@ -143,7 +134,7 @@ async function loadConfigYaml(options: {
           controlPlaneClient,
           ide,
         ),
-        injectBlocks: allLocalBlocks,
+        injectBlocks: localPackageIdentifiers,
       },
     );
     config = unrollResult.config;
@@ -172,22 +163,21 @@ async function loadConfigYaml(options: {
   };
 }
 
-async function configYamlToContinueConfig(options: {
+export async function configYamlToContinueConfig(options: {
   config: AssistantUnrolled;
   ide: IDE;
-  ideSettings: IdeSettings;
   ideInfo: IdeInfo;
   uniqueId: string;
   llmLogger: ILLMLogger;
   workOsAccessToken: string | undefined;
 }): Promise<{ config: ContinueConfig; errors: ConfigValidationError[] }> {
-  let { config, ide, ideSettings, ideInfo, uniqueId, llmLogger } = options;
+  let { config, ide, ideInfo, uniqueId, llmLogger } = options;
 
   const localErrors: ConfigValidationError[] = [];
 
   const continueConfig: ContinueConfig = {
     slashCommands: [],
-    tools: await getToolsForIde(ide),
+    tools: getBaseToolDefinitions(),
     mcpServerStatuses: [],
     contextProviders: [],
     modelsByRole: {
@@ -209,6 +199,7 @@ async function configYamlToContinueConfig(options: {
       summarize: null,
     },
     rules: [],
+    requestOptions: { ...config.requestOptions },
   };
 
   // Right now, if there are any missing packages in the config, then we will just throw an error
@@ -226,36 +217,41 @@ async function configYamlToContinueConfig(options: {
   }
 
   for (const rule of config.rules ?? []) {
-    continueConfig.rules.push(convertYamlRuleToContinueRule(rule));
+    const convertedRule = convertYamlRuleToContinueRule(rule);
+    continueConfig.rules.push(convertedRule);
   }
 
-  continueConfig.data = config.data;
+  continueConfig.data = config.data?.map((d) => ({
+    ...d,
+    requestOptions: mergeConfigYamlRequestOptions(
+      d.requestOptions,
+      continueConfig.requestOptions,
+    ),
+  }));
   continueConfig.docs = config.docs?.map((doc) => ({
     title: doc.name,
     startUrl: doc.startUrl,
     rootUrl: doc.rootUrl,
     faviconUrl: doc.faviconUrl,
+    useLocalCrawling: doc.useLocalCrawling,
+    sourceFile: doc.sourceFile,
   }));
 
   config.mcpServers?.forEach((mcpServer) => {
-    const mcpArgVariables =
-      mcpServer.args?.filter((arg) => TEMPLATE_VAR_REGEX.test(arg)) ?? [];
+    if ("args" in mcpServer) {
+      const mcpArgVariables =
+        mcpServer.args?.filter((arg) => TEMPLATE_VAR_REGEX.test(arg)) ?? [];
 
-    if (mcpArgVariables.length === 0) {
-      return;
+      if (mcpArgVariables.length === 0) {
+        return;
+      }
+
+      localErrors.push({
+        fatal: false,
+        message: `MCP server "${mcpServer.name}" has unsubstituted variables in args: ${mcpArgVariables.join(", ")}. Please refer to https://docs.continue.dev/hub/secrets/secret-types for managing hub secrets.`,
+      });
     }
-
-    localErrors.push({
-      fatal: false,
-      message: `MCP server "${mcpServer.name}" has unsubstituted variables in args: ${mcpArgVariables.join(", ")}. Please refer to https://docs.continue.dev/hub/secrets/secret-types for managing hub secrets.`,
-    });
   });
-
-  continueConfig.experimental = {
-    modelContextProtocolServers: config.mcpServers?.map(
-      convertYamlMcpToContinueMcp,
-    ),
-  };
 
   // Prompt files -
   try {
@@ -308,9 +304,7 @@ async function configYamlToContinueConfig(options: {
     try {
       const llms = await llmsFromModelConfig({
         model,
-        ide,
         uniqueId,
-        ideSettings,
         llmLogger,
         config: continueConfig,
       });
@@ -384,58 +378,35 @@ async function configYamlToContinueConfig(options: {
     });
   }
 
-  // Context providers
-  const DEFAULT_CONTEXT_PROVIDERS = [new FileContextProvider({})];
-
-  const DEFAULT_CONTEXT_PROVIDERS_TITLES = DEFAULT_CONTEXT_PROVIDERS.map(
-    ({ description: { title } }) => title,
+  const { providers, errors: contextErrors } = loadConfigContextProviders(
+    config.context,
+    !!config.docs?.length,
+    ideInfo.ideType,
   );
 
-  continueConfig.contextProviders = (config.context
-    ?.map((context) => {
-      const cls = contextProviderClassFromName(context.provider) as any;
-      if (!cls) {
-        if (!DEFAULT_CONTEXT_PROVIDERS_TITLES.includes(context.provider)) {
-          localErrors.push({
-            fatal: false,
-            message: `Unknown context provider ${context.provider}`,
-          });
-        }
-        return undefined;
-      }
-      const instance: IContextProvider = new cls({
-        name: context.name,
-        ...context.params,
-      });
-      return instance;
-    })
-    .filter((p) => !!p) ?? []) as IContextProvider[];
-  continueConfig.contextProviders.push(...DEFAULT_CONTEXT_PROVIDERS);
-
-  if (
-    continueConfig.docs?.length &&
-    !continueConfig.contextProviders?.some(
-      (cp) => cp.description.title === "docs",
-    )
-  ) {
-    continueConfig.contextProviders.push(new DocsContextProvider({}));
-  }
+  continueConfig.contextProviders = providers;
+  localErrors.push(...contextErrors);
 
   // Trigger MCP server refreshes (Config is reloaded again once connected!)
   const mcpManager = MCPManagerSingleton.getInstance();
-  mcpManager.setConnections(
-    (config.mcpServers ?? []).map((server) => ({
-      id: server.name,
-      name: server.name,
-      transport: {
-        type: "stdio",
-        args: [],
-        ...(server as any), // TODO: fix the types on mcpServers in config-yaml
-      },
-      timeout: server.connectionTimeout,
-    })),
-    false,
-  );
+
+  const orgPolicy = PolicySingleton.getInstance().policy;
+  if (orgPolicy?.policy?.allowMcpServers === false) {
+    await mcpManager.shutdown();
+  } else {
+    const mcpOptions: InternalMcpOptions[] = (config.mcpServers ?? []).map(
+      (server) =>
+        convertYamlMcpConfigToInternalMcpOptions(server, config.requestOptions),
+    );
+    const { errors: jsonMcpErrors, mcpServers } = await loadJsonMcpConfigs(
+      ide,
+      true,
+      config.requestOptions,
+    );
+    localErrors.push(...jsonMcpErrors);
+    mcpOptions.push(...mcpServers);
+    mcpManager.setConnections(mcpOptions, false, { ide });
+  }
 
   return { config: continueConfig, errors: localErrors };
 }
@@ -486,7 +457,6 @@ export async function loadContinueConfigFromYaml(options: {
     await configYamlToContinueConfig({
       config: configYamlResult.config,
       ide,
-      ideSettings,
       ideInfo,
       uniqueId,
       llmLogger,

@@ -2,29 +2,32 @@ import {
   ChatHistoryItem,
   ChatMessage,
   ContextItemWithId,
-  ModelDescription,
   RuleWithSource,
   TextMessagePart,
   ToolResultChatMessage,
   UserChatMessage,
 } from "core";
-import {
-  DEFAULT_AGENT_SYSTEM_MESSAGE,
-  DEFAULT_CHAT_SYSTEM_MESSAGE,
-  DEFAULT_PLAN_SYSTEM_MESSAGE,
-} from "core/llm/defaultSystemMessages";
 import { chatMessageIsEmpty } from "core/llm/messages";
 import { getSystemMessageWithRules } from "core/llm/rules/getSystemMessageWithRules";
 import { RulePolicies } from "core/llm/rules/types";
+import { BuiltInToolNames } from "core/tools/builtIn";
+import {
+  CANCELLED_TOOL_CALL_MESSAGE,
+  ERRORED_TOOL_CALL_OUTPUT_MESSAGE,
+  NO_TOOL_CALL_OUTPUT_MESSAGE,
+} from "core/tools/constants";
+import { convertToolCallStatesToSystemCallsAndOutput } from "core/tools/systemMessageTools/convertSystemTools";
+import { SystemMessageToolsFramework } from "core/tools/systemMessageTools/types";
 import { findLast, findLastIndex } from "core/util/findLast";
 import {
   normalizeToMessageParts,
   renderContextItems,
+  renderContextItemsWithStatus,
 } from "core/util/messageContent";
-import { toolCallStateToContextItems } from "../../pages/gui/ToolCallDiv/toolCallStateToContextItem";
+import { toolCallStateToContextItems } from "../../pages/gui/ToolCallDiv/utils";
 
-export const NO_TOOL_CALL_OUTPUT_MESSAGE = "No tool output";
-export const CANCELLED_TOOL_CALL_MESSAGE = "The user cancelled this tool call.";
+// Helper function to render context items and append status information
+// Helper function to render context items and append status information
 
 interface MessageWithContextItems {
   ctxItems: ContextItemWithId[];
@@ -35,12 +38,27 @@ export function constructMessages(
   baseSystemMessage: string | undefined,
   availableRules: RuleWithSource[],
   rulePolicies: RulePolicies,
+  useSystemToolsFramework?: SystemMessageToolsFramework,
 ): {
   messages: ChatMessage[];
   appliedRules: RuleWithSource[];
   appliedRuleIndex: number;
 } {
-  const historyCopy = [...history];
+  // Find the most recent conversation summary and filter history accordingly
+  let summaryContent = "";
+  let filteredHistory = history;
+
+  for (let i = history.length - 1; i >= 0; i--) {
+    const summary = history[i].conversationSummary;
+    if (summary) {
+      summaryContent = summary;
+      // Only include messages that come AFTER the message with the summary
+      filteredHistory = history.slice(i + 1);
+      break;
+    }
+  }
+
+  const historyCopy = [...filteredHistory];
 
   const msgs: MessageWithContextItems[] = [];
   let appliedRuleIndex = -1;
@@ -84,27 +102,54 @@ export function constructMessages(
         message: item.message,
       });
     } else if (item.message.role === "assistant") {
+      // When using system message tools, convert tool calls/states to text content
+      if (item.toolCallStates?.length && useSystemToolsFramework) {
+        const { userMessage, assistantMessage } =
+          convertToolCallStatesToSystemCallsAndOutput(
+            item.message,
+            item.toolCallStates ?? [],
+            useSystemToolsFramework,
+          );
+        msgs.push({
+          message: assistantMessage,
+          ctxItems: [],
+        });
+        msgs.push({
+          message: userMessage,
+          ctxItems: [],
+        });
+        continue;
+      }
+
       msgs.push({
         ctxItems: item.contextItems,
         message: item.message,
       });
 
       // Add a tool message for each tool call
-      if (item.message.toolCalls?.length) {
+      if (item.toolCallStates?.length) {
         // If the assistant message has tool calls, we need to insert tool messages
-        for (const toolCall of item.message.toolCalls) {
+        for (const toolCallState of item.toolCallStates) {
+          const { output, status, toolCall } = toolCallState;
           let content: string = NO_TOOL_CALL_OUTPUT_MESSAGE;
-          // TODO parallel tool calls: toolCallState only supports one tool call per message for now
-          if (item.toolCallState?.status === "canceled") {
+
+          if (status === "canceled") {
             content = CANCELLED_TOOL_CALL_MESSAGE;
-          } else if (
-            item.toolCallState?.toolCallId === toolCall.id &&
-            item.toolCallState?.output
-          ) {
-            content = renderContextItems(item.toolCallState.output);
+          } else if (output) {
+            if (
+              toolCall.function?.name == BuiltInToolNames.RunTerminalCommand
+            ) {
+              // Add status for tools containing detailed status outcomes per context item
+              content = renderContextItemsWithStatus(output);
+            } else {
+              content = renderContextItems(output);
+            }
+          } else if (toolCallState.status === "errored") {
+            content = ERRORED_TOOL_CALL_OUTPUT_MESSAGE;
           }
+
           msgs.push({
-            ctxItems: toolCallStateToContextItems(item.toolCallState),
+            ctxItems: toolCallStateToContextItems(toolCallState),
             message: {
               role: "tool",
               content,
@@ -112,6 +157,19 @@ export function constructMessages(
             },
           });
         }
+      } else if (item.toolCallStates && item.toolCallStates.length > 0) {
+        // This case indicates a potential mismatch - we have tool call states but no message.toolCalls
+        console.error(
+          "ERROR constructMessages: Assistant message has toolCallStates but no message.toolCalls:",
+          {
+            toolCallStates: item.toolCallStates.length,
+            toolCallIds: item.toolCallStates.map((s) => s.toolCallId),
+            messageContent:
+              typeof item.message.content === "string"
+                ? item.message.content?.substring(0, 50) + "..."
+                : "Non-string content",
+          },
+        );
       }
     }
   }
@@ -144,12 +202,20 @@ export function constructMessages(
     rulePolicies,
   });
 
-  if (systemMessage.trim()) {
+  // Append conversation summary to system message if it exists
+  let finalSystemMessage = systemMessage;
+  if (summaryContent) {
+    finalSystemMessage = systemMessage
+      ? `${systemMessage}\n\nPrevious conversation summary:\n\n ${summaryContent}`
+      : `Previous conversation summary:\n\n ${summaryContent}`;
+  }
+
+  if (finalSystemMessage.trim()) {
     msgs.unshift({
       ctxItems: [],
       message: {
         role: "system",
-        content: systemMessage,
+        content: finalSystemMessage,
       },
     });
   }
@@ -160,17 +226,4 @@ export function constructMessages(
     appliedRules,
     appliedRuleIndex,
   };
-}
-
-export function getBaseSystemMessage(
-  messageMode: string,
-  model: ModelDescription,
-): string {
-  if (messageMode === "agent") {
-    return model.baseAgentSystemMessage ?? DEFAULT_AGENT_SYSTEM_MESSAGE;
-  } else if (messageMode === "plan") {
-    return model.basePlanSystemMessage ?? DEFAULT_PLAN_SYSTEM_MESSAGE;
-  } else {
-    return model.baseChatSystemMessage ?? DEFAULT_CHAT_SYSTEM_MESSAGE;
-  }
 }

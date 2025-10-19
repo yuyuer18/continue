@@ -4,6 +4,7 @@ import {
   ModelDescription,
   TemplateType,
 } from "../index.js";
+import { NEXT_EDIT_MODELS } from "./constants.js";
 
 import {
   anthropicTemplateMessages,
@@ -41,10 +42,10 @@ import {
   xWinCoderEditPrompt,
   zephyrEditPrompt,
 } from "./templates/edit.js";
-import { PROVIDER_TOOL_SUPPORT } from "./toolSupport.js";
 
 const PROVIDER_HANDLES_TEMPLATING: string[] = [
   "lmstudio",
+  "lemonade",
   "openai",
   "nvidia",
   "ollama",
@@ -67,6 +68,7 @@ const PROVIDER_HANDLES_TEMPLATING: string[] = [
 const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "openai",
   "ollama",
+  "lemonade",
   "cohere",
   "gemini",
   "msty",
@@ -85,38 +87,25 @@ const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "watsonx",
 ];
 
-const MODEL_SUPPORTS_IMAGES: string[] = [
-  "llava",
-  "gpt-4-turbo",
-  "gpt-4o",
-  "gpt-4o-mini",
-  "gpt-4-vision",
-  "claude-3",
-  "c4ai-aya-vision-8b",
-  "c4ai-aya-vision-32b",
-  "gemini-ultra",
-  "gemini-1.5-pro",
-  "gemini-1.5-flash",
-  "sonnet",
-  "opus",
-  "haiku",
-  "pixtral",
-  "llama3.2",
-  "llama-3.2",
-  "llama4",
-  "granite-vision",
+const MODEL_SUPPORTS_IMAGES: RegExp[] = [
+  /llava/,
+  /gpt-4-turbo/,
+  /gpt-4o/,
+  /gpt-4o-mini/,
+  /claude-3/,
+  /gemini-ultra/,
+  /gemini-1\.5-pro/,
+  /gemini-1\.5-flash/,
+  /sonnet/,
+  /opus/,
+  /haiku/,
+  /pixtral/,
+  /llama-?3\.2/,
+  /llama-?4/, // might use something like /llama-?(?:[4-9](?:\.\d+)?|\d{2,}(?:\.\d+)?)/ for forward compat, if needed
+  /\bgemma-?3(?!n)/, // gemma3 supports vision, but gemma3n doesn't!
+  /\b(pali|med)gemma/,
+  /qwen(.*)vl/,
 ];
-
-function modelSupportsTools(modelDescription: ModelDescription) {
-  if (modelDescription.capabilities?.tools !== undefined) {
-    return modelDescription.capabilities.tools;
-  }
-  const providerSupport = PROVIDER_TOOL_SUPPORT[modelDescription.provider];
-  if (!providerSupport) {
-    return false;
-  }
-  return providerSupport(modelDescription.model) ?? false;
-}
 
 function modelSupportsImages(
   provider: string,
@@ -131,10 +120,14 @@ function modelSupportsImages(
     return false;
   }
 
-  const lower = model.toLowerCase();
+  const lowerModel = model.toLowerCase();
+  const lowerTitle = title?.toLowerCase() ?? "";
+
   if (
+    lowerModel.includes("vision") ||
+    lowerTitle.includes("vision") ||
     MODEL_SUPPORTS_IMAGES.some(
-      (modelName) => lower.includes(modelName) || title?.includes(modelName),
+      (modelrx) => modelrx.test(lowerModel) || modelrx.test(lowerTitle),
     )
   ) {
     return true;
@@ -142,6 +135,26 @@ function modelSupportsImages(
 
   return false;
 }
+
+function modelSupportsReasoning(
+  model: ModelDescription | null | undefined,
+): boolean {
+  if (!model) {
+    return false;
+  }
+  if ("anthropic" === model.underlyingProviderName) {
+    return true;
+  }
+  if (model.model.includes("deepseek-r")) {
+    return true;
+  }
+  if (model.completionOptions?.reasoning) {
+    // Reasoning support is forced at the config level. Model might not necessarily support it though!
+    return true;
+  }
+  return false;
+}
+
 const PARALLEL_PROVIDERS: string[] = [
   "anthropic",
   "bedrock",
@@ -172,6 +185,52 @@ function llmCanGenerateInParallel(provider: string, model: string): boolean {
   return PARALLEL_PROVIDERS.includes(provider);
 }
 
+function isProviderHandlesTemplatingOrNoTemplateTypeRequired(
+  modelName: string,
+): boolean {
+  return (
+    modelName.includes("gpt") ||
+    modelName.includes("command") ||
+    modelName.includes("aya") ||
+    modelName.includes("chat-bison") ||
+    modelName.includes("pplx") ||
+    modelName.includes("gemini") ||
+    modelName.includes("grok") ||
+    modelName.includes("moonshot") ||
+    modelName.includes("kimi") ||
+    modelName.includes("mercury") ||
+    /^o\d/.test(modelName)
+  );
+}
+
+// NOTE: When updating this list,
+// update core/nextEdit/templating/NextEditPromptEngine.ts as well.
+const MODEL_SUPPORTS_NEXT_EDIT: string[] = [
+  NEXT_EDIT_MODELS.MERCURY_CODER,
+  NEXT_EDIT_MODELS.INSTINCT,
+];
+
+function modelSupportsNextEdit(
+  capabilities: ModelCapability | undefined,
+  model: string,
+  title: string | undefined,
+): boolean {
+  if (capabilities?.nextEdit !== undefined) {
+    return capabilities.nextEdit;
+  }
+
+  const lower = model.toLowerCase();
+  if (
+    MODEL_SUPPORTS_NEXT_EDIT.some(
+      (modelName) => lower.includes(modelName) || title?.includes(modelName),
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function autodetectTemplateType(model: string): TemplateType | undefined {
   const lower = model.toLowerCase();
 
@@ -179,20 +238,10 @@ function autodetectTemplateType(model: string): TemplateType | undefined {
     return "codellama-70b";
   }
 
-  if (
-    lower.includes("gpt") ||
-    lower.includes("command") ||
-    lower.includes("aya") ||
-    lower.includes("chat-bison") ||
-    lower.includes("pplx") ||
-    lower.includes("gemini") ||
-    lower.includes("grok") ||
-    lower.includes("moonshot") ||
-    lower.includes("mercury") ||
-    /^o\d/.test(lower)
-  ) {
+  if (isProviderHandlesTemplatingOrNoTemplateTypeRequired(lower)) {
     return undefined;
   }
+
   if (lower.includes("llama3") || lower.includes("llama-3")) {
     return "llama3";
   }
@@ -400,5 +449,6 @@ export {
   autodetectTemplateType,
   llmCanGenerateInParallel,
   modelSupportsImages,
-  modelSupportsTools,
+  modelSupportsNextEdit,
+  modelSupportsReasoning,
 };

@@ -21,7 +21,7 @@
 [Chat]   在 开发工具中 中，通过 快捷键唤起 或 侧边栏对话窗口，开发者无需切换至浏览器或其他应用，即可直接向 大型语言模型（LLM） 发起自然语言请求，即时获取代码解释、调试建议、功能生成 等智能辅助。
 
 
-![chat](docs/static/img/chat.gif)
+<div align="center">
 
 ## 自动完成
 
@@ -40,7 +40,25 @@
 
 [Actions]  预定义快捷键（像 Ctrl/Cmd + [数字]、Alt + 方向键 这类）或 自定义快捷操作，能为 代码编写、调试、重构 等高频开发场景提供一键式解决方案，让开发者无需记忆复杂命令或鼠标操作，就能快速完成代码格式化、函数跳转、版本提交等任务。
 
-![agent](docs/static/img/agent.gif)
+![agent](docs/images/agent.gif)
+
+## Chat
+
+[Chat](https://docs.continue.dev/features/chat/quick-start) to ask general questions and clarify code sections
+
+![chat](docs/images/chat.gif)
+
+## Edit
+
+[Edit](https://docs.continue.dev/features/edit/quick-start) to modify a code section without leaving your current file
+
+![edit](docs/images/edit.gif)
+
+## Autocomplete
+
+[Autocomplete](https://docs.continue.dev/features/autocomplete/quick-start) to receive inline code suggestions as you type
+
+![autocomplete](docs/images/autocomplete.gif)
 
 </div>
  

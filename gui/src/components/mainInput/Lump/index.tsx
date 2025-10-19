@@ -1,53 +1,14 @@
-import styled from "styled-components";
-import {
-  defaultBorderRadius,
-  vscCommandCenterInactiveBorder,
-  vscInputBackground,
-} from "../..";
-import { useLump } from "./LumpContext";
 import { LumpToolbar } from "./LumpToolbar/LumpToolbar";
-import { SelectedSection } from "./sections/SelectedSection";
-
-const LumpDiv = styled.div`
-  background-color: ${vscInputBackground};
-  margin-left: 6px;
-  margin-right: 6px;
-  border-radius: ${defaultBorderRadius} ${defaultBorderRadius} 0 0;
-  border-top: 1px solid ${vscCommandCenterInactiveBorder};
-  border-left: 1px solid ${vscCommandCenterInactiveBorder};
-  border-right: 1px solid ${vscCommandCenterInactiveBorder};
-`;
-
-const ContentDiv = styled.div<{ hasSection: boolean; isVisible: boolean }>`
-  transition:
-    max-height 0.3s ease-in-out,
-    margin 0.3s ease-in-out,
-    opacity 0.2s ease-in-out;
-  max-height: ${(props) => (props.hasSection ? "200px" : "0px")};
-  margin: ${(props) => (props.hasSection ? "4px 0" : "0")};
-  opacity: ${(props) => (props.isVisible ? "1" : "0")};
-  overflow-y: auto;
-`;
 
 /**
- * Internal component that consumes the LumpContext
+ * Simplified toolbar component that only shows the toolbar without expansion
  */
-export function Lump(props: any) {
-  const { isLumpVisible, selectedSection } = useLump();
-
+export function Lump() {
   return (
-    <LumpDiv>
+    <div className="bg-input rounded-t-default border-command-border mx-1.5 border-l border-r border-t">
       <div className="xs:px-2 px-1 py-0.5">
         <LumpToolbar />
-
-        <ContentDiv
-          className="no-scrollbar pr-0.5"
-          hasSection={!!selectedSection}
-          isVisible={isLumpVisible}
-        >
-          <SelectedSection selectChange={props.selectChange} />
-        </ContentDiv>
       </div>
-    </LumpDiv>
+    </div>
   );
 }

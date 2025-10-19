@@ -1,13 +1,18 @@
 import * as YAML from "yaml";
 import { ZodError } from "zod";
+import { mergeConfigYamlRequestOptions, RequestOptions } from "../browser.js";
 import { PlatformClient, Registry } from "../interfaces/index.js";
 import { encodeSecretLocation } from "../interfaces/SecretResult.js";
 import {
   decodeFQSN,
   decodePackageIdentifier,
   encodeFQSN,
+  encodePackageIdentifier,
+  encodePackageSlug,
   FQSN,
   PackageIdentifier,
+  PackageSlug,
+  packageSlugsEqual,
 } from "../interfaces/slugs.js";
 import { markdownToRule } from "../markdown/index.js";
 import {
@@ -20,6 +25,7 @@ import {
   Rule,
 } from "../schemas/index.js";
 import { ConfigResult, ConfigValidationError } from "../validation.js";
+import { BlockDuplicationDetector } from "./blockDuplicationDetector.js";
 import {
   packageIdentifierToShorthandSlug,
   useProxyForUnrenderedSecrets,
@@ -44,12 +50,12 @@ export function parseConfigYaml(configYaml: string): ConfigYaml {
       "cause" in e &&
       e.cause === "result.success was false"
     ) {
-      throw new Error(`Failed to parse assistant: ${e.message}`);
+      throw new Error(`Failed to parse config: ${e.message}`);
     } else if (e instanceof ZodError) {
-      throw new Error(`Failed to parse assistant: ${formatZodError(e)}`);
+      throw new Error(`Failed to parse config: ${formatZodError(e)}`);
     } else {
       throw new Error(
-        `Failed to parse assistant: ${e instanceof Error ? e.message : e}`,
+        `Failed to parse config: ${e instanceof Error ? e.message : e}`,
       );
     }
   }
@@ -64,7 +70,7 @@ export function parseAssistantUnrolled(configYaml: string): AssistantUnrolled {
     console.error(
       `Failed to parse unrolled assistant: ${e.message}\n\n${configYaml}`,
     );
-    throw new Error(`Failed to parse unrolled assistant: ${formatZodError(e)}`);
+    throw new Error(`Failed to parse config: ${formatZodError(e)}`);
   }
 }
 
@@ -196,6 +202,9 @@ async function extractRenderedSecretsMap(
 export interface BaseUnrollAssistantOptions {
   renderSecrets: boolean;
   injectBlocks?: PackageIdentifier[];
+  allowlistedBlocks?: PackageSlug[];
+  blocklistedBlocks?: PackageSlug[];
+  injectRequestOptions?: RequestOptions;
 }
 
 export interface DoNotRenderSecretsUnrollAssistantOptions
@@ -230,6 +239,18 @@ export async function unrollAssistant(
   return result;
 }
 
+export function replaceInputsWithSecrets(yamlContent: string): string {
+  const inputsToSecretsMap: Record<string, string> = {};
+
+  getTemplateVariables(yamlContent)
+    .filter((v) => v.startsWith("inputs."))
+    .forEach((v) => {
+      inputsToSecretsMap[v] = `\${{ ${v.replace("inputs.", "secrets.")} }}`;
+    });
+
+  return fillTemplateVariables(yamlContent, inputsToSecretsMap);
+}
+
 function renderTemplateData(
   rawYaml: string,
   templateData: Partial<TemplateData>,
@@ -261,14 +282,21 @@ export async function unrollAssistantFromContent(
     config: unrolledAssistant,
     configLoadInterrupted,
     errors,
-  } = await unrollBlocks(parsedYaml, registry, options.injectBlocks);
+  } = await unrollBlocks(
+    parsedYaml,
+    registry,
+    options.injectBlocks,
+    options.allowlistedBlocks,
+    options.blocklistedBlocks,
+    options.injectRequestOptions,
+  );
 
   // Back to a string so we can fill in template variables
   const rawUnrolledYaml = YAML.stringify(unrolledAssistant);
 
   // Convert all of the template variables to FQSNs
   // Secrets from the block will have the assistant slug prepended to the FQSN
-  const templatedYaml = renderTemplateData(rawUnrolledYaml, {
+  let templatedYaml = renderTemplateData(rawUnrolledYaml, {
     secrets: extractFQSNMap(rawUnrolledYaml, [id]),
   });
 
@@ -286,40 +314,85 @@ export async function unrollAssistantFromContent(
     options.platformClient,
     options.alwaysUseProxy,
   );
-  const renderedYaml = renderTemplateData(templatedYaml, {
-    secrets,
-  });
+  const renderedYaml = renderTemplateData(templatedYaml, { secrets });
 
   // Parse again and replace models with proxy versions where secrets weren't rendered
-  const finalConfig = useProxyForUnrenderedSecrets(
+  const renderedConfig = useProxyForUnrenderedSecrets(
     parseAssistantUnrolled(renderedYaml),
     id,
     options.orgScopeId,
     options.onPremProxyUrl,
   );
 
-  return {
-    config: finalConfig,
-    errors,
-    configLoadInterrupted,
+  return { config: renderedConfig, errors, configLoadInterrupted };
+}
+
+function isPackageAllowed(
+  pkgId: PackageIdentifier,
+  allowlistedBlocks?: PackageSlug[],
+  blocklistedBlocks?: PackageSlug[],
+): boolean {
+  // Only "slug" type blocks can be allow/block listed
+  if (pkgId.uriType !== "slug") {
+    return true;
+  }
+
+  const packageSlug = {
+    ownerSlug: pkgId.fullSlug.ownerSlug,
+    packageSlug: pkgId.fullSlug.packageSlug,
   };
+
+  if (
+    allowlistedBlocks &&
+    !allowlistedBlocks.some((block) => packageSlugsEqual(block, packageSlug))
+  ) {
+    return false;
+  }
+
+  if (
+    blocklistedBlocks &&
+    blocklistedBlocks.some((block) => packageSlugsEqual(block, packageSlug))
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 export async function unrollBlocks(
   assistant: ConfigYaml,
   registry: Registry,
   injectBlocks: PackageIdentifier[] | undefined,
+  allowlistedBlocks?: PackageSlug[],
+  blocklistedBlocks?: PackageSlug[],
+  injectRequestOptions?: RequestOptions,
 ): Promise<ConfigResult<AssistantUnrolled>> {
   const errors: ConfigValidationError[] = [];
 
   const unrolledAssistant: AssistantUnrolled = {
     name: assistant.name,
     version: assistant.version,
+    requestOptions: assistant.requestOptions,
   };
+
+  if (injectRequestOptions) {
+    unrolledAssistant.requestOptions = mergeConfigYamlRequestOptions(
+      assistant.requestOptions,
+      injectRequestOptions,
+    );
+  } else {
+    unrolledAssistant.requestOptions = assistant.requestOptions;
+  }
 
   const sections: (keyof Omit<
     ConfigYaml,
-    "name" | "version" | "rules" | "schema" | "metadata"
+    | "name"
+    | "version"
+    | "rules"
+    | "schema"
+    | "metadata"
+    | "env"
+    | "requestOptions"
   >)[] = ["models", "context", "data", "mcpServers", "prompts", "docs"];
 
   // Process all sections in parallel
@@ -334,8 +407,29 @@ export async function unrollBlocks(
         // "uses/with" block
         if ("uses" in unrolledBlock) {
           try {
+            const blockIdentifier = decodePackageIdentifier(unrolledBlock.uses);
+
+            if (
+              !isPackageAllowed(
+                blockIdentifier,
+                allowlistedBlocks,
+                blocklistedBlocks,
+              )
+            ) {
+              throw new Error(
+                `${
+                  blockIdentifier.uriType === "slug"
+                    ? encodePackageSlug({
+                        ownerSlug: blockIdentifier.fullSlug.ownerSlug,
+                        packageSlug: blockIdentifier.fullSlug.packageSlug,
+                      })
+                    : encodePackageIdentifier(blockIdentifier)
+                } is block listed and can not be used.`,
+              );
+            }
+
             const blockConfigYaml = await resolveBlock(
-              decodePackageIdentifier(unrolledBlock.uses),
+              blockIdentifier,
               unrolledBlock.with,
               registry,
             );
@@ -366,10 +460,7 @@ export async function unrollBlocks(
             return {
               index,
               block: null,
-              error: {
-                fatal: false,
-                message: msg,
-              },
+              error: { fatal: false, message: msg },
             };
           }
         } else {
@@ -450,26 +541,27 @@ export async function unrollBlocks(
         const injectedBlockPromises = injectBlocks.map(async (injectBlock) => {
           try {
             const blockConfigYaml = await registry.getContent(injectBlock);
-            const parsedBlock = parseMarkdownRuleOrConfigYaml(
-              blockConfigYaml,
+            const blockConfigYamlWithSecrets =
+              replaceInputsWithSecrets(blockConfigYaml);
+            const resolvedBlock = parseMarkdownRuleOrConfigYaml(
+              blockConfigYamlWithSecrets,
               injectBlock,
             );
-            const blockType = getBlockType(parsedBlock);
-            const resolvedBlock = await resolveBlock(
-              injectBlock,
-              undefined,
-              registry,
-            );
+            const blockType = getBlockType(resolvedBlock);
 
             return {
               blockType,
               resolvedBlock,
+              source:
+                injectBlock.uriType === "file"
+                  ? injectBlock.fileUri
+                  : undefined,
               error: null,
             };
           } catch (err) {
             let msg = "";
             if (injectBlock.uriType === "file") {
-              msg = `${(err as Error).message}.\n> ${injectBlock.filePath}`;
+              msg = `${(err as Error).message}.\n> ${injectBlock.fileUri}`;
             } else {
               msg = `${(err as Error).message}.\n> ${injectBlock.fullSlug}`;
             }
@@ -481,17 +573,18 @@ export async function unrollBlocks(
             return {
               blockType: null,
               resolvedBlock: null,
-              error: {
-                fatal: false,
-                message: msg,
-              },
+              error: { fatal: false, message: msg },
             };
           }
         });
 
         const injectedResults = await Promise.all(injectedBlockPromises);
         const injectedErrors: ConfigValidationError[] = [];
-        const injectedBlocks: { blockType: string; resolvedBlock: any }[] = [];
+        const injectedBlocks: {
+          blockType: BlockType;
+          resolvedBlock: any;
+          source?: string;
+        }[] = [];
 
         for (const result of injectedResults) {
           if (result.error) {
@@ -500,6 +593,7 @@ export async function unrollBlocks(
             injectedBlocks.push({
               blockType: result.blockType,
               resolvedBlock: result.resolvedBlock,
+              source: result.source,
             });
           }
         }
@@ -524,25 +618,41 @@ export async function unrollBlocks(
   errors.push(...rulesResult.errors);
   errors.push(...injectedResult.errors);
 
+  const detector = new BlockDuplicationDetector();
+
   // Assign section results
   for (const sectionResult of sectionResults) {
     if (sectionResult.blocks) {
-      unrolledAssistant[sectionResult.section] = sectionResult.blocks;
+      unrolledAssistant[sectionResult.section] = sectionResult.blocks.filter(
+        (block) => !detector.isDuplicated(block, sectionResult.section),
+      );
     }
   }
 
   // Assign rules result
   if (rulesResult.rules) {
-    unrolledAssistant.rules = rulesResult.rules;
+    unrolledAssistant.rules = rulesResult.rules.filter(
+      (rule) => !detector.isDuplicated(rule, "rules"),
+    );
   }
 
   // Add injected blocks
-  for (const { blockType, resolvedBlock } of injectedResult.injectedBlocks) {
-    const key = blockType as BlockType;
+  for (const {
+    blockType,
+    resolvedBlock,
+    source,
+  } of injectedResult.injectedBlocks) {
+    const key = blockType;
     if (!unrolledAssistant[key]) {
       unrolledAssistant[key] = [];
     }
-    unrolledAssistant[key]?.push(...((resolvedBlock[blockType] ?? []) as any));
+
+    const filteredBlocks = injectLocalSourceFile(
+      key,
+      resolvedBlock,
+      source,
+    ).filter((block: any) => !detector.isDuplicated(block, blockType));
+    unrolledAssistant[key]?.push(...filteredBlocks);
   }
 
   const configResult: ConfigResult<AssistantUnrolled> = {
@@ -555,6 +665,39 @@ export async function unrollBlocks(
     configResult.errors = errors;
   }
   return configResult;
+}
+
+function injectLocalSourceFile(
+  blockType: BlockType,
+  resolvedBlock: any,
+  source?: string,
+): (any & { source?: string })[] {
+  const blocks: any[] = resolvedBlock[blockType] ?? [];
+  if (source === undefined) {
+    // If no source is provided, return blocks as is
+    return blocks;
+  }
+  if (blockType === "rules") {
+    // For rules, we need to ensure they are wrapped in an object with a `source
+    return blocks.map((block) => {
+      if (typeof block === "string") {
+        const rule = {
+          sourceFile: source,
+          name: block,
+          rule: block,
+        } as Rule;
+        return rule;
+      } else if (typeof block === "object") {
+        block.sourceFile = source;
+      }
+      return block;
+    });
+  }
+  // For other block types, we can directly inject the source file
+  return blocks.map((block) => ({
+    ...block,
+    sourceFile: source,
+  }));
 }
 
 export async function resolveBlock(
@@ -581,57 +724,46 @@ export async function resolveBlock(
   return parseMarkdownRuleOrAssistantUnrolled(templatedYaml, id);
 }
 
-function parseMarkdownRuleOrAssistantUnrolled(
+export function parseMarkdownRuleOrAssistantUnrolled(
   content: string,
   id: PackageIdentifier,
 ): AssistantUnrolled {
-  // Try to parse as YAML first, then as markdown rule if that fails
-  let parsedYaml: AssistantUnrolled;
-  try {
-    parsedYaml = parseBlock(content);
-  } catch (yamlError) {
-    // If YAML parsing fails, try parsing as markdown rule
-    try {
-      const rule = markdownToRule(content, id);
-      // Convert the rule object to the expected format
-      parsedYaml = {
-        name: rule.name,
-        version: "1.0.0",
-        rules: [rule],
-      };
-    } catch (markdownError) {
-      // If both fail, throw the original YAML error
-      throw yamlError;
-    }
-  }
-
-  return parsedYaml;
+  return parseYamlOrMarkdownRule<AssistantUnrolled>(content, id, parseBlock);
 }
 
 function parseMarkdownRuleOrConfigYaml(
   content: string,
   id: PackageIdentifier,
 ): ConfigYaml {
-  // Try to parse as YAML first, then as markdown rule if that fails
-  let parsedYaml: ConfigYaml;
+  return parseYamlOrMarkdownRule<ConfigYaml>(content, id, parseConfigYaml);
+}
+
+function parseYamlOrMarkdownRule<T>(
+  content: string,
+  id: PackageIdentifier,
+  parseYamlFn: (content: string) => T,
+): T {
+  let parsedYaml: T;
   try {
-    parsedYaml = parseConfigYaml(content);
+    // Try to parse as YAML first, then as markdown rule if that fails
+    parsedYaml = parseYamlFn(content);
   } catch (yamlError) {
+    if (
+      id.uriType === "file" &&
+      [".yaml", ".yml"].some((ext) => id.fileUri.endsWith(ext))
+    ) {
+      throw yamlError;
+    }
     // If YAML parsing fails, try parsing as markdown rule
     try {
       const rule = markdownToRule(content, id);
       // Convert the rule object to the expected format
-      parsedYaml = {
-        name: rule.name,
-        version: "1.0.0",
-        rules: [rule],
-      };
+      parsedYaml = { name: rule.name, version: "1.0.0", rules: [rule] } as T;
     } catch (markdownError) {
       // If both fail, throw the original YAML error
       throw yamlError;
     }
   }
-
   return parsedYaml;
 }
 

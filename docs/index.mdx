@@ -1,45 +1,148 @@
 ---
-title: "Introduction"
+title: "Welcome to Continue"
 icon: book-open
+description: "Practice Continuous AI with an open-source CLI, open-source IDE extensions, and a Hub for custom agents"
 ---
 
 <Frame>
   <img src="/images/intro-0c302b9c15b890c251b1ad04586c880f.png" />
 </Frame>
 
-**Continue enables developers to create, share, and use custom AI code assistants with our open-source [VS Code](https://marketplace.visualstudio.com/items?itemName=Continue.continue) and [JetBrains](https://plugins.jetbrains.com/plugin/22707-continue-extension) extensions and [hub of models, rules, prompts, docs, and other building blocks](https://hub.continue.dev)**
+<Note>
+  **Build faster with AI across your IDE, terminal, and CI/CD pipelines with
+  Continue.**
+</Note>
+
+## Continue CLI
+
+<Info>Terminal-native AI coding assistance with TUI and headless modes.</Info>
+
+<CodeGroup>
+
+    ```bash npm
+    npm install -g @continuedev/cli
+    ```
+
+    ```bash yarn
+    yarn global add @continuedev/cli
+    ```
+
+    ```bash pnpm
+    pnpm add -g @continuedev/cli
+    ```
+
+</CodeGroup>
 
 <CardGroup cols={2}>
   <Card
-    title="Chat"
-    icon="messages"
-    href="/features/chat/quick-start"
-    horizontal
+    title="TUI Mode"
+    icon="terminal"
+    href="/cli/overview#tui-mode%3A-interactive-development"
   >
-    to understand and iterate on code in the sidebar
+    Interactive terminal interface for development workflows
+    <br />
+    <sub>• Automate builds & refactoring</sub>
+    <br />
+    <sub>• Pre-commit hooks & scripted fixes</sub>
+    <br />
+    <sub>• Terminal-first development</sub>
+  </Card>
+  <Card
+    title="Headless Mode"
+    icon="server"
+    href="/cli/overview#headless-mode%3A-production-automation"
+  >
+    Automated AI coding for CI/CD and server environments
+    <br />
+    <sub>• Run in CI/CD pipelines</sub>
+    <br />
+    <sub>• Batch processing & bulk operations</sub>
+    <br />
+    <sub>• Server & container deployments</sub>
+  </Card>
+</CardGroup>
+
+## IDE Extensions
+
+<Info>
+  **Complement your CLI workflow** - Rich editor integrations for interactive
+  development.
+</Info>
+
+<CardGroup cols={2}>
+  <Card
+    title="VS Code"
+    icon="code"
+    href="https://marketplace.visualstudio.com/items?itemName=Continue.continue"
+  >
+    Install from VS Code Marketplace
+    <br />
+    <sub>Real-time coding assistance and refactoring</sub>
+  </Card>
+  <Card
+    title="JetBrains"
+    icon="jet-fighter"
+    href="https://plugins.jetbrains.com/plugin/22707-continue-extension"
+  >
+    Install from JetBrains Plugin Repository
+    <br />
+    <sub>Autocomplete and multi-file edits</sub>
+  </Card>
+</CardGroup>
+
+## Core Features
+
+<CardGroup cols={2}>
+  <Card title="Agent" icon="robot" href="/ide-extensions/agent/quick-start">
+    Multi-step workflows and complex task automation
+  </Card>
+  <Card title="Chat" icon="messages" href="/ide-extensions/chat/quick-start">
+    Ask questions and explore your codebase
+  </Card>
+  <Card title="Edit" icon="pen-to-square" href="/ide-extensions/edit/quick-start">
+    In-place code editing without breaking flow
   </Card>
   <Card
     title="Autocomplete"
     icon="sparkles"
-    href="/features/autocomplete/quick-start"
-    horizontal
+    href="/ide-extensions/autocomplete/quick-start"
   >
-    to receive inline code suggestions as you type
+    Inline AI suggestions as you type
+  </Card>
+</CardGroup>
+
+## Configuration
+
+<CardGroup cols={3}>
+  <Card title="Models" icon="brain" href="/customization/models">
+    Connect your preferred AI models
+  </Card>
+  <Card title="Rules" icon="shield" href="/customization/rules">
+    Configure AI behavior and constraints
+  </Card>
+  <Card title="MCPs" icon="wrench" href="/customization/mcp-tools">
+    Extend functionality with MCP tools
+  </Card>
+</CardGroup>
+
+## Resources
+
+<CardGroup cols={3}>
+  <Card title="Continue Hub" icon="globe" href="https://hub.continue.dev/">
+    Community models, rules, and tools
   </Card>
   <Card
-    title="Edit"
-    icon="pen-to-square"
-    href="/features/edit/quick-start"
-    horizontal
+    title="GitHub Discussions"
+    icon="comments"
+    href="https://github.com/continuedev/continue/discussions"
   >
-    to modify code without leaving your current file
+    Get help from the community
   </Card>
   <Card
-    title="Agent"
-    icon="robot"
-    href="/features/agent/quick-start"
-    horizontal
+    title="CLI Examples"
+    icon="code-branch"
+    href="/guides/overview#continuous-ai"
   >
-    to make more substantial changes to your codebase
+    TUI and headless workflow examples
   </Card>
 </CardGroup>

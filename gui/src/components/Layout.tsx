@@ -1,11 +1,12 @@
 import { OnboardingModes } from "core/protocol/core";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { CustomScrollbarDiv } from ".";
 import { AuthProvider } from "../context/Auth";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import { LocalStorageProvider } from "../context/LocalStorage";
+import TelemetryProviders from "../hooks/TelemetryProviders";
 import { useWebviewListener } from "../hooks/useWebviewListener";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setCodeToEdit } from "../redux/slices/editState";
@@ -13,12 +14,10 @@ import { setDialogMessage, setShowDialog } from "../redux/slices/uiSlice";
 import { enterEdit, exitEdit } from "../redux/thunks/edit";
 import { saveCurrentSession } from "../redux/thunks/session";
 import { fontSize, isMetaEquivalentKeyPressed } from "../util";
-import { incrementFreeTrialCount } from "../util/freeTrial";
 import { ROUTES } from "../util/navigation";
 import { FatalErrorIndicator } from "./config/FatalErrorNotice";
 import TextDialog from "./dialogs";
 import { GenerateRuleDialog } from "./GenerateRuleDialog";
-import { LumpProvider } from "./mainInput/Lump/LumpContext";
 import { useMainEditor } from "./mainInput/TipTapEditor";
 import {
   isNewUserOnboarding,
@@ -42,6 +41,7 @@ const GridDiv = styled.div`
 `;
 
 const Layout = () => {
+  const [showStagingIndicator, setShowStagingIndicator] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
@@ -53,6 +53,20 @@ const Layout = () => {
 
   const showDialog = useAppSelector((state) => state.ui.showDialog);
   const isInEdit = useAppSelector((store) => store.session.isInEdit);
+  const isHome =
+    location.pathname === ROUTES.HOME ||
+    location.pathname === ROUTES.HOME_INDEX;
+
+  useEffect(() => {
+    (async () => {
+      const response = await ideMessenger.request(
+        "controlPlane/getEnvironment",
+        undefined,
+      );
+      response.status === "success" &&
+        setShowStagingIndicator(response.content.AUTH_TYPE.includes("staging"));
+    })();
+  }, []);
 
   useWebviewListener(
     "newSession",
@@ -77,8 +91,8 @@ const Layout = () => {
     async () => {
       return false;
     },
-    [location.pathname],
-    location.pathname === ROUTES.HOME,
+    [isHome],
+    isHome,
   );
 
   useWebviewListener(
@@ -100,8 +114,8 @@ const Layout = () => {
         );
       }
     },
-    [location.pathname, isInEdit],
-    location.pathname === ROUTES.HOME,
+    [isHome, isInEdit],
+    isHome,
   );
 
   useWebviewListener(
@@ -122,14 +136,6 @@ const Layout = () => {
       }
     },
     [location, navigate],
-  );
-
-  useWebviewListener(
-    "incrementFtc",
-    async () => {
-      incrementFreeTrialCount();
-    },
-    [],
   );
 
   useWebviewListener(
@@ -223,19 +229,25 @@ const Layout = () => {
   }, []);
 
   useEffect(() => {
-    if (
-      isNewUserOnboarding() &&
-      (location.pathname === "/" || location.pathname === "/index.html")
-    ) {
+    if (isNewUserOnboarding() && isHome) {
       onboardingCard.open();
     }
-  }, [location]);
+  }, [isHome]);
 
   return (
     <LocalStorageProvider>
       <AuthProvider>
-        <LayoutTopDiv>
-          <LumpProvider>
+        <TelemetryProviders>
+          <LayoutTopDiv>
+            {showStagingIndicator && (
+              <span
+                title="Staging environment"
+                className="absolute right-0 mx-1.5 h-1.5 w-1.5 rounded-full"
+                style={{
+                  backgroundColor: "var(--vscode-list-warningForeground)",
+                }}
+              />
+            )}
             <OSRContextMenu />
             <div
               style={{
@@ -256,15 +268,16 @@ const Layout = () => {
                 message={dialogMessage}
               />
 
-              <GridDiv className="">
+              <GridDiv>
                 <PostHogPageView />
                 <Outlet />
-                <FatalErrorIndicator />
+                {/* The fatal error for chat is shown below input */}
+                {!isHome && <FatalErrorIndicator />}
               </GridDiv>
             </div>
             <div style={{ fontSize: fontSize(-4) }} id="tooltip-portal-div" />
-          </LumpProvider>
-        </LayoutTopDiv>
+          </LayoutTopDiv>
+        </TelemetryProviders>
       </AuthProvider>
     </LocalStorageProvider>
   );

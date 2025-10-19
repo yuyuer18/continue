@@ -16,16 +16,16 @@ describe("Rule Colocation Application", () => {
     {
       name: "Root Rule",
       rule: "Follow project standards",
-      source: "rules-block",
-      ruleFile: ".continue/rules.md",
+      source: "colocated-markdown",
+      sourceFile: ".continue/rules.md",
     },
 
     // Nested directory rule without globs - should only apply to files in that directory
     {
       name: "React Components Rule",
       rule: "Use functional components with hooks",
-      source: "rules-block",
-      ruleFile: "src/components/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/components/rules.md",
       // No explicit globs - should implicitly only apply to files in that directory
     },
 
@@ -34,8 +34,8 @@ describe("Rule Colocation Application", () => {
       name: "Redux Rule",
       rule: "Use Redux Toolkit for state management",
       globs: "src/redux/**/*.{ts,tsx}",
-      source: "rules-block",
-      ruleFile: "src/redux/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/redux/rules.md",
     },
 
     // Directory rule with specific file extension glob
@@ -43,8 +43,8 @@ describe("Rule Colocation Application", () => {
       name: "TypeScript Components Rule",
       rule: "Use TypeScript with React components",
       globs: "**/*.tsx", // Only apply to .tsx files
-      source: "rules-block",
-      ruleFile: "src/components/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/components/rules.md",
     },
 
     // Rule for a specific subdirectory with its own glob
@@ -52,8 +52,8 @@ describe("Rule Colocation Application", () => {
       name: "API Utils Rule",
       rule: "Follow API utility conventions",
       globs: "**/*.ts", // Only TypeScript files in this directory
-      source: "rules-block",
-      ruleFile: "src/utils/api/rules.md",
+      source: "colocated-markdown",
+      sourceFile: "src/utils/api/rules.md",
     },
   ];
 
@@ -183,8 +183,8 @@ describe("Rule Colocation Application", () => {
       const impliedComponentRule: RuleWithSource = {
         name: "Implied Components Rule",
         rule: "Use React component best practices",
-        source: "rules-block",
-        ruleFile: "src/components/rules.md",
+        source: "colocated-markdown",
+        sourceFile: "src/components/rules.md",
         // No explicit globs - should infer from directory
       };
 
@@ -233,8 +233,8 @@ describe("Rule Colocation Application", () => {
         name: "TypeScript Component Rule",
         rule: "Use TypeScript with React components",
         globs: "**/*.tsx", // Only apply to .tsx files
-        source: "rules-block",
-        ruleFile: "src/components/rules.md",
+        source: "colocated-markdown",
+        sourceFile: "src/components/rules.md",
       };
 
       // Test with TSX component file - should apply
@@ -280,8 +280,8 @@ describe("Rule Colocation Application", () => {
         name: "API Utils Rule",
         rule: "Follow API utility conventions",
         globs: "**/*.ts", // Only TypeScript files in this directory
-        source: "rules-block",
-        ruleFile: "src/utils/api/rules.md",
+        source: "colocated-markdown",
+        sourceFile: "src/utils/api/rules.md",
       };
 
       // Test with file in the API utils directory - should apply
@@ -314,17 +314,17 @@ describe("Rule Colocation Application", () => {
       // it should automatically create an implicit glob pattern for that directory.
 
       function createRuleWithAutomaticGlobInference(
-        ruleFilePath: string,
+        sourceFilePath: string,
       ): RuleWithSource {
-        const directory = path.dirname(ruleFilePath);
+        const directory = path.dirname(sourceFilePath);
         // The expected behavior would be to create an implicit glob like this:
         const expectedGlob = `${directory}/**/*`;
 
         return {
           name: `Inferred Rule for ${directory}`,
           rule: `Follow standards for ${directory}`,
-          source: "rules-block",
-          ruleFile: ruleFilePath,
+          source: "colocated-markdown",
+          sourceFile: sourceFilePath,
           // In a fixed implementation, these globs would be automatically inferred
           // globs: expectedGlob,
         };

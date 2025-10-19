@@ -9,9 +9,7 @@
  * creating a render of it.
  */
 import {
-  transformerMetaHighlight,
   transformerNotationDiff,
-  transformerNotationFocus,
   transformerNotationHighlight,
 } from "@shikijs/transformers";
 import { JSDOM } from "jsdom";
@@ -21,7 +19,8 @@ import {
   getSingletonHighlighter,
   Highlighter,
 } from "shiki";
-import { escapeForSVG, kebabOfStr } from "../util/text";
+import { DiffChar, DiffLine } from "..";
+import { escapeForSVG, kebabOfThemeStr } from "../util/text";
 
 interface CodeRendererOptions {
   themesDir?: string;
@@ -37,6 +36,10 @@ interface HTMLOptions {
 interface ConversionOptions extends HTMLOptions {
   transparent?: boolean;
   imageType: "svg";
+  fontSize: number;
+  fontFamily: string;
+  dimensions: Dimensions;
+  lineHeight: number;
 }
 
 interface Dimensions {
@@ -67,28 +70,29 @@ export class CodeRenderer {
 
   public async setTheme(themeName: string): Promise<void> {
     if (
-      this.themeExists(kebabOfStr(themeName)) ||
+      this.themeExists(kebabOfThemeStr(themeName)) ||
       themeName === "Default Dark Modern"
     ) {
       this.currentTheme =
         themeName === "Default Dark Modern"
           ? "dark-plus"
-          : kebabOfStr(themeName);
-
-      this.highlighter = await getSingletonHighlighter({
-        langs: ["typescript"],
-        themes: [this.currentTheme],
-      });
-
-      const th = this.highlighter.getTheme(this.currentTheme);
-
-      this.editorBackground = th.bg;
-      this.editorForeground = th.fg;
-      this.editorLineHighlight =
-        th.colors!["editor.lineHighlightBackground"] ?? "#000000";
+          : kebabOfThemeStr(themeName);
     } else {
+      // Fallback to default theme for unsupported themes.
       this.currentTheme = "dark-plus";
     }
+
+    // Always initialize the highlighter with the current theme.
+    this.highlighter = await getSingletonHighlighter({
+      langs: ["typescript"],
+      themes: [this.currentTheme],
+    });
+
+    const th = this.highlighter.getTheme(this.currentTheme);
+    this.editorBackground = th.bg;
+    this.editorForeground = th.fg;
+    this.editorLineHighlight =
+      th.colors!["editor.lineHighlightBackground"] ?? "#000000";
   }
 
   async init(): Promise<void> {}
@@ -166,88 +170,156 @@ export class CodeRenderer {
     code: string,
     language: string = "javascript",
     currLineOffsetFromTop: number,
+    newDiffLines: DiffLine[],
   ): Promise<string> {
-    const annotatedCode = code
-      .split("\n")
-      .map((line, i) =>
-        i === currLineOffsetFromTop
-          ? line + " \/\/ \[\!code highlight\]"
-          : line,
-      )
-      .join("\n");
+    const lines = code.split("\n");
+    const newDiffLineMap = new Set();
+
+    if (newDiffLines) {
+      newDiffLines.forEach((diffLine) => {
+        if (diffLine.type === "new") {
+          newDiffLineMap.add(diffLine.line);
+        }
+      });
+    }
+
+    const annotatedLines = [];
+
+    // NOTE: Shiki's preprocessor deletes transformer annotations when applied to an empty line.
+    // If you are transforming an empty line, make sure that
+    // the transformation is applied to a non-empty line first.
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Add highlight comment before target line.
+      if (i + 1 === currLineOffsetFromTop && currLineOffsetFromTop >= 0) {
+        annotatedLines.push("// [!code highlight:1]");
+      }
+
+      // Handle diff lines
+      if (newDiffLineMap.has(line)) {
+        if (line.trim() === "") {
+          // For empty lines, add the magic comment on a separate line before.
+          annotatedLines.push("// [!code ++]");
+          annotatedLines.push(line); // The empty line itself.
+        } else {
+          // For non-empty lines, append the magic comment.
+          annotatedLines.push(line + "// [!code ++]");
+        }
+        newDiffLineMap.delete(line);
+      } else {
+        annotatedLines.push(line);
+      }
+    }
+
+    const annotatedCode = annotatedLines.join("\n");
 
     await this.highlighter!.loadLanguage(language as BundledLanguage);
-
     return this.highlighter!.codeToHtml(annotatedCode, {
       lang: language,
       theme: this.currentTheme,
-      transformers: [
-        // transformerColorizedBrackets(),
-        transformerMetaHighlight(),
-        transformerNotationHighlight(),
-        transformerNotationDiff(),
-        transformerNotationFocus(),
-      ],
+      transformers: [transformerNotationHighlight(), transformerNotationDiff()],
     });
   }
 
   async convertToSVG(
     code: string,
     language: string = "javascript",
-    fontSize: number,
-    fontFamily: string,
-    dimensions: Dimensions,
-    lineHeight: number,
     options: ConversionOptions,
     currLineOffsetFromTop: number,
+    newDiffLines: DiffLine[],
+    newDiffChars: DiffChar[],
   ): Promise<Buffer> {
     const strokeWidth = 1;
     const highlightedCodeHtml = await this.highlightCode(
       code,
       language,
       currLineOffsetFromTop,
+      newDiffLines,
     );
-    // console.log(highlightedCodeHtml);
 
     const { guts, lineBackgrounds } = this.convertShikiHtmlToSvgGut(
       highlightedCodeHtml,
-      fontSize,
-      fontFamily,
-      lineHeight,
-      dimensions,
+      options,
+      newDiffChars,
     );
     const backgroundColor = this.getBackgroundColor(highlightedCodeHtml);
+    const borderColor = "#6b6b6b";
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${dimensions.width}" height="${dimensions.height}" shape-rendering="crispEdges">
-  <style>
-    :root {
-      --purple: rgb(112, 114, 209);
-      --green: rgb(136, 194, 163);
-      --blue: rgb(107, 166, 205);
-    }
-  </style>
-  <g>
-  <rect x="0" y="0" rx="10" ry="10" width="${dimensions.width}" height="${dimensions.height}" fill="${this.editorBackground}" shape-rendering="crispEdges" />
-    ${lineBackgrounds}
-    ${guts}
-  </g>
-</svg>`;
-    console.log(svg);
+    const lines = code.split("\n");
+    const actualHeight = lines.length * options.lineHeight;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${options.dimensions.width}" height="${actualHeight}" shape-rendering="crispEdges">
+    <style>
+      :root {
+        --purple: rgb(112, 114, 209);
+        --green: rgb(136, 194, 163);
+        --blue: rgb(107, 166, 205);
+      }
+    </style>
+    <g>
+    <rect x="0" y="0" rx="2" ry="2" width="${options.dimensions.width}" height="${actualHeight}" fill="${backgroundColor}" stroke="${borderColor}" stroke-width="${strokeWidth}" shape-rendering="crispEdges" />
+      ${lineBackgrounds}
+      ${guts}
+    </g>
+  </svg>`;
 
     return Buffer.from(svg, "utf8");
   }
 
   convertShikiHtmlToSvgGut(
     shikiHtml: string,
-    fontSize: number,
-    fontFamily: string,
-    lineHeight: number,
-    dimensions: Dimensions,
+    options: ConversionOptions,
+    diffChars: DiffChar[],
   ): { guts: string; lineBackgrounds: string } {
     const dom = new JSDOM(shikiHtml);
     const document = dom.window.document;
 
     const lines = Array.from(document.querySelectorAll(".line"));
+
+    const additionSegmentsByLine = new Map<
+      number,
+      Array<{ start: number; end: number }>
+    >();
+
+    diffChars.forEach((diff) => {
+      if (
+        diff.type !== "new" ||
+        diff.newLineIndex === undefined ||
+        diff.newCharIndexInLine === undefined
+      ) {
+        return;
+      }
+
+      if (diff.char.includes("\n")) {
+        return;
+      }
+
+      const start = diff.newCharIndexInLine;
+      const end = start + diff.char.length;
+      const existing = additionSegmentsByLine.get(diff.newLineIndex) ?? [];
+      existing.push({ start, end });
+      additionSegmentsByLine.set(diff.newLineIndex, existing);
+    });
+
+    additionSegmentsByLine.forEach((segments, lineIndex) => {
+      segments.sort((a, b) => a.start - b.start);
+      const merged: Array<{ start: number; end: number }> = [];
+      segments.forEach((segment) => {
+        if (merged.length === 0) {
+          merged.push({ ...segment });
+          return;
+        }
+
+        const last = merged[merged.length - 1];
+        if (segment.start <= last.end) {
+          last.end = Math.max(last.end, segment.end);
+        } else {
+          merged.push({ ...segment });
+        }
+      });
+      additionSegmentsByLine.set(lineIndex, merged);
+    });
     const svgLines = lines.map((line, index) => {
       const spans = Array.from(line.childNodes)
         .map((node) => {
@@ -263,6 +335,7 @@ export class CodeRenderer {
           if (classes.includes("highlighted")) {
             fill = ` fill="${this.editorLineHighlight}"`;
           }
+
           const content = el.textContent || "";
           return `<tspan xml:space="preserve"${fill}>${escapeForSVG(content)}</tspan>`;
         })
@@ -278,44 +351,41 @@ export class CodeRenderer {
       // The first step is to add lineHeight / 2 to move the axis down.
       // The second step is to add 'dominant-baseline="central"' to vertically center the text.
       // Note that we choose "central" over "middle". "middle" will center the text too perfectly, which is actually undesirable!
-      const y = index * lineHeight + lineHeight / 2;
-      return `<text x="0" y="${y}" font-family="${fontFamily}" font-size="${fontSize.toString()}" xml:space="preserve" dominant-baseline="central" shape-rendering="crispEdges">${spans}</text>`;
+      const y = index * options.lineHeight + options.lineHeight / 2;
+      return `<text x="0" y="${y}" font-family="${options.fontFamily}" font-size="${options.fontSize.toString()}" xml:space="preserve" dominant-baseline="central" shape-rendering="crispEdges">${spans}</text>`;
     });
+
+    const estimatedCharWidth = options.fontSize * 0.6;
+    const additionFill = "rgba(40, 167, 69, 0.25)";
 
     const lineBackgrounds = lines
       .map((line, index) => {
         const classes = line?.getAttribute("class") || "";
-        const bgColor = classes.includes("highlighted")
-          ? this.editorLineHighlight
-          : this.editorBackground;
-        const y = index * lineHeight;
-        const isFirst = index === 0;
-        const isLast = index === lines.length - 1;
-        const radius = 10;
-        // SVG notes:
-        // By default SVGs have anti-aliasing on.
-        // This is undesirable in our case because pixel-perfect alignment of these rectangles will introduce thin gaps.
-        // Turning it off with 'shape-rendering="crispEdges"' solves the issue.
-        return isFirst
-          ? `<path d="M ${0} ${y + lineHeight} 
-           L ${0} ${y + radius} 
-           Q ${0} ${y} ${radius} ${y} 
-           L ${dimensions.width - radius} ${y} 
-           Q ${dimensions.width} ${y} ${dimensions.width} ${y + radius} 
-           L ${dimensions.width} ${y + lineHeight}  
-           Z" 
-        fill="${bgColor}" />`
-          : isLast
-            ? `<path d="M ${0} ${y} 
-           L ${0} ${y + lineHeight - radius} 
-           Q ${0} ${y + lineHeight} ${radius} ${y + lineHeight} 
-           L ${dimensions.width - radius} ${y + lineHeight} 
-           Q ${dimensions.width} ${y + lineHeight} ${dimensions.width} ${y + lineHeight - 10} 
-           L ${dimensions.width} ${y}  
-           Z" 
-        fill="${bgColor}" />`
-            : `<rect x="0" y="${y}" rx="${radius}" ry="${radius}" width="100%" height="${lineHeight}" fill="${bgColor}" shape-rendering="crispEdges" />`;
+        const y = index * options.lineHeight;
+        const segments = additionSegmentsByLine.get(index) ?? [];
+        const backgrounds: string[] = [];
+
+        if (classes.includes("highlighted")) {
+          backgrounds.push(
+            `<rect x="0" y="${y}" width="100%" height="${options.lineHeight}" fill="${this.editorLineHighlight}" shape-rendering="crispEdges" />`,
+          );
+        }
+
+        segments.forEach(({ start, end }) => {
+          const widthInChars = Math.max(end - start, 0);
+          if (widthInChars <= 0) {
+            return;
+          }
+          const x = start * estimatedCharWidth;
+          const segmentWidth = widthInChars * estimatedCharWidth;
+          backgrounds.push(
+            `<rect x="${x}" y="${y}" width="${segmentWidth}" height="${options.lineHeight}" fill="${additionFill}" shape-rendering="crispEdges" />`,
+          );
+        });
+
+        return backgrounds.join("\n");
       })
+      .filter((bg) => bg.length > 0)
       .join("\n");
 
     return {
@@ -344,12 +414,10 @@ export class CodeRenderer {
   async getDataUri(
     code: string,
     language: string = "javascript",
-    fontSize: number,
-    fontFamily: string,
-    dimensions: Dimensions,
-    lineHeight: number,
     options: ConversionOptions,
     currLineOffsetFromTop: number,
+    newDiffLines: DiffLine[],
+    newDiffChars: DiffChar[],
   ): Promise<DataUri> {
     switch (options.imageType) {
       // case "png":
@@ -366,12 +434,10 @@ export class CodeRenderer {
         const svgBuffer = await this.convertToSVG(
           code,
           language,
-          fontSize,
-          fontFamily,
-          dimensions,
-          lineHeight,
           options,
           currLineOffsetFromTop,
+          newDiffLines,
+          newDiffChars,
         );
         return `data:image/svg+xml;base64,${svgBuffer.toString("base64")}`;
     }

@@ -42,6 +42,8 @@ export const EDIT_CODE_INSTRUCTIONS = `\
   仅在用户明确要求时提供完整文件。除非用户特别注明"仅需代码"，否则应附带简明的修改说明。
 `;
 
+const BRIEF_LAZY_INSTRUCTIONS = `For larger codeblocks (>20 lines), use brief language-appropriate placeholders for unmodified sections, e.g. '// ... existing code ...'`;
+
 export const DEFAULT_CHAT_SYSTEM_MESSAGE = `\
 <important_rules>
   您当前处于对话模式
@@ -57,7 +59,14 @@ export const DEFAULT_AGENT_SYSTEM_MESSAGE = `\
 <important_rules>
  您的当前处理代理模型(Agent Mode).
 
+  If you need to use multiple tools, you can call multiple read only tools simultaneously.
+
 ${CODEBLOCK_FORMATTING_INSTRUCTIONS}
+
+${BRIEF_LAZY_INSTRUCTIONS}
+
+However, only output codeblocks for suggestion and demonstration purposes, for example, when enumerating multiple hypothetical options. For implementing changes, use the edit tools.
+
 </important_rules>`;
 
 // The note about read-only tools is for MCP servers
@@ -68,7 +77,10 @@ export const DEFAULT_PLAN_SYSTEM_MESSAGE = `\
 （工作限制说明：  仅使用只读工具, 不执行任何永久性文件修改 若需实际操作： 可切换至代理模式（Agent mode），获取文件写入权限以执行修改建议
 
 ${CODEBLOCK_FORMATTING_INSTRUCTIONS}
-${EDIT_CODE_INSTRUCTIONS}
+
+${BRIEF_LAZY_INSTRUCTIONS}
+
+However, only output codeblocks for suggestion and planning purposes. When ready to implement changes, request to switch to Agent mode.
 
  前处于规划模式，请注意： 核心原则,仅当直接建议修改时才生成代码, 优先进行需求理解和方案设计
 </important_rules>`;

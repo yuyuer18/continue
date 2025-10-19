@@ -4,9 +4,9 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 export const createNewFileTool: Tool = {
   type: "function",
   displayTitle: "Create New File",
-  wouldLikeTo: "create a new file at {{{ filepath }}}",
-  isCurrently: "creating a new file at {{{ filepath }}}",
-  hasAlready: "created a new file at {{{ filepath }}}",
+  wouldLikeTo: "create {{{ filepath }}}",
+  isCurrently: "creating {{{ filepath }}}",
+  hasAlready: "created {{{ filepath }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
   isInstant: true,
@@ -29,5 +29,13 @@ export const createNewFileTool: Tool = {
         },
       },
     },
+  },
+  defaultToolPolicy: "allowedWithPermission",
+  systemMessageDescription: {
+    prefix: `To create a NEW file, use the ${BuiltInToolNames.CreateNewFile} tool with the relative filepath and new contents. For example, to create a file located at 'path/to/file.txt', you would respond with:`,
+    exampleArgs: [
+      ["filepath", "path/to/the_file.txt"],
+      ["contents", "Contents of the file"],
+    ],
   },
 };

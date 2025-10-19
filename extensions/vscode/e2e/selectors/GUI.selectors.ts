@@ -32,16 +32,14 @@ export class GUISelectors {
   }
 
   public static getAcceptToolCallButton(view: WebView) {
-    return SelectorUtils.getElementByDataTestId(
-      view,
-      "accept-tool-call-button",
+    return view.findWebElement(
+      By.css("[data-testid*='accept-tool-call-button']"),
     );
   }
 
   public static getRejectToolCallButton(view: WebView) {
-    return SelectorUtils.getElementByDataTestId(
-      view,
-      "reject-tool-call-button",
+    return view.findWebElement(
+      By.css("[data-testid*='reject-tool-call-button']"),
     );
   }
 
@@ -49,11 +47,12 @@ export class GUISelectors {
     return SelectorUtils.getElementByDataTestId(view, "tool-call-title");
   }
 
-  public static getToolButton(view: WebView) {
-    return SelectorUtils.getElementByDataTestId(
-      view,
-      `block-settings-toolbar-icon-tools`,
-    );
+  public static getToolsTab(view: WebView) {
+    return SelectorUtils.getElementByDataTestId(view, "tab-tools");
+  }
+
+  public static getBackButton(view: WebView) {
+    return SelectorUtils.getElementByDataTestId(view, "tab-back");
   }
 
   public static getToolPolicyButton(view: WebView, toolName: string) {
@@ -102,12 +101,7 @@ export class GUISelectors {
   }
 
   public static getNthMessageDeleteButton(view: WebView, index: number) {
-    const adjustedIndex = 1 + index * 2;
-
-    return SelectorUtils.getElementByDataTestId(
-      view,
-      `delete-button-${adjustedIndex}`,
-    );
+    return SelectorUtils.getElementByDataTestId(view, `delete-button-${index}`);
   }
 
   public static getModelDropdownOption(view: WebView, option: string) {
@@ -155,6 +149,10 @@ export class GUISelectors {
 
   public static getHistoryNavButton(view: WebView) {
     return SelectorUtils.getElementByAriaLabel(view, "View History");
+  }
+
+  public static getSettingsNavButton(view: WebView) {
+    return SelectorUtils.getElementByAriaLabel(view, "Open Settings");
   }
 
   public static getNewSessionNavButton(view: WebView) {

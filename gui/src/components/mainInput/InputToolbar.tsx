@@ -1,24 +1,28 @@
 import {
   AtSymbolIcon,
-  LightBulbIcon,
+  LightBulbIcon as LightBulbIconOutline,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
+import { LightBulbIcon as LightBulbIconSolid } from "@heroicons/react/24/solid";
 import { InputModifiers } from "core";
-import { modelSupportsImages, modelSupportsTools } from "core/llm/autodetect";
-import { useContext, useRef } from "react";
+import {
+  modelSupportsImages,
+  modelSupportsReasoning,
+} from "core/llm/autodetect";
+import { memo, useContext, useRef } from "react";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { selectUseActiveFile } from "../../redux/selectors";
 import { selectSelectedChatModel } from "../../redux/slices/configSlice";
 import { setHasReasoningEnabled } from "../../redux/slices/sessionSlice";
 import { exitEdit } from "../../redux/thunks/edit";
-import { getAltKeyLabel, isMetaEquivalentKeyPressed } from "../../util";
-import { cn } from "../../util/cn";
+import { getMetaKeyLabel, isMetaEquivalentKeyPressed } from "../../util";
 import { ToolTip } from "../gui/Tooltip";
 import ModelSelect from "../modelSelection/ModelSelect";
 import { ModeSelect } from "../ModeSelect";
+import { Button } from "../ui";
 import { useFontSize } from "../ui/font";
-import { EnterButton } from "./InputToolbar/EnterButton";
+import ContextStatus from "./ContextStatus";
 import HoverItem from "./InputToolbar/HoverItem";
 
 export interface ToolbarOptions {
@@ -52,11 +56,8 @@ function InputToolbar(props: InputToolbarProps) {
   const hasReasoningEnabled = useAppSelector(
     (store) => store.session.hasReasoningEnabled,
   );
-
   const isEnterDisabled =
     props.disabled || (isInEdit && codeToEdit.length === 0);
-
-  const toolsSupported = defaultModel && modelSupportsTools(defaultModel);
 
   const supportsImages =
     defaultModel &&
@@ -67,6 +68,8 @@ function InputToolbar(props: InputToolbarProps) {
       defaultModel.capabilities,
     );
 
+  const supportsReasoning = modelSupportsReasoning(defaultModel);
+
   const smallFont = useFontSize(-2);
   const tinyFont = useFontSize(-3);
 
@@ -74,26 +77,24 @@ function InputToolbar(props: InputToolbarProps) {
     <>
       <div
         onClick={props.onClick}
-        className={`find-widget-skip bg-vsc-input-background flex select-none flex-row items-center justify-between gap-1 pt-1 ${props.hidden ? "pointer-events-none h-0 cursor-default opacity-0" : "pointer-events-auto cursor-text opacity-100"}`}
+        className={`find-widget-skip bg-vsc-input-background flex select-none flex-row items-center justify-between gap-1 pt-1 ${props.hidden ? "pointer-events-none h-0 cursor-default opacity-0" : "pointer-events-auto mt-2 cursor-text opacity-100"}`}
         style={{
           fontSize: smallFont,
         }}
       >
         <div className="xs:gap-1.5 flex flex-row items-center gap-1">
           {!isInEdit && (
-            <HoverItem data-tooltip-id="mode-select-tooltip" className="!p-0">
-              <ModeSelect />
-              <ToolTip id="mode-select-tooltip" place="top">
-                Select Mode
-              </ToolTip>
-            </HoverItem>
-          )}
-          <HoverItem data-tooltip-id="model-select-tooltip" className="!p-0">
-            <ModelSelect />
-            <ToolTip id="model-select-tooltip" place="top">
-              Select Model
+            <ToolTip place="top" content="Select Mode">
+              <HoverItem className="!p-0">
+                <ModeSelect />
+              </HoverItem>
             </ToolTip>
-          </HoverItem>
+          )}
+          <ToolTip place="top" content="Select Model">
+            <HoverItem className="!p-0">
+              <ModelSelect />
+            </HoverItem>
+          </ToolTip>
           <div className="xs:flex text-description -mb-1 hidden items-center transition-colors duration-200">
             {props.toolbarOptions?.hideImageUpload ||
               (supportsImages && (
@@ -113,51 +114,45 @@ function InputToolbar(props: InputToolbarProps) {
                       }
                     }}
                   />
-                  <HoverItem className="">
-                    <PhotoIcon
-                      className="h-3 w-3 hover:brightness-125"
-                      data-tooltip-id="image-tooltip"
-                      onClick={(e) => {
-                        fileInputRef.current?.click();
-                      }}
-                    />
 
-                    <ToolTip id="image-tooltip" place="top">
-                      Attach Image
-                    </ToolTip>
-                  </HoverItem>
+                  <ToolTip place="top" content="Attach Image">
+                    <HoverItem className="">
+                      <PhotoIcon
+                        className="h-3 w-3 hover:brightness-125"
+                        onClick={(e) => {
+                          fileInputRef.current?.click();
+                        }}
+                      />
+                    </HoverItem>
+                  </ToolTip>
                 </>
               ))}
             {props.toolbarOptions?.hideAddContext || (
-              <HoverItem onClick={props.onAddContextItem}>
-                <AtSymbolIcon
-                  data-tooltip-id="add-context-item-tooltip"
-                  className="h-3 w-3 hover:brightness-125"
-                />
-
-                <ToolTip id="add-context-item-tooltip" place="top">
-                  附加上下文
-                </ToolTip>
-              </HoverItem>
+              <ToolTip place="top" content="附加上下文">
+                <HoverItem onClick={props.onAddContextItem}>
+                  <AtSymbolIcon className="h-3 w-3 hover:brightness-125" />
+                </HoverItem>
+              </ToolTip>
             )}
-            {defaultModel?.provider === "anthropic" && (
+            {supportsReasoning && (
               <HoverItem
                 onClick={() =>
                   dispatch(setHasReasoningEnabled(!hasReasoningEnabled))
                 }
               >
-                <LightBulbIcon
-                  data-tooltip-id="model-reasoning-tooltip"
-                  className={cn(
-                    "h-3 w-3 hover:brightness-150",
-                    hasReasoningEnabled && "brightness-200",
+                <ToolTip
+                  place="top"
+                  content={
+                    hasReasoningEnabled
+                      ? "Disable model reasoning"
+                      : "Enable model reasoning"
+                  }
+                >
+                  {hasReasoningEnabled ? (
+                    <LightBulbIconSolid className="h-3 w-3 brightness-200 hover:brightness-150" />
+                  ) : (
+                    <LightBulbIconOutline className="h-3 w-3 hover:brightness-150" />
                   )}
-                />
-
-                <ToolTip id="model-reasoning-tooltip" place="top">
-                  {hasReasoningEnabled
-                    ? "Disable model reasoning"
-                    : "Enable model reasoning"}
                 </ToolTip>
               </HoverItem>
             )}
@@ -170,12 +165,17 @@ function InputToolbar(props: InputToolbarProps) {
             fontSize: tinyFont,
           }}
         >
+          {!isInEdit && <ContextStatus />}
           {!props.toolbarOptions?.hideUseCodebase && !isInEdit && (
-            <div
-              className={`${toolsSupported ? "md:flex" : "int:flex"} hover:underline" hidden transition-colors duration-200`}
-            >
+            <div className="hidden transition-colors duration-200 hover:underline md:flex">
               <HoverItem
-                className={props.activeKey === "Alt" ? "underline" : ""}
+                className={
+                  props.activeKey === "Meta" ||
+                  props.activeKey === "Control" ||
+                  props.activeKey === "Alt"
+                    ? "underline"
+                    : ""
+                }
                 onClick={(e) =>
                   props.onEnter?.({
                     useCodebase: false,
@@ -183,15 +183,18 @@ function InputToolbar(props: InputToolbarProps) {
                   })
                 }
               >
-                <span data-tooltip-id="add-active-file-context-tooltip">
-                  {getAltKeyLabel()}⏎{" "}
-                  {useActiveFile ? "No active file" : "Active file"}
-                </span>
-                <ToolTip id="add-active-file-context-tooltip" place="top-end">
-                  {useActiveFile
-                    ? "Send Without Active File"
-                    : "Send With Active File"}{" "}
-                  ({getAltKeyLabel()}⏎)
+                <ToolTip
+                  place="top-end"
+                  content={`${
+                    useActiveFile
+                      ? "Send Without Active File"
+                      : "Send With Active File"
+                  } (${getMetaKeyLabel()}⏎)`}
+                >
+                  <span>
+                    {getMetaKeyLabel()}⏎{" "}
+                    {useActiveFile ? "No active file" : "Active file"}
+                  </span>
                 </ToolTip>
               </HoverItem>
             </div>
@@ -209,33 +212,53 @@ function InputToolbar(props: InputToolbarProps) {
               </span>
             </HoverItem>
           )}
-
-          <EnterButton
-            data-tooltip-id="enter-tooltip"
-            isPrimary={props.isMainInput}
-            data-testid="submit-input-button"
-            onClick={async (e) => {
-              if (props.onEnter) {
-                props.onEnter({
-                  useCodebase: isMetaEquivalentKeyPressed(e as any),
-                  noContext: useActiveFile ? e.altKey : !e.altKey,
-                });
-              }
-            }}
-            disabled={isEnterDisabled}
-          >
-            <span className="hidden md:inline">
-              ⏎ {props.toolbarOptions?.enterText ?? "发送"}
-            </span>
-            <span className="md:hidden">⏎</span>
-            <ToolTip id="enter-tooltip" place="top">
-              Send (⏎)
-            </ToolTip>
-          </EnterButton>
+          <ToolTip place="top" content="Send (⏎)">
+            <Button
+              variant={props.isMainInput ? "primary" : "secondary"}
+              size="sm"
+              data-testid="submit-input-button"
+              onClick={async (e) => {
+                if (props.onEnter) {
+                  props.onEnter({
+                    useCodebase: false,
+                    noContext: useActiveFile
+                      ? isMetaEquivalentKeyPressed(e as any) || e.altKey
+                      : !(isMetaEquivalentKeyPressed(e as any) || e.altKey),
+                  });
+                }
+              }}
+              disabled={isEnterDisabled}
+            >
+              <span className="hidden md:inline">
+                ⏎ {props.toolbarOptions?.enterText ?? "Enter"}
+              </span>
+              <span className="md:hidden">⏎</span>
+            </Button>
+          </ToolTip>
         </div>
       </div>
     </>
   );
 }
 
-export default InputToolbar;
+function shallowToolbarOptionsEqual(a?: ToolbarOptions, b?: ToolbarOptions) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.hideAddContext === b.hideAddContext &&
+    a.hideImageUpload === b.hideImageUpload &&
+    a.hideUseCodebase === b.hideUseCodebase &&
+    a.hideSelectModel === b.hideSelectModel &&
+    a.enterText === b.enterText
+  );
+}
+
+export default memo(
+  InputToolbar,
+  (prev, next) =>
+    prev.hidden === next.hidden &&
+    prev.disabled === next.disabled &&
+    prev.isMainInput === next.isMainInput &&
+    prev.activeKey === next.activeKey &&
+    shallowToolbarOptionsEqual(prev.toolbarOptions, next.toolbarOptions),
+);

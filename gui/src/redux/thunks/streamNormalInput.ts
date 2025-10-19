@@ -1,80 +1,90 @@
 import { createAsyncThunk, unwrapResult } from "@reduxjs/toolkit";
-import { LLMFullCompletionOptions, ModelDescription, Tool } from "core";
-import { modelSupportsTools } from "core/llm/autodetect";
+import { LLMFullCompletionOptions, ModelDescription } from "core";
 import { getRuleId } from "core/llm/rules/getSystemMessageWithRules";
 import { ToCoreProtocol } from "core/protocol";
-import { BuiltInToolNames } from "core/tools/builtIn";
 import { selectActiveTools } from "../selectors/selectActiveTools";
-import { selectCurrentToolCall } from "../selectors/selectCurrentToolCall";
 import { selectSelectedChatModel } from "../slices/configSlice";
 import {
   abortStream,
   addPromptCompletionPair,
+  errorToolCall,
   setActive,
   setAppliedRulesAtIndex,
+  setContextPercentage,
   setInactive,
+  setInlineErrorMessage,
+  setIsPruned,
   setToolGenerated,
   streamUpdate,
 } from "../slices/sessionSlice";
 import { ThunkApiType } from "../store";
+import { constructMessages } from "../util/constructMessages";
+
+import { modelSupportsNativeTools } from "core/llm/toolSupport";
+import { addSystemMessageToolsToSystemMessage } from "core/tools/systemMessageTools/buildToolsSystemMessage";
+import { interceptSystemToolCalls } from "core/tools/systemMessageTools/interceptSystemToolCalls";
+import { SystemMessageToolCodeblocksFramework } from "core/tools/systemMessageTools/toolCodeblocks";
+import posthog from "posthog-js";
 import {
-  constructMessages,
-  getBaseSystemMessage,
-} from "../util/constructMessages";
-import { callCurrentTool } from "./callCurrentTool";
+  selectCurrentToolCalls,
+  selectPendingToolCalls,
+} from "../selectors/selectToolCalls";
+import { getBaseSystemMessage } from "../util/getBaseSystemMessage";
+import { callToolById } from "./callToolById";
+import { evaluateToolPolicies } from "./evaluateToolPolicies";
+import { preprocessToolCalls } from "./preprocessToolCallArgs";
+import { streamResponseAfterToolCall } from "./streamResponseAfterToolCall";
 
 /**
- * Filters tools based on the selected model's capabilities.
- * Returns either the edit file tool or search and replace tool, but not both.
+ * Builds completion options with reasoning configuration based on session state and model capabilities.
+ *
+ * @param baseOptions - Base completion options to extend
+ * @param hasReasoningEnabled - Whether reasoning is enabled in the session
+ * @param model - The selected model with provider and completion options
+ * @returns Completion options with reasoning configuration
  */
-function filterToolsForModel(
-  tools: Tool[],
-  selectedModel: ModelDescription,
-): Tool[] {
-  const editFileTool = tools.find(
-    (tool) => tool.function.name === BuiltInToolNames.EditExistingFile,
-  );
-  const searchAndReplaceTool = tools.find(
-    (tool) => tool.function.name === BuiltInToolNames.SearchAndReplaceInFile,
-  );
-
-  // If we don't have both tools, return tools as-is
-  if (!editFileTool || !searchAndReplaceTool) {
-    return tools;
+function buildReasoningCompletionOptions(
+  baseOptions: LLMFullCompletionOptions,
+  hasReasoningEnabled: boolean | undefined,
+  model: ModelDescription,
+): LLMFullCompletionOptions {
+  if (hasReasoningEnabled === undefined) {
+    return baseOptions;
   }
 
-  // Determine which tool to use based on the model
-  const shouldUseFindReplace = shouldUseFindReplaceEdits(selectedModel);
+  const reasoningOptions: LLMFullCompletionOptions = {
+    ...baseOptions,
+    reasoning: !!hasReasoningEnabled,
+  };
 
-  // Filter out the unwanted tool
-  return tools.filter((tool) => {
-    if (tool.function.name === BuiltInToolNames.EditExistingFile) {
-      return !shouldUseFindReplace;
-    }
-    if (tool.function.name === BuiltInToolNames.SearchAndReplaceInFile) {
-      return shouldUseFindReplace;
-    }
-    return true;
-  });
-}
+  // Add reasoning budget tokens if reasoning is enabled and provider supports it
+  if (hasReasoningEnabled && model.underlyingProviderName !== "ollama") {
+    // Ollama doesn't support limiting reasoning tokens at this point
+    reasoningOptions.reasoningBudgetTokens =
+      model.completionOptions?.reasoningBudgetTokens ?? 2048;
+  }
 
-/**
- * Determines whether to use search and replace tool instead of edit file
- * Right now we only know that this is reliable with Claude models
- */
-function shouldUseFindReplaceEdits(model: ModelDescription): boolean {
-  return model.model.includes("claude");
+  return reasoningOptions;
 }
 
 export const streamNormalInput = createAsyncThunk<
   void,
   {
     legacySlashCommandData?: ToCoreProtocol["llm/streamChat"][0]["legacySlashCommandData"];
+    depth?: number;
   },
   ThunkApiType
 >(
   "chat/streamNormalInput",
-  async ({ legacySlashCommandData }, { dispatch, extra, getState }) => {
+  async (
+    { legacySlashCommandData, depth = 0 },
+    { dispatch, extra, getState },
+  ) => {
+    if (process.env.NODE_ENV === "test" && depth > 50) {
+      const message = `Max stream depth of ${50} reached in test`;
+      console.error(message, JSON.stringify(getState(), null, 2));
+      throw new Error(message);
+    }
     const state = getState();
     const selectedChatModel = selectSelectedChatModel(state);
 
@@ -83,41 +93,57 @@ export const streamNormalInput = createAsyncThunk<
     }
 
     // Get tools and filter them based on the selected model
-    const allActiveTools = selectActiveTools(state);
-    const activeTools = filterToolsForModel(allActiveTools, selectedChatModel);
-    const toolsSupported = modelSupportsTools(selectedChatModel);
+    const activeTools = selectActiveTools(state);
+
+    // Use the centralized selector to determine if system message tools should be used
+    const useNativeTools = state.config.config.experimental
+      ?.onlyUseSystemMessageTools
+      ? false
+      : modelSupportsNativeTools(selectedChatModel);
+    const systemToolsFramework = !useNativeTools
+      ? new SystemMessageToolCodeblocksFramework()
+      : undefined;
 
     // Construct completion options
     let completionOptions: LLMFullCompletionOptions = {};
-    if (toolsSupported && activeTools.length > 0) {
+    if (useNativeTools && activeTools.length > 0) {
       completionOptions = {
         tools: activeTools,
       };
     }
 
-    if (state.session.hasReasoningEnabled) {
-      completionOptions = {
-        ...completionOptions,
-        reasoning: true,
-        reasoningBudgetTokens: completionOptions.reasoningBudgetTokens ?? 2048,
-      };
-    }
+    completionOptions = buildReasoningCompletionOptions(
+      completionOptions,
+      state.session.hasReasoningEnabled,
+      selectedChatModel,
+    );
 
     // Construct messages (excluding system message)
     const baseSystemMessage = getBaseSystemMessage(
       state.session.mode,
       selectedChatModel,
+      activeTools,
     );
+
+    const systemMessage = systemToolsFramework
+      ? addSystemMessageToolsToSystemMessage(
+          systemToolsFramework,
+          baseSystemMessage,
+          activeTools,
+        )
+      : baseSystemMessage;
 
     const withoutMessageIds = state.session.history.map((item) => {
       const { id, ...messageWithoutId } = item.message;
       return { ...item, message: messageWithoutId };
     });
+
     const { messages, appliedRules, appliedRuleIndex } = constructMessages(
       withoutMessageIds,
-      baseSystemMessage,
+      systemMessage,
       state.config.config.rules,
       state.ui.ruleSettings,
+      systemToolsFramework,
     );
 
     // TODO parallel tool calls will cause issues with this
@@ -130,91 +156,213 @@ export const streamNormalInput = createAsyncThunk<
     );
 
     dispatch(setActive());
+    dispatch(setInlineErrorMessage(undefined));
 
-    // Send request and stream response
+    const precompiledRes = await extra.ideMessenger.request("llm/compileChat", {
+      messages,
+      options: completionOptions,
+    });
+
+    if (precompiledRes.status === "error") {
+      if (precompiledRes.error.includes("Not enough context")) {
+        dispatch(setInlineErrorMessage("out-of-context"));
+        dispatch(setInactive());
+        return;
+      } else {
+        throw new Error(precompiledRes.error);
+      }
+    }
+
+    const { compiledChatMessages, didPrune, contextPercentage } =
+      precompiledRes.content;
+
+    dispatch(setIsPruned(didPrune));
+    dispatch(setContextPercentage(contextPercentage));
+
+    const start = Date.now();
     const streamAborter = state.session.streamAborter;
-    const gen = extra.ideMessenger.llmStreamChat(
-      {
-        completionOptions,
-        title: selectedChatModel.title,
-        messages: messages,
-        legacySlashCommandData,
-      },
-      streamAborter.signal,
-    );
-
-    let next = await gen.next();
-    while (!next.done) {
-      if (!getState().session.isStreaming) {
-        dispatch(abortStream());
-        break;
+    try {
+      let gen = extra.ideMessenger.llmStreamChat(
+        {
+          completionOptions,
+          title: selectedChatModel.title,
+          messages: compiledChatMessages,
+          legacySlashCommandData,
+          messageOptions: { precompiled: true },
+        },
+        streamAborter.signal,
+      );
+      if (systemToolsFramework && activeTools.length > 0) {
+        gen = interceptSystemToolCalls(
+          gen,
+          streamAborter,
+          systemToolsFramework,
+        );
       }
 
-      dispatch(streamUpdate(next.value));
-      next = await gen.next();
-    }
+      let next = await gen.next();
+      while (!next.done) {
+        if (!getState().session.isStreaming) {
+          dispatch(abortStream());
+          break;
+        }
 
-    // Attach prompt log and end thinking for reasoning models
-    if (next.done && next.value) {
-      dispatch(addPromptCompletionPair([next.value]));
+        dispatch(streamUpdate(next.value));
+        next = await gen.next();
+      }
 
-      try {
-        extra.ideMessenger.post("devdata/log", {
-          name: "chatInteraction",
-          data: {
-            prompt: next.value.prompt,
-            completion: next.value.completion,
-            modelProvider: selectedChatModel.underlyingProviderName,
-            modelTitle: selectedChatModel.title,
-            sessionId: state.session.id,
-            ...(!!activeTools.length && {
-              tools: activeTools.map((tool) => tool.function.name),
+      // Attach prompt log and end thinking for reasoning models
+      if (next.done && next.value) {
+        dispatch(addPromptCompletionPair([next.value]));
+
+        try {
+          extra.ideMessenger.post("devdata/log", {
+            name: "chatInteraction",
+            data: {
+              prompt: next.value.prompt,
+              completion: next.value.completion,
+              modelProvider: selectedChatModel.underlyingProviderName,
+              modelName: selectedChatModel.title,
+              modelTitle: selectedChatModel.title,
+              sessionId: state.session.id,
+              ...(!!activeTools.length && {
+                tools: activeTools.map((tool) => tool.function.name),
+              }),
+              ...(appliedRules.length > 0 && {
+                rules: appliedRules.map((rule) => ({
+                  id: getRuleId(rule),
+                  rule: rule.rule,
+                  slug: rule.slug,
+                })),
+              }),
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send dev data interaction log", e);
+        }
+      }
+    } catch (e) {
+      const toolCallsToCancel = selectCurrentToolCalls(getState());
+      posthog.capture("stream_premature_close_error", {
+        duration: (Date.now() - start) / 1000,
+        model: selectedChatModel.model,
+        provider: selectedChatModel.underlyingProviderName,
+        context: legacySlashCommandData ? "slash_command" : "regular_chat",
+        ...(legacySlashCommandData && {
+          command: legacySlashCommandData.command.name,
+        }),
+      });
+      if (
+        toolCallsToCancel.length > 0 &&
+        e instanceof Error &&
+        e.message.toLowerCase().includes("premature close")
+      ) {
+        for (const tc of toolCallsToCancel) {
+          dispatch(
+            errorToolCall({
+              toolCallId: tc.toolCallId,
+              output: [
+                {
+                  name: "Tool Call Error",
+                  description: "Premature Close",
+                  content: `"Premature Close" error: this tool call was aborted mid-stream because the arguments took too long to stream or there were network issues. Please re-attempt by breaking the operation into smaller chunks or trying something else`,
+                  icon: "problems",
+                },
+              ],
             }),
-            rules: appliedRules.map((rule) => ({
-              id: getRuleId(rule),
-              rule: rule.rule,
-            })),
-          },
-        });
-        // else if (state.session.mode === "edit") {
-        //   extra.ideMessenger.post("devdata/log", {
-        //     name: "editInteraction",
-        //     data: {
-        //       prompt: next.value.prompt,
-        //       completion: next.value.completion,
-        //       modelProvider: selectedChatModel.provider,
-        //       modelTitle: selectedChatModel.title,
-        //     },
-        //   });
-        // }
-      } catch (e) {
-        console.error("Failed to send dev data interaction log", e);
+          );
+        }
+      } else {
+        throw e;
       }
     }
 
-    // If it's a tool call that is automatically accepted, we should call it
-    const newState = getState();
-    const toolSettings = newState.ui.toolSettings;
-    const toolCallState = selectCurrentToolCall(newState);
-    if (toolCallState) {
+    // Tool call sequence:
+    // 1. Mark generating tool calls as generated
+    const state1 = getState();
+    if (streamAborter.signal.aborted || !state1.session.isStreaming) {
+      return;
+    }
+    const originalToolCalls = selectCurrentToolCalls(state1);
+    const generatingCalls = originalToolCalls.filter(
+      (tc) => tc.status === "generating",
+    );
+    for (const { toolCallId } of generatingCalls) {
       dispatch(
         setToolGenerated({
-          toolCallId: toolCallState.toolCallId,
-          tools: state.config.config.tools,
+          toolCallId,
+          tools: state1.config.config.tools,
         }),
       );
+    }
 
-      if (
-        toolSettings[toolCallState.toolCall.function.name] ===
-        "allowedWithoutPermission"
-      ) {
-        const response = await dispatch(callCurrentTool());
-        unwrapResult(response);
-      } else {
-        dispatch(setInactive());
-      }
-    } else {
+    // 2. Pre-process args to catch invalid args before checking policies
+    const state2 = getState();
+    if (streamAborter.signal.aborted || !state2.session.isStreaming) {
+      return;
+    }
+    const generatedCalls2 = selectPendingToolCalls(state2);
+    await preprocessToolCalls(dispatch, extra.ideMessenger, generatedCalls2);
+
+    // 3. Security check: evaluate updated policies based on args
+    const state3 = getState();
+    if (streamAborter.signal.aborted || !state3.session.isStreaming) {
+      return;
+    }
+    const generatedCalls3 = selectPendingToolCalls(state3);
+    const toolPolicies = state3.ui.toolSettings;
+    const policies = await evaluateToolPolicies(
+      dispatch,
+      extra.ideMessenger,
+      activeTools,
+      generatedCalls3,
+      toolPolicies,
+      state3.config.config.ui?.autoAcceptEditToolDiffs,
+    );
+    const anyRequireApproval = policies.find(
+      ({ policy }) => policy === "allowedWithPermission",
+    );
+
+    // 4. Execute remaining tool calls
+    // Only set inactive if not all tools were auto-approved
+    // This prevents UI flashing for auto-approved tools
+    if (originalToolCalls.length === 0 || anyRequireApproval) {
       dispatch(setInactive());
+    } else {
+      // auto stream cases increase thunk depth by 1 for debugging
+      const state4 = getState();
+      const generatedCalls4 = selectPendingToolCalls(state4);
+      if (streamAborter.signal.aborted || !state4.session.isStreaming) {
+        return;
+      }
+      if (generatedCalls4.length > 0) {
+        // All that didn't fail are auto approved - call them
+        await Promise.all(
+          generatedCalls4.map(async ({ toolCallId }) => {
+            unwrapResult(
+              await dispatch(
+                callToolById({
+                  toolCallId,
+                  isAutoApproved: true,
+                  depth: depth + 1,
+                }),
+              ),
+            );
+          }),
+        );
+      } else {
+        // All failed - stream on
+        for (const { toolCallId } of originalToolCalls) {
+          unwrapResult(
+            await dispatch(
+              streamResponseAfterToolCall({
+                toolCallId,
+                depth: depth + 1,
+              }),
+            ),
+          );
+        }
+      }
     }
   },
 );

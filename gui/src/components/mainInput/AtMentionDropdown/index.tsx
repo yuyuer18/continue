@@ -32,6 +32,7 @@ import FileIcon from "../../FileIcon";
 import SafeImg from "../../SafeImg";
 import AddDocsDialog from "../../dialogs/AddDocsDialog";
 import HeaderButtonWithToolTip from "../../gui/HeaderButtonWithToolTip";
+import { Button } from "../../ui";
 import { NAMED_ICONS } from "../icons";
 import type { ComboBoxItem, ComboBoxItemType } from "../types";
 
@@ -117,6 +118,7 @@ const QueryInput = styled.textarea`
   background-color: #fff1;
   border: 1px solid ${lightGray};
   border-radius: ${defaultBorderRadius};
+  overflow: hidden;
 
   padding: 0.2rem 0.4rem;
   width: 240px;
@@ -243,15 +245,15 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
         .run();
 
       // Trigger warning message
-      ideMessenger.ide.showToast(
+      void ideMessenger.ide.showToast(
         "warning",
-        fileSize > 0 ? "文件超出上下文长度。" : "无法加载文件",
+        fileSize > 0 ? "文件超出模型的上下文长度" : "加载文件错误",
         {
           modal: true,
           detail:
             fileSize > 0
-              ? `'${item.title}' ${formatFileSize(fileSize)} 这超出了允许的上下文长度，模型无法处理`
-              : `'${item.title}' 无法加载。请检查文件是否存在且具有正确的权限.`,
+              ? `'${item.title}' 无法添加，因为它超出了模型允许的上下文长度。文件大小： ${formatFileSize(fileSize)}`
+              : `'${item.title}' 无法加载。请检查文件是否存在以及是否具有正确的权限.`,
         },
       );
     } else {
@@ -366,8 +368,9 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
 
     if (item) {
       if (item.type === "file" && item.query) {
-        isItemTooBig(item.type, item.query).then(([fileExceeds, fileSize]) =>
-          handleItemTooBig(fileExceeds, fileSize, item),
+        void isItemTooBig(item.type, item.query).then(
+          ([fileExceeds, fileSize]) =>
+            handleItemTooBig(fileExceeds, fileSize, item),
         );
       } else {
         props.command({ ...item, itemType: item.type });
@@ -454,34 +457,53 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   return (
     <ItemsDiv>
       {querySubmenuItem ? (
-        <QueryInput
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-          rows={1}
-          ref={queryInputRef}
-          placeholder={querySubmenuItem.description}
-          onKeyDown={(e) => {
-            if (!queryInputRef.current) {
-              return;
-            }
-            if (e.key === "Enter") {
-              if (e.shiftKey) {
-                queryInputRef.current.innerText += "\n";
-              } else {
-                props.command({
-                  ...querySubmenuItem,
-                  itemType: querySubmenuItem.type,
-                  query: queryInputRef.current.value,
-                  label: `${querySubmenuItem.label}: ${queryInputRef.current.value}`,
-                });
+        <span className="flex items-center gap-x-1">
+          <QueryInput
+            wrap="off"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            rows={1}
+            ref={queryInputRef}
+            placeholder={querySubmenuItem.description}
+            onKeyDown={(e) => {
+              if (!queryInputRef.current) {
+                return;
               }
-            } else if (e.key === "Escape") {
-              setQuerySubmenuItem(undefined);
-              setSubMenuTitle(undefined);
+              if (e.key === "Enter") {
+                if (e.shiftKey) {
+                  queryInputRef.current.innerText += "\n";
+                } else {
+                  props.command({
+                    ...querySubmenuItem,
+                    itemType: querySubmenuItem.type,
+                    query: queryInputRef.current.value,
+                    label: `${querySubmenuItem.label}: ${queryInputRef.current.value}`,
+                  });
+                }
+              } else if (e.key === "Escape") {
+                setQuerySubmenuItem(undefined);
+                setSubMenuTitle(undefined);
+              }
+            }}
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            className="m-0"
+            disabled={!queryInputRef.current}
+            onClick={() =>
+              props.command({
+                ...querySubmenuItem,
+                itemType: querySubmenuItem.type,
+                query: queryInputRef.current!.value,
+                label: `${querySubmenuItem.label}: ${queryInputRef.current!.value}`,
+              })
             }
-          }}
-        />
+          >
+            ⏎
+          </Button>
+        </span>
       ) : (
         <>
           {subMenuTitle && <ItemDiv className="mb-2">{subMenuTitle}</ItemDiv>}

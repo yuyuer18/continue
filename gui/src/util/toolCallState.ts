@@ -1,4 +1,5 @@
 import { ToolCallDelta, ToolCallState } from "core";
+import { BuiltInToolNames } from "core/tools/builtIn";
 import { incrementalParseJson } from "core/util/incrementalParseJson";
 
 // Merge streamed tool calls
@@ -8,16 +9,16 @@ export function addToolCallDeltaToState(
   toolCallDelta: ToolCallDelta,
   currentState: ToolCallState | undefined,
 ): ToolCallState {
-  // This prevents multiple tool calls for now, by ignoring new tool call ids
+  const currentCall = currentState?.toolCall;
+
+  // If we have a current state and the delta has a different ID, ignore the delta
   if (
+    currentState &&
     toolCallDelta.id &&
-    currentState?.toolCallId &&
-    toolCallDelta.id !== currentState?.toolCallId
+    currentCall?.id !== toolCallDelta.id
   ) {
     return currentState;
   }
-
-  const currentCall = currentState?.toolCall;
 
   // These will/should not be partially streamed
   const callType = toolCallDelta.type ?? "function";
@@ -44,13 +45,11 @@ export function addToolCallDeltaToState(
     // If args is JSON parseable, it is complete, don't add to it
     JSON.parse(currentArgs);
   } catch (e) {
-    if (argsDelta.startsWith(currentArgs)) {
-      // Case where model progresssively streams args but full args each time e.g. "{"file": "file1"}" -> "{"file": "file1", "line": 1}"
-      mergedArgs = argsDelta;
-    } else if (!currentArgs.startsWith(argsDelta)) {
-      // Case where model streams in args in parts e.g. "{"file": "file1"" -> ", "line": 1}"
-      mergedArgs = currentArgs + argsDelta;
-    }
+    // Model streams in args in parts e.g. "{"file": "file1"" -> ", "line": 1}"
+    mergedArgs = currentArgs + argsDelta;
+
+    // Note, removed case where model progresssively streams args but full args each time e.g. "{"file": "file1"}" -> "{"file": "file1", "line": 1}"
+    // Because no apis do this and difficult to detect reliably
   }
 
   const [_, parsedArgs] = incrementalParseJson(mergedArgs || "{}");
@@ -68,4 +67,13 @@ export function addToolCallDeltaToState(
     toolCallId: callId,
     parsedArgs,
   };
+}
+
+const editToolNames: string[] = [
+  BuiltInToolNames.EditExistingFile,
+  BuiltInToolNames.SingleFindAndReplace,
+  BuiltInToolNames.MultiEdit,
+];
+export function isEditTool(toolName: string) {
+  return editToolNames.includes(toolName);
 }

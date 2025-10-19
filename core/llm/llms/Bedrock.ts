@@ -1,41 +1,34 @@
 import {
   BedrockRuntimeClient,
   ContentBlock,
+  ContentBlockDelta,
+  ContentBlockStart,
+  ContentBlockStartEvent,
   ConversationRole,
   ConverseStreamCommand,
   ConverseStreamCommandOutput,
   ImageFormat,
   InvokeModelCommand,
   Message,
+  ReasoningContentBlockDelta,
   ToolConfiguration,
+  ToolUseBlock,
+  ToolUseBlockDelta,
 } from "@aws-sdk/client-bedrock-runtime";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
-import {
-  ChatMessage,
-  Chunk,
-  CompletionOptions,
-  LLMOptions,
-  MessageContent,
-} from "../../index.js";
+import type { CompletionOptions } from "../../index.js";
+import { ChatMessage, Chunk, LLMOptions, MessageContent } from "../../index.js";
 import { safeParseToolCallArgs } from "../../tools/parseArgs.js";
 import { renderChatMessage, stripImages } from "../../util/messageContent.js";
 import { BaseLLM } from "../index.js";
 import { PROVIDER_TOOL_SUPPORT } from "../toolSupport.js";
 import { getSecureID } from "../utils/getSecureID.js";
+import { withLLMRetry } from "../utils/retry.js";
 
 interface ModelConfig {
   formatPayload: (text: string) => any;
   extractEmbeddings: (responseBody: any) => number[][];
-}
-
-/**
- * Interface for tool use state tracking
- */
-interface ToolUseState {
-  toolUseId: string;
-  name: string;
-  input: string;
 }
 
 /**
@@ -54,7 +47,6 @@ class Bedrock extends BaseLLM {
     profile: "bedrock",
   };
 
-  private _currentToolResponse: Partial<ToolUseState> | null = null;
   private _promptCachingMetrics: PromptCachingMetrics = {
     cacheReadInputTokens: 0,
     cacheWriteInputTokens: 0,
@@ -89,6 +81,7 @@ class Bedrock extends BaseLLM {
     }
   }
 
+  @withLLMRetry()
   protected async *_streamChat(
     messages: ChatMessage[],
     signal: AbortSignal,
@@ -132,16 +125,9 @@ class Bedrock extends BaseLLM {
     });
     const command = new ConverseStreamCommand(input);
 
-    let response: ConverseStreamCommandOutput;
-    try {
-      response = (await client.send(command, {
-        abortSignal: signal,
-      })) as ConverseStreamCommandOutput;
-    } catch (error: unknown) {
-      console.error(error);
-      const message = error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Failed to communicate with Bedrock API: ${message}`);
-    }
+    const response = (await client.send(command, {
+      abortSignal: signal,
+    })) as ConverseStreamCommandOutput;
 
     if (!response?.stream) {
       throw new Error("No stream received from Bedrock API");
@@ -159,119 +145,100 @@ class Bedrock extends BaseLLM {
           console.log(`${JSON.stringify(chunk.metadata.usage)}`);
         }
 
-        if (chunk.contentBlockDelta?.delta) {
-          const delta: any = chunk.contentBlockDelta.delta;
-
+        const contentBlockDelta: ContentBlockDelta | undefined =
+          chunk.contentBlockDelta?.delta;
+        if (contentBlockDelta) {
           // Handle text content
-          if (chunk.contentBlockDelta.delta.text) {
+          if (contentBlockDelta.text) {
             yield {
               role: "assistant",
-              content: chunk.contentBlockDelta.delta.text,
+              content: contentBlockDelta.text,
             };
             continue;
           }
-
-          // Handle text content
-          if ((chunk.contentBlockDelta.delta as any).reasoningContent?.text) {
+          if (contentBlockDelta.reasoningContent?.text) {
             yield {
               role: "thinking",
-              content: (chunk.contentBlockDelta.delta as any).reasoningContent
-                .text,
+              content: contentBlockDelta.reasoningContent.text,
             };
             continue;
           }
-
-          // Handle signature for thinking
-          if (delta.reasoningContent?.signature) {
+          if (contentBlockDelta.reasoningContent?.signature) {
             yield {
               role: "thinking",
               content: "",
-              signature: delta.reasoningContent.signature,
+              signature: contentBlockDelta.reasoningContent.signature,
             };
-            continue;
-          }
-
-          // Handle redacted thinking
-          if (delta.redactedReasoning?.data) {
-            yield {
-              role: "thinking",
-              content: "",
-              redactedThinking: delta.redactedReasoning.data,
-            };
-            continue;
-          }
-
-          if (
-            chunk.contentBlockDelta.delta.toolUse?.input &&
-            this._currentToolResponse
-          ) {
-            // Append the new input to the existing string
-            if (this._currentToolResponse.input === undefined) {
-              this._currentToolResponse.input = "";
-            }
-            this._currentToolResponse.input +=
-              chunk.contentBlockDelta.delta.toolUse.input;
             continue;
           }
         }
 
-        if (chunk.contentBlockStart?.start) {
-          const start: any = chunk.contentBlockStart.start;
-          if (start.redactedReasoning) {
+        const reasoningDelta: ReasoningContentBlockDelta | undefined = chunk
+          .contentBlockDelta?.delta as ReasoningContentBlockDelta;
+        if (reasoningDelta) {
+          if (reasoningDelta.redactedContent) {
             yield {
               role: "thinking",
               content: "",
-              redactedThinking: start.redactedReasoning.data,
+              redactedThinking: reasoningDelta.text,
             };
             continue;
           }
-
-          const toolUse = chunk.contentBlockStart.start.toolUse;
-          if (toolUse?.toolUseId && toolUse?.name) {
-            this._currentToolResponse = {
-              toolUseId: toolUse.toolUseId,
-              name: toolUse.name,
-              input: "",
-            };
-          }
-          continue;
         }
 
-        if (chunk.contentBlockStop) {
-          if (this._currentToolResponse) {
-            yield {
-              role: "assistant",
-              content: "",
-              toolCalls: [
-                {
-                  id: this._currentToolResponse.toolUseId,
-                  type: "function",
-                  function: {
-                    name: this._currentToolResponse.name,
-                    arguments: this._currentToolResponse.input,
-                  },
+        const toolUseBlockDelta: ToolUseBlockDelta | undefined = chunk
+          .contentBlockDelta?.delta?.toolUse as ToolUseBlockDelta;
+        const toolUseBlock: ToolUseBlock | undefined = chunk.contentBlockDelta
+          ?.delta?.toolUse as ToolUseBlock;
+        if (toolUseBlockDelta && toolUseBlock) {
+          yield {
+            role: "assistant",
+            content: "",
+            toolCalls: [
+              {
+                id: toolUseBlock.toolUseId,
+                type: "function",
+                function: {
+                  name: toolUseBlock.name,
+                  arguments: toolUseBlockDelta.input,
                 },
-              ],
-            };
-            this._currentToolResponse = null;
-          }
+              },
+            ],
+          };
           continue;
+        }
+
+        const contentBlockStart: ContentBlockStartEvent | undefined =
+          chunk.contentBlockStart as ContentBlockStartEvent;
+        if (contentBlockStart) {
+          const start: ContentBlockStart | undefined = chunk.contentBlockStart
+            ?.start as ContentBlockStart;
+          if (start) {
+            const toolUseBlock: ToolUseBlock | undefined =
+              start.toolUse as ToolUseBlock;
+            if (toolUseBlock?.toolUseId && toolUseBlock?.name) {
+              yield {
+                role: "assistant",
+                content: "",
+                toolCalls: [
+                  {
+                    id: toolUseBlock.toolUseId,
+                    type: "function",
+                    function: {
+                      name: toolUseBlock.name,
+                      arguments: "",
+                    },
+                  },
+                ],
+              };
+              continue;
+            }
+          }
         }
       }
     } catch (error: unknown) {
-      this._currentToolResponse = null;
-      if (error instanceof Error) {
-        if ("code" in error) {
-          // AWS SDK specific errors
-          throw new Error(
-            `AWS Bedrock stream error (${(error as any).code}): ${error.message}`,
-          );
-        }
-        throw new Error(`Error processing Bedrock stream: ${error.message}`);
-      }
-      throw new Error(
-        "Error processing Bedrock stream: Unknown error occurred",
-      );
+      // Clean up state and let the original error bubble up to the retry decorator
+      throw error;
     }
   }
 
@@ -367,6 +334,9 @@ class Bedrock extends BaseLLM {
               type: "enabled",
               budget_tokens: options.reasoningBudgetTokens,
             }
+          : undefined,
+        anthropic_beta: options.model.includes("claude")
+          ? ["fine-grained-tool-streaming-2025-05-14"]
           : undefined,
       },
     };
@@ -533,7 +503,10 @@ class Bedrock extends BaseLLM {
     // The second-to-last because it retrieves potentially already cached contents,
     // The last one because we want it cached for later retrieval.
     // See: https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html
-    if (this.cacheBehavior?.cacheConversation) {
+    if (
+      this.cacheBehavior?.cacheConversation ||
+      this.completionOptions.promptCaching
+    ) {
       this._addCachingToLastTwoUserMessages(converted);
     }
 

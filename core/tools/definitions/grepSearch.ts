@@ -4,9 +4,9 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 export const grepSearchTool: Tool = {
   type: "function",
   displayTitle: "Grep Search",
-  wouldLikeTo: 'search for "{{{ query }}}" in the repository',
-  isCurrently: 'getting search results for "{{{ query }}}"',
-  hasAlready: 'retrieved search results for "{{{ query }}}"',
+  wouldLikeTo: 'search for "{{{ query }}}"',
+  isCurrently: 'searching for "{{{ query }}}"',
+  hasAlready: 'searched for "{{{ query }}}"',
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -26,4 +26,10 @@ export const grepSearchTool: Tool = {
       },
     },
   },
+  defaultToolPolicy: "allowedWithoutPermission",
+  systemMessageDescription: {
+    prefix: `To perform a grep search within the project, call the ${BuiltInToolNames.GrepSearch} tool with the query pattern to match. For example:`,
+    exampleArgs: [["query", ".*main_services.*"]],
+  },
+  toolCallIcon: "MagnifyingGlassIcon",
 };

@@ -9,10 +9,20 @@ import * as JSONC from "comment-json";
 import dotenv from "dotenv";
 
 import { IdeType, SerializedContinueConfig } from "../";
-import { defaultConfig, defaultConfigJetBrains } from "../config/default";
+import { defaultConfig } from "../config/default";
 import Types from "../config/types";
 
 dotenv.config();
+
+export function setConfigFilePermissions(filePath: string): void {
+  try {
+    if (os.platform() !== "win32") {
+      fs.chmodSync(filePath, 0o600);
+    }
+  } catch (error) {
+    console.warn(`Failed to set permissions on ${filePath}:`, error);
+  }
+}
 
 const CONTINUE_GLOBAL_DIR = (() => {
   const configPath = process.env.CONTINUE_GLOBAL_DIR;
@@ -110,10 +120,14 @@ export function getConfigYamlPath(ideType?: IdeType): string {
   const p = path.join(getContinueGlobalPath(), "config.yaml");
   if (!fs.existsSync(p) && !fs.existsSync(getConfigJsonPath())) {
     if (ideType === "jetbrains") {
-      fs.writeFileSync(p, YAML.stringify(defaultConfigJetBrains));
+      // https://github.com/continuedev/continue/pull/7224
+      // This was here because we had different context provider support between jetbrains and vs code
+      // Leaving so we could differentiate later but for now configs are the same between IDEs
+      fs.writeFileSync(p, YAML.stringify(defaultConfig));
     } else {
       fs.writeFileSync(p, YAML.stringify(defaultConfig));
     }
+    setConfigFilePermissions(p);
   }
   return p;
 }
@@ -252,12 +266,14 @@ function editConfigJson(
 }
 
 function editConfigYaml(callback: (config: ConfigYaml) => ConfigYaml): void {
-  const config = fs.readFileSync(getConfigYamlPath(), "utf8");
+  const configPath = getConfigYamlPath();
+  const config = fs.readFileSync(configPath, "utf8");
   let configYaml = YAML.parse(config);
   // Check if it's an object
   if (typeof configYaml === "object" && configYaml !== null) {
     configYaml = callback(configYaml as any) as any;
-    fs.writeFileSync(getConfigYamlPath(), YAML.stringify(configYaml));
+    fs.writeFileSync(configPath, YAML.stringify(configYaml));
+    setConfigFilePermissions(configPath);
   } else {
     console.warn("config.yaml is not a valid object");
   }
@@ -391,10 +407,6 @@ export function getGlobalFolderWithName(name: string): string {
 
 export function getGlobalPromptsPath(): string {
   return getGlobalFolderWithName("prompts");
-}
-
-export function getGlobalAssistantsPath(): string {
-  return getGlobalFolderWithName("assistants");
 }
 
 export function readAllGlobalPromptFiles(

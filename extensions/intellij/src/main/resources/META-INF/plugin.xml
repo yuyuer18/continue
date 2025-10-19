@@ -7,38 +7,44 @@
         <![CDATA[上海安硕信息技术股份有限公司，KodeMate AI+ AI编程辅助插件 on <a href="https://www.amarsoft.com">Amarsoft.com</a>]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
 
     <!-- See here for why this is optional:  https://github.com/continuedev/continue/issues/2775#issuecomment-2535620877-->
     <depends optional="true" config-file="continueintellijextension-withJSON.xml">
         com.intellij.modules.json
     </depends>
 
-    <!-- com.intellij.openapi.module.ModuleManager.Companion is only available since this build -->
-    <!--    <idea-version since-build="223.7571.182"/>-->
-    <idea-version since-build="221.4746.92"/>
     <extensions defaultExtensionNs="com.intellij">
-        <editorFactoryListener
-                implementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteEditorListener"/>
-        <toolWindow id="KodemateAI" anchor="right" icon="com.github.continuedev.continueintellijextension.Icons.Continue"
+        <toolWindow id="Continue" anchor="right" icon="com.github.continuedev.continueintellijextension.Icons.Continue"
                     factoryClass="com.github.continuedev.continueintellijextension.toolWindow.ContinuePluginToolWindowFactory"/>
         <projectService id="ContinuePluginService"
                         serviceImplementation="com.github.continuedev.continueintellijextension.services.ContinuePluginService"/>
         <projectService
                 id="DiffStreamService"
                 serviceImplementation="com.github.continuedev.continueintellijextension.editor.DiffStreamService"/>
+
+        <projectService serviceInterface="com.github.continuedev.continueintellijextension.autocomplete.CompletionService"
+                        serviceImplementation="com.github.continuedev.continueintellijextension.autocomplete.ContinueCompletionService"/>
         <projectService
-                id="AutocompleteLookupListener"
-                serviceImplementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteLookupListener"/>
-        <statusBarWidgetFactory
-                implementation="com.github.continuedev.continueintellijextension.autocomplete.AutocompleteSpinnerWidgetFactory"
-                id="AutocompleteSpinnerWidget"/>
-        <notificationGroup id="KodeMate AI+"
+                serviceInterface="com.github.continuedev.continueintellijextension.nextEdit.NextEditService"
+                serviceImplementation="com.github.continuedev.continueintellijextension.nextEdit.ContinueNextEditService"/>
+
+        <projectService
+                serviceImplementation="com.github.continuedev.continueintellijextension.nextEdit.NextEditWindowManager"/>
+
+        <projectService
+                serviceImplementation="com.github.continuedev.continueintellijextension.nextEdit.NextEditJumpManager"/>
+
+        <inline.completion.provider id="Continue" implementation="com.github.continuedev.continueintellijextension.autocomplete.ContinueInlineCompletionProvider"/>
+        
+        <notificationGroup id="Continue"
                            displayType="BALLOON"/>
         <actionPromoter order="last"
                         implementation="com.github.continuedev.continueintellijextension.actions.ContinueActionPromote"/>
         <errorHandler implementation="com.github.continuedev.continueintellijextension.error.ContinueErrorSubmitter"/>
         <postStartupActivity
                 implementation="com.github.continuedev.continueintellijextension.activities.ContinuePluginStartupActivity"/>
+        <postStartupActivity implementation="com.github.continuedev.continueintellijextension.proxy.ProxyPoolingActivity"/>
         <applicationConfigurable
                 parentId="tools"
                 instance="com.github.continuedev.continueintellijextension.services.ContinueExtensionConfigurable"
@@ -107,6 +113,13 @@
             <override-text place="GoToAction" text="KodeMate AI+: Reject Vertical Diff Block"/>
         </action>
 
+        <action id="continue.addLicenseKey"
+                class="com.github.continuedev.continueintellijextension.license.AddLicenseKey"
+                text="Enter Enterprise License Key"
+                description="Enter Enterprise License Key">
+            <override-text place="GoToAction" text="Continue: Enter Enterprise License Key"/>
+        </action>
+
         <action id="continue.focusContinueInputWithoutClear"
                 class="com.github.continuedev.continueintellijextension.actions.FocusContinueInputWithoutClearAction"
                 text="Add selected code to context"
@@ -138,9 +151,9 @@
         <action id="continue.openConfigPage"
                 class="com.github.continuedev.continueintellijextension.actions.OpenConfigAction"
                 icon="AllIcons.General.GearPlain"
-                text="配置"
-                description="配置">
-            <override-text place="GoToAction" text="配置"/>
+                text="Settings"
+                description="Settings">
+            <override-text place="GoToAction" text="Settings"/>
         </action>
 
         <action id="continue.openLogs"
@@ -168,26 +181,12 @@
             <add-to-group group-id="EditorPopupMenu"/>
             <override-text place="GoToAction" text="KodeMate AI+:  将突出显示的代码添加到上下文中并清除聊天 "/>
         </action>
-
-        <action id="com.github.continuedev.continueintellijextension.autocomplete.AcceptAutocompleteAction"
-                class="com.github.continuedev.continueintellijextension.autocomplete.AcceptAutocompleteAction"
-                text="接受建议" description="接受建议">
-            <keyboard-shortcut keymap="$default" first-keystroke="TAB"/>
-            <keyboard-shortcut keymap="Mac OS X" first-keystroke="TAB"/>
-        </action>
-
-        <action id="com.github.continuedev.continueintellijextension.autocomplete.CancelAutocompleteAction"
-                class="com.github.continuedev.continueintellijextension.autocomplete.CancelAutocompleteAction"
-                text="取消接受建议" description="取消接受建议">
-            <keyboard-shortcut keymap="$default" first-keystroke="ESCAPE"/>
-        </action>
-
-        <action id="com.github.continuedev.continueintellijextension.autocomplete.PartialAcceptAutocompleteAction"
-                class="com.github.continuedev.continueintellijextension.autocomplete.PartialAcceptAutocompleteAction"
-                text="部分接受自动完成建议"
-                description="部分接受自动完成建议">
-            <keyboard-shortcut first-keystroke="control alt RIGHT" keymap="$default"/>
-            <keyboard-shortcut first-keystroke="alt meta RIGHT" keymap="Mac OS X"/>
-        </action>
+        <group id="ContinueProjectViewPopUpMenuGroup" popup="true" text="Continue" icon="/icons/continue.svg">
+            <action id="com.github.continuedev.continueintellijextension.actions.AddToChatAction"
+                    class="com.github.continuedev.continueintellijextension.actions.AddToChatAction"
+                    text="Add to Chat">
+            </action>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </group>
     </actions>
 </idea-plugin>

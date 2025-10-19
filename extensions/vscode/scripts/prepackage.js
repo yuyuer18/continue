@@ -10,7 +10,7 @@ const {
   autodetectPlatformAndArch,
 } = require("../../../scripts/util/index");
 
-const { copySqlite, copyEsbuild } = require("./download-copy-sqlite-esbuild");
+const { copySqlite } = require("./download-copy-sqlite");
 const { generateAndCopyConfigYamlSchema } = require("./generate-copy-config");
 const { installAndCopyNodeModules } = require("./install-copy-nodemodule");
 const { npmInstall } = require("./npm-install");
@@ -55,8 +55,6 @@ console.log("[info] Using target: ", target);
 
 const exe = os === "win32" ? ".exe" : "";
 
-const isInGitHubAction = !!process.env.GITHUB_ACTIONS;
-
 const isArmTarget =
   target === "darwin-arm64" ||
   target === "linux-arm64" ||
@@ -67,20 +65,24 @@ const isLinuxTarget = target?.startsWith("linux");
 const isMacTarget = target?.startsWith("darwin");
 
 void (async () => {
-  console.log("[info] Packaging extension for target ", target);
+  const startTime = Date.now();
+  console.log(
+    `[info] Packaging extension for target ${target} - started at ${new Date().toISOString()}`,
+  );
 
   // Make sure we have an initial timestamp file
   writeBuildTimestamp();
 
   if (!skipInstalls) {
+    const installStart = Date.now();
+    console.log(`[timer] Starting npm installs at ${new Date().toISOString()}`);
     await Promise.all([generateAndCopyConfigYamlSchema(), npmInstall()]);
+    console.log(
+      `[timer] npm installs completed in ${Date.now() - installStart}ms`,
+    );
   }
 
   process.chdir(path.join(continueDir, "gui"));
-
-  if (isInGitHubAction) {
-    execCmdSync("npm run build");
-  }
 
   // Copy over the dist folder to the JetBrains extension //
   const intellijExtensionWebviewPath = path.join(
@@ -98,6 +100,8 @@ void (async () => {
   rimrafSync(intellijExtensionWebviewPath);
   fs.mkdirSync(intellijExtensionWebviewPath, { recursive: true });
 
+  const jetbrainsCopyStart = Date.now();
+  console.log(`[timer] Starting JetBrains copy at ${new Date().toISOString()}`);
   await new Promise((resolve, reject) => {
     ncp("dist", intellijExtensionWebviewPath, (error) => {
       if (error) {
@@ -110,6 +114,9 @@ void (async () => {
       resolve();
     });
   });
+  console.log(
+    `[timer] JetBrains copy completed in ${Date.now() - jetbrainsCopyStart}ms`,
+  );
 
   // Put back index.html
   if (fs.existsSync(indexHtmlPath)) {
@@ -122,7 +129,10 @@ void (async () => {
 
   // Then copy over the dist folder to the VSCode extension //
   const vscodeGuiPath = path.join("../extensions/vscode/gui");
+  rimrafSync(vscodeGuiPath);
   fs.mkdirSync(vscodeGuiPath, { recursive: true });
+  const vscodeCopyStart = Date.now();
+  console.log(`[timer] Starting VSCode copy at ${new Date().toISOString()}`);
   await new Promise((resolve, reject) => {
     ncp("dist", vscodeGuiPath, (error) => {
       if (error) {
@@ -137,6 +147,9 @@ void (async () => {
       }
     });
   });
+  console.log(
+    `[timer] VSCode copy completed in ${Date.now() - vscodeCopyStart}ms`,
+  );
 
   if (!fs.existsSync(path.join("dist", "assets", "index.js"))) {
     throw new Error("gui build did not produce index.js");
@@ -151,6 +164,10 @@ void (async () => {
   fs.mkdirSync("bin", { recursive: true });
 
   // onnxruntime-node
+  const onnxCopyStart = Date.now();
+  console.log(
+    `[timer] Starting onnxruntime copy at ${new Date().toISOString()}`,
+  );
   await new Promise((resolve, reject) => {
     ncp(
       path.join(__dirname, "../../../core/node_modules/onnxruntime-node/bin"),
@@ -167,6 +184,9 @@ void (async () => {
       },
     );
   });
+  console.log(
+    `[timer] onnxruntime copy completed in ${Date.now() - onnxCopyStart}ms`,
+  );
   if (target) {
     // If building for production, only need the binaries for current platform
     try {
@@ -283,14 +303,9 @@ void (async () => {
       );
 
       await Promise.all([
-        copyEsbuild(target),
         copySqlite(target),
         installAndCopyNodeModules(packageToInstall, "@lancedb"),
       ]);
-    } else {
-      // Download esbuild from npm in tmp and copy over
-      console.log("[info] npm installing esbuild binary");
-      await installAndCopyNodeModules("esbuild@0.17.19", "@esbuild");
     }
   }
 
@@ -329,13 +344,7 @@ void (async () => {
   });
 
   // Copy node_modules for pre-built binaries
-  const NODE_MODULES_TO_COPY = [
-    "esbuild",
-    "@esbuild",
-    "@lancedb",
-    "@vscode/ripgrep",
-    "workerpool",
-  ];
+  const NODE_MODULES_TO_COPY = ["@lancedb", "@vscode/ripgrep", "workerpool"];
 
   fs.mkdirSync("out/node_modules", { recursive: true });
 
@@ -361,9 +370,6 @@ void (async () => {
         }),
     ),
   );
-
-  // delete esbuild/bin because platform-specific @esbuild is downloaded
-  fs.rmSync(`out/node_modules/esbuild/bin`, { recursive: true });
 
   console.log(`[info] Copied ${NODE_MODULES_TO_COPY.join(", ")}`);
 
@@ -420,15 +426,12 @@ void (async () => {
     "out/build/Release/node_sqlite3.node",
 
     // out/node_modules (to be accessed by extension.js)
-    `out/node_modules/@esbuild/${target === "win32-arm64"
-      ? "esbuild.exe"
-      : target === "win32-x64"
-        ? "win32-x64/esbuild.exe"
-        : `${target}/bin/esbuild`
-    }`,
+    `out/node_modules/@vscode/ripgrep/bin/rg${exe}`,
     `out/node_modules/@lancedb/vectordb-${target}${isWinTarget ? "-msvc" : ""}${isLinuxTarget ? "-gnu" : ""}/index.node`,
-    `out/node_modules/esbuild/lib/main.js`,
   ]);
 
+  console.log(
+    `[timer] Prepackage completed in ${Date.now() - startTime}ms - finished at ${new Date().toISOString()}`,
+  );
   process.exit(0);
 })();

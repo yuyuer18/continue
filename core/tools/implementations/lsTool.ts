@@ -1,6 +1,9 @@
+import ignore from "ignore";
+
 import { ToolImpl } from ".";
 import { walkDir } from "../../indexing/walkDir";
 import { resolveRelativePathInDir } from "../../util/ideUtils";
+import { ContinueError, ContinueErrorReason } from "../../util/errors";
 
 export function resolveLsToolDirPath(dirPath: string | undefined) {
   if (!dirPath || dirPath === ".") {
@@ -18,7 +21,8 @@ export const lsToolImpl: ToolImpl = async (args, extras) => {
   const dirPath = resolveLsToolDirPath(args?.dirPath);
   const uri = await resolveRelativePathInDir(dirPath, extras.ide);
   if (!uri) {
-    throw new Error(
+    throw new ContinueError(
+      ContinueErrorReason.DirectoryNotFound,
       `Directory ${args.dirPath} not found. Make sure to use forward-slash paths`,
     );
   }
@@ -27,6 +31,7 @@ export const lsToolImpl: ToolImpl = async (args, extras) => {
     returnRelativeUrisPaths: true,
     include: "both",
     recursive: args?.recursive ?? false,
+    overrideDefaultIgnores: ignore(), // Show all directories including dist/, build/, etc.
   });
 
   const lines = entries.slice(0, MAX_LS_TOOL_LINES);
@@ -50,8 +55,8 @@ export const lsToolImpl: ToolImpl = async (args, extras) => {
       warningContent += ". Try using a non-recursive search";
     }
     contextItems.push({
-      name: "ls truncation warning",
-      description: "Informs the model that ls results were truncated",
+      name: "Truncation warning",
+      description: "",
       content: warningContent,
     });
   }

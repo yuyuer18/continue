@@ -30,41 +30,8 @@ fi
 echo "Installing root-level dependencies..."
 npm install
 
-echo "Building config-types..."
-pushd packages/config-types
-npm install
-npm run build
-popd
-
-echo "Building fetch..."
-pushd packages/fetch
-npm install
-npm run build
-popd
-
-echo "Building llm-info..."
-pushd packages/llm-info
-npm install
-npm run build
-popd
-
-echo "Building config-yaml..."
-pushd packages/config-yaml
-npm install
-npm run build
-popd
-
-echo "Building openai-adapters..."
-pushd packages/openai-adapters
-npm install
-npm run build
-popd
-
-echo "Building hub..."
-pushd packages/hub
-npm install
-npm run build
-popd
+echo "Building packages (fetch, openai-adapters, config-yaml)..."
+node ./scripts/build-packages.js
 
 echo "Installing Core extension dependencies..."
 pushd core
@@ -78,7 +45,7 @@ echo "Installing GUI extension dependencies..."
 pushd gui
 npm install
 npm link @continuedev/core
-npm run build
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
 popd
 
 # VSCode Extension (will also package GUI)

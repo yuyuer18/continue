@@ -1,6 +1,6 @@
 import {
-  OrganizationDescription,
   ProfileDescription,
+  SerializedOrgWithProfiles,
 } from "core/config/ProfileLifecycleManager";
 import { ControlPlaneSessionInfo } from "core/control-plane/AuthTypes";
 import React, {
@@ -27,8 +27,8 @@ interface AuthContextType {
   login: (useOnboarding: boolean) => Promise<boolean>;
   selectedProfile: ProfileDescription | null;
   profiles: ProfileDescription[] | null;
-  refreshProfiles: () => Promise<void>;
-  organizations: OrganizationDescription[];
+  refreshProfiles: (reason?: string) => Promise<void>;
+  organizations: SerializedOrgWithProfiles[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,25 +50,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const currentOrg = useAppSelector(selectCurrentOrg);
   const selectedProfile = useAppSelector(selectSelectedProfile);
 
-  const login: AuthContextType["login"] = (useOnboarding: boolean) => {
-    return new Promise(async (resolve) => {
-      await ideMessenger
-        .request("getControlPlaneSessionInfo", {
-          silent: false,
-          useOnboarding,
-        })
-        .then((result) => {
-          if (result.status === "error") {
-            resolve(false);
-            return;
-          }
+  const login: AuthContextType["login"] = async (useOnboarding: boolean) => {
+    try {
+      const result = await ideMessenger.request("getControlPlaneSessionInfo", {
+        silent: false,
+        useOnboarding,
+      });
 
-          const session = result.content;
-          setSession(session);
+      if (result.status === "error") {
+        console.error("Login failed:", result.error);
+        return false;
+      }
 
-          resolve(true);
-        });
-    });
+      const session = result.content;
+      setSession(session);
+
+      return true;
+    } catch (error: any) {
+      console.error("Login request failed:", error);
+      // Let the error propagate so the caller can handle it
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -95,23 +97,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     "sessionUpdate",
     async (data) => {
       setSession(data.sessionInfo);
-      void refreshProfiles();
     },
     [],
   );
 
-  const refreshProfiles = useCallback(async () => {
-    try {
-      dispatch(setConfigLoading(true));
-      await ideMessenger.request("config/refreshProfiles", undefined);
-      ideMessenger.post("showToast", ["info", "Config refreshed"]);
-    } catch (e) {
-      console.error("Failed to refresh profiles", e);
-      ideMessenger.post("showToast", ["error", "Failed to refresh config"]);
-    } finally {
-      dispatch(setConfigLoading(false));
-    }
-  }, [ideMessenger]);
+  const refreshProfiles = useCallback(
+    async (reason?: string) => {
+      try {
+        dispatch(setConfigLoading(true));
+        await ideMessenger.request("config/refreshProfiles", {
+          reason,
+        });
+        ideMessenger.post("showToast", ["info", "Config refreshed"]);
+      } catch (e) {
+        console.error("Failed to refresh profiles", e);
+        ideMessenger.post("showToast", ["error", "Failed to refresh config"]);
+      } finally {
+        dispatch(setConfigLoading(false));
+      }
+    },
+    [ideMessenger],
+  );
 
   return (
     <AuthContext.Provider

@@ -1,4 +1,4 @@
-import { AnimatedEllipsis } from "../../..";
+import { AnimatedEllipsis } from "../../../AnimatedEllipsis";
 
 export function GeneratingIndicator({
   text = "Generating",
@@ -8,8 +8,8 @@ export function GeneratingIndicator({
   testId?: string;
 }) {
   return (
-    <div className="text-description-muted text-xs" data-testid={testId}>
-      <span>{text}</span>
+    <div className="text-description flex items-center" data-testid={testId}>
+      <span className="text-xs">{text}</span>
       <AnimatedEllipsis />
     </div>
   );

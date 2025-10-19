@@ -2,8 +2,7 @@ import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { ApplyState } from "core";
 import { useContext } from "react";
 import { IdeMessengerContext } from "../context/IdeMessenger";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { selectCurrentToolCallApplyState } from "../redux/selectors/selectCurrentToolCall";
+import { useAppDispatch } from "../redux/hooks";
 import { cancelToolCall } from "../redux/slices/sessionSlice";
 import { getMetaKeyLabel } from "../util";
 import { ToolTip } from "./gui/Tooltip";
@@ -23,21 +22,22 @@ export default function AcceptRejectAllButtons({
     (state) => state.status === "done",
   );
   const ideMessenger = useContext(IdeMessengerContext);
-  const currentToolCallApplyState = useAppSelector(
-    selectCurrentToolCallApplyState,
-  );
   const dispatch = useAppDispatch();
   async function handleAcceptOrReject(status: AcceptOrRejectOutcome) {
-    if (
-      status === "rejectDiff" &&
-      currentToolCallApplyState?.status === "done"
-    ) {
-      dispatch(
-        cancelToolCall({
-          toolCallId: currentToolCallApplyState.toolCallId!,
-        }),
-      );
+    // For reject operations, cancel all tool calls associated with pending apply states
+    if (status === "rejectDiff") {
+      for (const applyState of pendingApplyStates) {
+        if (applyState.toolCallId && applyState.status === "done") {
+          dispatch(
+            cancelToolCall({
+              toolCallId: applyState.toolCallId,
+            }),
+          );
+        }
+      }
     }
+
+    // Process all pending apply states
     for (const { filepath = "", streamId } of pendingApplyStates) {
       ideMessenger.post(status, {
         filepath,
@@ -58,33 +58,37 @@ export default function AcceptRejectAllButtons({
       className="flex flex-row items-center justify-evenly gap-3 px-3"
       data-testid="accept-reject-all-buttons"
     >
-      <button
-        className="text-foreground flex cursor-pointer flex-row flex-wrap justify-center gap-1 border-none bg-transparent p-0 text-xs opacity-80 hover:opacity-100 hover:brightness-125"
-        onClick={() => handleAcceptOrReject("rejectDiff")}
-        data-testid="edit-reject-button"
-        data-tooltip-id="reject-shortcut"
-        data-tooltip-content={`Reject All (${rejectShortcut})`}
-      >
-        <div className="flex flex-row items-center gap-1">
-          <XMarkIcon className="text-error h-4 w-4" />
-          <span className="hidden sm:inline">拒绝</span>
-        </div>
-      </button>
-      <ToolTip id="reject-shortcut" />
+      <ToolTip content={`拒绝 (${rejectShortcut})`}>
+        <button
+          className="text-foreground flex cursor-pointer flex-row flex-wrap justify-center gap-1 border-none bg-transparent p-0 text-xs opacity-80 hover:opacity-100 hover:brightness-125"
+          onClick={() => handleAcceptOrReject("rejectDiff")}
+          data-testid="edit-reject-button"
+        >
+          <div className="flex flex-row items-center gap-1">
+            <XMarkIcon className="text-error h-4 w-4" />
+            <span className="hidden sm:inline">Reject</span>
+            <span className="text-lightgray -ml-1.5 hidden scale-75 text-xs md:inline">
+              {rejectShortcut}
+            </span>
+          </div>
+        </button>
+      </ToolTip>
 
-      <button
-        className="text-foreground flex cursor-pointer flex-row flex-wrap justify-center gap-1 border-none bg-transparent p-0 text-xs opacity-80 hover:opacity-100 hover:brightness-125"
-        onClick={() => handleAcceptOrReject("acceptDiff")}
-        data-testid="edit-accept-button"
-        data-tooltip-id="accept-shortcut"
-        data-tooltip-content={`Accept All (${acceptShortcut})`}
-      >
-        <div className="flex flex-row items-center gap-1">
-          <CheckIcon className="text-success h-4 w-4" />
-          <span className="hidden sm:inline">接受</span>
-        </div>
-      </button>
-      <ToolTip id="accept-shortcut" />
+      <ToolTip content={`接受所有 (${acceptShortcut})`}>
+        <button
+          className="text-foreground flex cursor-pointer flex-row flex-wrap justify-center gap-1 border-none bg-transparent p-0 text-xs opacity-80 hover:opacity-100 hover:brightness-125"
+          onClick={() => handleAcceptOrReject("acceptDiff")}
+          data-testid="edit-accept-button"
+        >
+          <div className="flex flex-row items-center gap-1">
+            <CheckIcon className="text-success h-4 w-4" />
+            <span className="hidden sm:inline">Accept</span>
+            <span className="text-lightgray -ml-1.5 hidden scale-75 text-xs md:inline">
+              {acceptShortcut}
+            </span>
+          </div>
+        </button>
+      </ToolTip>
     </div>
   );
 }

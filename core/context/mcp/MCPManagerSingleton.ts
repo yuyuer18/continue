@@ -1,12 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
-import {
-  MCPOptions,
-  MCPServerStatus,
-  StdioOptions,
-  TransportOptions,
-} from "../..";
-import MCPConnection from "./MCPConnection";
+import { InternalMcpOptions, MCPServerStatus } from "../..";
+import MCPConnection, { MCPExtras } from "./MCPConnection";
 
 export class MCPManagerSingleton {
   private static instance: MCPManagerSingleton;
@@ -25,13 +20,29 @@ export class MCPManagerSingleton {
     return MCPManagerSingleton.instance;
   }
 
-  createConnection(id: string, options: MCPOptions): MCPConnection {
-    if (!this.connections.has(id)) {
+  async setEnabled(serverId: string, enabled: boolean) {
+    const conn = this.connections.get(serverId);
+    if (conn) {
+      if (enabled) {
+        conn.status = "not-connected";
+        await this.refreshConnection(serverId);
+      } else {
+        try {
+          await conn.disconnect(true);
+        } catch (e) {
+          console.error(`Error disconnecting from MCP server ${serverId}`, e);
+        }
+      }
+    }
+  }
+
+  createConnection(id: string, options: InternalMcpOptions): MCPConnection {
+    if (this.connections.has(id)) {
+      return this.connections.get(id)!;
+    } else {
       const connection = new MCPConnection(options);
       this.connections.set(id, connection);
       return connection;
-    } else {
-      return this.connections.get(id)!;
     }
   }
 
@@ -39,16 +50,26 @@ export class MCPManagerSingleton {
     return this.connections.get(id);
   }
 
-  async removeConnection(id: string) {
-    const connection = this.connections.get(id);
-    if (connection) {
-      await connection.client.close();
+  async shutdown() {
+    if (this.connections.size > 0) {
+      await Promise.allSettled(
+        Array.from(this.connections.entries()).map(([id, connection]) => {
+          try {
+            connection.abortController.abort();
+            void connection.client.close();
+          } finally {
+            this.connections.delete(id);
+          }
+        }),
+      );
     }
-
-    this.connections.delete(id);
   }
 
-  setConnections(servers: MCPOptions[], forceRefresh: boolean) {
+  setConnections(
+    servers: InternalMcpOptions[],
+    forceRefresh: boolean,
+    extras?: MCPExtras,
+  ) {
     let refresh = false;
 
     // Remove any connections that are no longer in config
@@ -57,11 +78,7 @@ export class MCPManagerSingleton {
         !servers.find(
           // Refresh the connection if TransportOptions changed
           (s) =>
-            s.id === id &&
-            this.compareTransportOptions(
-              connection.options.transport,
-              s.transport,
-            ),
+            s.id === id && this.compareTransportOptions(connection.options, s),
         )
       ) {
         refresh = true;
@@ -73,15 +90,15 @@ export class MCPManagerSingleton {
 
     // Add any connections that are not yet in manager
     servers.forEach((server) => {
-      if (!this.connections.has(server.id)) {
-        refresh = true;
-        this.connections.set(server.id, new MCPConnection(server));
-      } else {
+      if (this.connections.has(server.id)) {
         const conn = this.connections.get(server.id);
         if (conn) {
           // We need to update it. Some attributes may have changed, such as name, faviconUrl, etc.
           conn.options = server;
         }
+      } else {
+        refresh = true;
+        this.connections.set(server.id, new MCPConnection(server, extras));
       }
     });
 
@@ -92,33 +109,35 @@ export class MCPManagerSingleton {
   }
 
   private compareTransportOptions(
-    a: TransportOptions,
-    b: TransportOptions,
+    a: InternalMcpOptions,
+    b: InternalMcpOptions,
   ): boolean {
     if (a.type !== b.type) {
       return false;
     }
-    if (a.type === "stdio" && b.type === "stdio") {
+    if ("command" in a && "command" in b) {
       return (
         a.command === b.command &&
         JSON.stringify(a.args) === JSON.stringify(b.args) &&
-        this.compareEnv(a, b)
+        this.compareEnv(a.env, b.env)
       );
-    } else if (a.type !== "stdio" && b.type !== "stdio") {
+    } else if ("url" in a && "url" in b) {
       return a.url === b.url;
     }
     return false;
   }
 
-  private compareEnv(a: StdioOptions, b: StdioOptions): boolean {
-    const aEnv = a.env ?? {};
-    const bEnv = b.env ?? {};
-    const aKeys = Object.keys(aEnv);
-    const bKeys = Object.keys(bEnv);
+  private compareEnv(
+    aEnv: Record<string, string> | undefined,
+    bEnv: Record<string, string> | undefined,
+  ): boolean {
+    const a = aEnv ?? {};
+    const b = bEnv ?? {};
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
 
     return (
-      aKeys.length === bKeys.length &&
-      aKeys.every((key) => aEnv[key] === bEnv[key])
+      aKeys.length === bKeys.length && aKeys.every((key) => a[key] === b[key])
     );
   }
 
@@ -160,6 +179,10 @@ export class MCPManagerSingleton {
       ...connection.getStatus(),
       client: connection.client,
     }));
+  }
+
+  setStatus(serverId: string, status: MCPServerStatus["status"]) {
+    this.connections.get(serverId)!.status = status;
   }
 
   async getPrompt(

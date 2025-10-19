@@ -2,11 +2,10 @@ import { useContext } from "react";
 import { Button, SecondaryButton } from "../..";
 import { useAuth } from "../../../context/Auth";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
+import { useCreditStatus } from "../../../hooks/useCredits";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { selectCurrentOrg } from "../../../redux/slices/profilesSlice";
 import { selectFirstHubProfile } from "../../../redux/thunks/selectFirstHubProfile";
-import { hasPassedFTL } from "../../../util/freeTrial";
-import { ToolTip } from "../../gui/Tooltip";
 import ContinueLogo from "../../svg/ContinueLogo";
 import { useOnboardingCard } from "../hooks/useOnboardingCard";
 
@@ -31,19 +30,30 @@ export function OnboardingCardLanding({
         // A new assistant is created when the account is created
         // We want to switch to this immediately
         void dispatch(selectFirstHubProfile());
+
+        ideMessenger.post("showTutorial", undefined);
+        ideMessenger.post("showToast", ["info", "🎉 Welcome to Continue!"]);
       }
     });
   }
 
-  function openPastFreeTrialOnboarding() {
+  function openBillingPage() {
     ideMessenger.post("controlPlane/openUrl", {
-      path: "setup-models",
+      path: "settings/billing",
       orgSlug: currentOrg?.slug,
     });
     onboardingCard.close(isDialog);
   }
 
-  const pastFreeTrialLimit = hasPassedFTL();
+  function openApiKeysPage() {
+    ideMessenger.post("controlPlane/openUrl", {
+      path: "setup-models/api-keys",
+      orgSlug: currentOrg?.slug,
+    });
+    onboardingCard.close(isDialog);
+  }
+
+  const { creditStatus, outOfStarterCredits } = useCreditStatus();
 
   return (
     <div className="xs:px-0 flex w-full max-w-full flex-col items-center justify-center px-4 text-center">
@@ -51,28 +61,29 @@ export function OnboardingCardLanding({
         <ContinueLogo height={75} />
       </div>
 
-      {pastFreeTrialLimit ? (
+      {outOfStarterCredits ? (
         <>
           <p className="xs:w-3/4 w-full text-sm">
-            You've reached the free trial limit. Visit the Continue Platform to
-            select a Coding Assistant.
+            You've used all your starter credits! Click below to purchase
+            credits or configure API keys
           </p>
-          <Button
-            onClick={openPastFreeTrialOnboarding}
+          <SecondaryButton
+            onClick={openApiKeysPage}
             className="mt-4 grid w-full grid-flow-col items-center gap-2"
           >
-            Go to Continue Platform
+            Set up API keys
+          </SecondaryButton>
+          <Button
+            onClick={openBillingPage}
+            className="mt-4 grid w-full grid-flow-col items-center gap-2"
+          >
+            Purchase credits
           </Button>
         </>
       ) : (
         <>
           <p className="mb-5 mt-0 w-full text-sm">
-            欢迎使用Kodemate AI 辅助编程工具
-            <br />
-            <ToolTip id="models-addon-tooltip" place="bottom">
-              Free trial includes 50 Chat requests and 2,000 autocomplete
-              requests
-            </ToolTip>
+            登录即可获得启动 credits 并开始使用
           </p>
 
           {/* <Button

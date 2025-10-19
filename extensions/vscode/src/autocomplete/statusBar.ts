@@ -3,6 +3,7 @@ import { EXTENSION_NAME } from "core/control-plane/env";
 import * as vscode from "vscode";
 
 import { Battery } from "../util/battery";
+import { getMetaKeyLabel } from "../util/util";
 import {
   CONTINUE_WORKSPACE_KEY,
   getContinueWorkspaceConfig,
@@ -50,18 +51,34 @@ const statusBarItemText = (
     return "$(alert) Kodemate AI (配置错误)";
   }
 
+  let text: string;
   switch (status) {
     case undefined:
       if (loading) {
         return "$(loading~spin) KodeMate AI+";
       }
+      break;
     case StatusBarStatus.Disabled:
-      return "$(circle-slash) KodeMate AI+";
+      text = "$(circle-slash) KodeMate AI+";
+      break;
     case StatusBarStatus.Enabled:
-      return "$(check) KodeMate AI+";
+      text = "$(check) KodeMate AI+";
+      break;
     case StatusBarStatus.Paused:
-      return "$(debug-pause) KodeMate AI+";
+      text = "$(debug-pause) KodeMate AI+";
+      break;
+    default:
+      text = "KodeMate AI+";
   }
+
+  // Append Next Edit indicator if enabled.
+  const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+  const nextEditEnabled = config.get<boolean>("enableNextEdit") ?? false;
+  if (nextEditEnabled) {
+    text += " (NE)";
+  }
+
+  return text;
 };
 
 const statusBarItemTooltip = (status: StatusBarStatus | undefined) => {
@@ -70,7 +87,11 @@ const statusBarItemTooltip = (status: StatusBarStatus | undefined) => {
     case StatusBarStatus.Disabled:
       return "点击开启Tab自动补全";
     case StatusBarStatus.Enabled:
-      return "Tab自动补全已开启";
+      const config = vscode.workspace.getConfiguration(EXTENSION_NAME);
+      const nextEditEnabled = config.get<boolean>("enableNextEdit") ?? false;
+      return nextEditEnabled
+        ? "下一个编辑建议 (Next Edit) 已启用"
+        : "Tab自动补全已启用";
     case StatusBarStatus.Paused:
       return "Tab自动补全已暂停";
   }
@@ -198,4 +219,46 @@ export function getAutocompleteStatusBarTitle(
   }
 
   return title;
+}
+
+const USE_FIM_MENU_ITEM_LABEL = "$(export) Use FIM autocomplete over Next Edit";
+const USE_NEXT_EDIT_MENU_ITEM_LABEL =
+  "$(sparkle) Use Next Edit over FIM autocomplete";
+
+// Shows what items get rendered in the autocomplete menu.
+export function getNextEditMenuItems(
+  currentStatus: StatusBarStatus | undefined,
+  nextEditEnabled: boolean,
+): vscode.QuickPickItem[] {
+  if (currentStatus !== StatusBarStatus.Enabled) return [];
+
+  return [
+    {
+      label: nextEditEnabled
+        ? USE_FIM_MENU_ITEM_LABEL
+        : USE_NEXT_EDIT_MENU_ITEM_LABEL,
+      description: getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + N",
+    },
+  ];
+}
+
+// Checks if the current selected option is a Next Edit toggle label.
+export function isNextEditToggleLabel(label: string): boolean {
+  return (
+    label === USE_FIM_MENU_ITEM_LABEL || label === USE_NEXT_EDIT_MENU_ITEM_LABEL
+  );
+}
+
+// Updates the config once Next Edit is toggled.
+export function handleNextEditToggle(
+  label: string,
+  config: vscode.WorkspaceConfiguration,
+) {
+  const isEnabling = label === USE_NEXT_EDIT_MENU_ITEM_LABEL;
+
+  config.update(
+    "enableNextEdit",
+    isEnabling,
+    vscode.ConfigurationTarget.Global,
+  );
 }

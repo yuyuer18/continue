@@ -19,10 +19,8 @@ async function dudLLMCall(llm: ILLM, messages: ChatMessage[]) {
     await gen.next();
     await gen.return({
       completion: "",
-      completionOptions: {
-        model: "",
-      },
       modelTitle: "",
+      modelProvider: "",
       prompt: "",
     });
     abortController.abort();
@@ -60,6 +58,10 @@ const messagesWithInvalidToolCallArgs: ChatMessage[] = [
 describe("LLM Pre-fetch", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    // Mock getAnthropicHeaders to return fake headers
+    vi.mocked(openAiAdapters.getAnthropicHeaders).mockReturnValue({
+      fake: "headers",
+    });
     // Log to verify the mock is properly set up
     console.log("Mock setup:", openAiAdapters);
   });

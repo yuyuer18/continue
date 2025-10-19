@@ -6,12 +6,13 @@ import { DEFAULT_AUTOCOMPLETE_OPTS } from "../util/parameters.js";
 import { shouldCompleteMultiline } from "./classification/shouldCompleteMultiline.js";
 import { ContextRetrievalService } from "./context/ContextRetrievalService.js";
 
+import { isSecurityConcern } from "../indexing/ignore.js";
 import { BracketMatchingService } from "./filtering/BracketMatchingService.js";
 import { CompletionStreamer } from "./generation/CompletionStreamer.js";
 import { postprocessCompletion } from "./postprocessing/index.js";
 import { shouldPrefilter } from "./prefiltering/index.js";
-import { getAllSnippets } from "./snippets/index.js";
-import { renderPrompt } from "./templating/index.js";
+import { getAllSnippetsWithoutRace } from "./snippets/index.js";
+import { renderPromptWithTokenLimit } from "./templating/index.js";
 import { GetLspDefinitionsFunction } from "./types.js";
 import { AutocompleteDebouncer } from "./util/AutocompleteDebouncer.js";
 import { AutocompleteLoggingService } from "./util/AutocompleteLoggingService.js";
@@ -121,6 +122,12 @@ export class CompletionProvider {
       ...config?.tabAutocompleteOptions,
       ...llm.autocompleteOptions,
     };
+
+    // Enable static contextualization if defined.
+    if (config?.experimental?.enableStaticContextualization) {
+      options.experimental_enableStaticContextualization = true;
+    }
+
     return options;
   }
 
@@ -141,6 +148,10 @@ export class CompletionProvider {
 
       const llm = await this._prepareLlm();
       if (!llm) {
+        return undefined;
+      }
+
+      if (isSecurityConcern(input.filepath)) {
         return undefined;
       }
 
@@ -171,7 +182,7 @@ export class CompletionProvider {
       }
 
       const [snippetPayload, workspaceDirs] = await Promise.all([
-        getAllSnippets({
+        getAllSnippetsWithoutRace({
           helper,
           ide: this.ide,
           getDefinitionsFromLsp: this.getDefinitionsFromLsp,
@@ -180,11 +191,13 @@ export class CompletionProvider {
         this.ide.getWorkspaceDirs(),
       ]);
 
-      const { prompt, prefix, suffix, completionOptions } = renderPrompt({
-        snippetPayload,
-        workspaceDirs,
-        helper,
-      });
+      const { prompt, prefix, suffix, completionOptions } =
+        renderPromptWithTokenLimit({
+          snippetPayload,
+          workspaceDirs,
+          helper,
+          llm,
+        });
 
       // Completion
       let completion: string | undefined = "";
@@ -255,8 +268,14 @@ export class CompletionProvider {
         gitRepo: await this.ide.getRepoName(helper.filepath),
         uniqueId: await this.ide.getUniqueId(),
         timestamp: new Date().toISOString(),
+        profileType:
+          this.configHandler.currentProfile?.profileDescription.profileType,
         ...helper.options,
       };
+
+      if (options.experimental_enableStaticContextualization) {
+        outcome.enabledStaticContextualization = true;
+      }
 
       //////////
 

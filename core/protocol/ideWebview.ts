@@ -3,10 +3,13 @@ import { ToWebviewFromIdeOrCoreProtocol } from "./webview";
 
 import {
   AcceptOrRejectDiffPayload,
+  AddToChatPayload,
   ApplyState,
   ApplyToFilePayload,
+  ContextItemWithId,
   HighlightedCodePayload,
   MessageContent,
+  RangeInFile,
   RangeInFileWithContents,
   SetCodeToEditPayload,
   ShowFilePayload,
@@ -48,12 +51,43 @@ export type ToIdeFromWebviewProtocol = ToIdeFromWebviewOrCoreProtocol & {
   ];
   "edit/addCurrentSelection": [undefined, void];
   "edit/clearDecorations": [undefined, void];
-  handleGeneratePrompt: [{ selectedService?: string, serverUrl?: string, prompts?: any, fileName: string }, void];
+  "session/share": [{ sessionId: string }, void];
+  createBackgroundAgent: [
+    {
+      content: MessageContent;
+      contextItems: ContextItemWithId[];
+      selectedCode: RangeInFile[];
+      organizationId?: string;
+      agent?: string;
+    },
+    void,
+  ];
+  listBackgroundAgents: [
+    { organizationId?: string; limit?: number },
+    {
+      agents: Array<{
+        id: string;
+        name: string | null;
+        status: string;
+        repoUrl: string;
+        createdAt: string;
+        metadata?: {
+          github_repo?: string;
+        };
+      }>;
+      totalCount: number;
+    },
+  ];
+  openAgentLocally: [
+    {
+      agentSessionId: string;
+    },
+    void,
+  ];
 };
 
 export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {
   setInactive: [undefined, void];
-  submitMessage: [{ message: any }, void]; // any -> JSONContent from TipTap
   newSessionWithPrompt: [{ prompt: string }, void];
   userInput: [{ input: string }, void];
   focusContinueInput: [undefined, void];
@@ -66,6 +100,7 @@ export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {
 
   focusContinueSessionId: [{ sessionId: string | undefined }, void];
   newSession: [undefined, void];
+  loadAgentSession: [{ session: any }, void];
   setTheme: [{ theme: any }, void];
   setColors: [{ [key: string]: string }, void];
   "jetbrains/editorInsetRefresh": [undefined, void];
@@ -79,4 +114,5 @@ export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {
   exitEditMode: [undefined, void];
   focusEdit: [undefined, void];
   generateRule: [undefined, void];
+  addToChat: [AddToChatPayload, void];
 };

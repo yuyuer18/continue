@@ -1,16 +1,12 @@
+import { ToolPolicy } from "@continuedev/terminal-security";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RuleWithSource, Tool } from "core";
-import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "core/tools/builtIn";
+import { BUILT_IN_GROUP_NAME } from "core/tools/builtIn";
 import {
   defaultOnboardingCardState,
   OnboardingCardState,
 } from "../../components/OnboardingCard";
 import { getLocalStorage, LocalStorageKey } from "../../util/localStorage";
-
-export type ToolPolicy =
-  | "allowedWithPermission"
-  | "allowedWithoutPermission"
-  | "disabled";
 
 export type RulePolicy = "on" | "off";
 
@@ -22,7 +18,7 @@ export type ToolGroupPolicies = { [toolGroupName: string]: ToolGroupPolicy };
 
 type UIState = {
   showDialog: boolean;
-  dialogMessage: string | JSX.Element | undefined;
+  dialogMessage: JSX.Element | undefined;
   dialogEntryOn: boolean;
   onboardingCard: OnboardingCardState;
   isExploreDialogOpen: boolean;
@@ -36,40 +32,27 @@ type UIState = {
 
 export const DEFAULT_TOOL_SETTING: ToolPolicy = "allowedWithPermission";
 export const DEFAULT_RULE_SETTING: RulePolicy = "on";
+export const DEFAULT_UI_SLICE: UIState = {
+  showDialog: false,
+  dialogMessage: undefined,
+  dialogEntryOn: false,
+  onboardingCard: defaultOnboardingCardState,
+  isExploreDialogOpen:
+    getLocalStorage(LocalStorageKey.IsExploreDialogOpen) ?? false,
+  hasDismissedExploreDialog:
+    getLocalStorage(LocalStorageKey.HasDismissedExploreDialog) ?? false,
+  shouldAddFileForEditing: false,
+  ttsActive: false,
+  toolSettings: {},
+  toolGroupSettings: {
+    [BUILT_IN_GROUP_NAME]: "include",
+  },
+  ruleSettings: {},
+};
 
 export const uiSlice = createSlice({
   name: "ui",
-  initialState: {
-    showDialog: false,
-    dialogMessage: "",
-    dialogEntryOn: false,
-    onboardingCard: defaultOnboardingCardState,
-    isExploreDialogOpen: getLocalStorage(LocalStorageKey.IsExploreDialogOpen),
-    hasDismissedExploreDialog: getLocalStorage(
-      LocalStorageKey.HasDismissedExploreDialog,
-    ),
-    shouldAddFileForEditing: false,
-    ttsActive: false,
-    toolSettings: {
-      [BuiltInToolNames.ReadFile]: "allowedWithoutPermission",
-      [BuiltInToolNames.EditExistingFile]: "allowedWithPermission",
-      [BuiltInToolNames.CreateNewFile]: "allowedWithPermission",
-      [BuiltInToolNames.RunTerminalCommand]: "allowedWithPermission",
-      [BuiltInToolNames.GrepSearch]: "allowedWithoutPermission",
-      [BuiltInToolNames.FileGlobSearch]: "allowedWithoutPermission",
-      [BuiltInToolNames.SearchWeb]: "allowedWithoutPermission",
-      [BuiltInToolNames.FetchUrlContent]: "allowedWithPermission",
-      [BuiltInToolNames.ViewDiff]: "allowedWithoutPermission",
-      [BuiltInToolNames.LSTool]: "allowedWithoutPermission",
-      [BuiltInToolNames.CreateRuleBlock]: "allowedWithPermission",
-      [BuiltInToolNames.RequestRule]: "disabled",
-      [BuiltInToolNames.SearchAndReplaceInFile]: "allowedWithPermission",
-    },
-    toolGroupSettings: {
-      [BUILT_IN_GROUP_NAME]: "include",
-    },
-    ruleSettings: {},
-  } as UIState,
+  initialState: DEFAULT_UI_SLICE,
   reducers: {
     setOnboardingCard: (
       state,
@@ -95,7 +78,7 @@ export const uiSlice = createSlice({
     // Tools
     addTool: (state, action: PayloadAction<Tool>) => {
       state.toolSettings[action.payload.function.name] =
-        "allowedWithPermission";
+        action.payload.defaultToolPolicy ?? DEFAULT_TOOL_SETTING;
     },
     setToolPolicy: (
       state,

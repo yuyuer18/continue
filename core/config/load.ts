@@ -6,10 +6,10 @@ import path from "path";
 import {
   ConfigResult,
   ConfigValidationError,
+  mergeConfigYamlRequestOptions,
   ModelRole,
 } from "@continuedev/config-yaml";
 import * as JSONC from "comment-json";
-import * as tar from "tar";
 
 import {
   BrowserSerializedContinueConfig,
@@ -19,13 +19,13 @@ import {
   ContinueRcJson,
   CustomContextProvider,
   EmbeddingsProviderDescription,
-  IContextProvider,
   IDE,
   IdeInfo,
   IdeSettings,
   IdeType,
   ILLM,
   ILLMLogger,
+  InternalMcpOptions,
   LLMOptions,
   ModelDescription,
   RerankerDescription,
@@ -36,10 +36,6 @@ import { getLegacyBuiltInSlashCommandFromDescription } from "../commands/slash/b
 import { convertCustomCommandToSlashCommand } from "../commands/slash/customSlashCommand";
 import { slashCommandFromPromptFile } from "../commands/slash/promptFileSlashCommand";
 import { MCPManagerSingleton } from "../context/mcp/MCPManagerSingleton";
-import ContinueProxyContextProvider from "../context/providers/ContinueProxyContextProvider";
-import CustomContextProviderClass from "../context/providers/CustomContextProvider";
-import FileContextProvider from "../context/providers/FileContextProvider";
-import { contextProviderClassFromName } from "../context/providers/index";
 import { useHub } from "../control-plane/env";
 import { BaseLLM } from "../llm";
 import { LLMClasses, llmFromDescription } from "../llm/llms";
@@ -62,8 +58,13 @@ import {
 } from "../util/paths";
 import { localPathToUri } from "../util/pathToUri";
 
-import { getToolsForIde } from "../tools";
+import { loadJsonMcpConfigs } from "../context/mcp/json/loadJsonMcpConfigs";
+import CustomContextProviderClass from "../context/providers/CustomContextProvider";
+import { PolicySingleton } from "../control-plane/PolicySingleton";
+import { getBaseToolDefinitions, serializeTool } from "../tools";
 import { resolveRelativePathInDir } from "../util/ideUtils";
+import { getWorkspaceRcConfigs } from "./json/loadRcConfigs";
+import { loadConfigContextProviders } from "./loadContextProviders";
 import { modifyAnyConfigWithSharedConfig } from "./sharedConfig";
 import {
   getModelByRole,
@@ -216,8 +217,8 @@ function applyRequestOptionsToModels(
   // Prepare models
   for (const model of models) {
     model.requestOptions = {
-      ...model.requestOptions,
       ...config.requestOptions,
+      ...model.requestOptions,
     };
     if (roles !== undefined) {
       model.roles = model.roles ?? roles;
@@ -228,7 +229,7 @@ function applyRequestOptionsToModels(
 export function isContextProviderWithParams(
   contextProvider: CustomContextProvider | ContextProviderWithParams,
 ): contextProvider is ContextProviderWithParams {
-  return (contextProvider as ContextProviderWithParams).name !== undefined;
+  return "name" in contextProvider && !!contextProvider.name;
 }
 
 /** Only difference between intermediate and final configs is the `models` array */
@@ -284,6 +285,7 @@ async function intermediateToFinalConfig({
                     ...desc,
                     model: modelName,
                     title: modelName,
+                    isFromAutoDetect: true,
                   },
                   ide.readFile.bind(ide),
                   getUriFromPath,
@@ -321,6 +323,7 @@ async function intermediateToFinalConfig({
                     ...desc.options,
                     model: modelName,
                     logger: llmLogger,
+                    isFromAutoDetect: true,
                   },
                 }),
             );
@@ -385,50 +388,25 @@ async function intermediateToFinalConfig({
 
   applyRequestOptionsToModels(tabAutocompleteModels, config);
 
-  // These context providers are always included, regardless of what, if anything,
-  // the user has configured in config.json
+  // Load context providers
+  const { providers: contextProviders, errors: contextErrors } =
+    loadConfigContextProviders(
+      config.contextProviders
+        ?.filter((cp) => isContextProviderWithParams(cp))
+        .map((cp) => ({
+          provider: (cp as ContextProviderWithParams).name,
+          params: (cp as ContextProviderWithParams).params,
+        })),
+      !!config.docs?.length,
+      ideInfo.ideType,
+    );
 
-  const codebaseContextParams =
-    (
-      (config.contextProviders || [])
-        .filter(isContextProviderWithParams)
-        .find((cp) => cp.name === "codebase") as
-        | ContextProviderWithParams
-        | undefined
-    )?.params || {};
-
-  const DEFAULT_CONTEXT_PROVIDERS = [new FileContextProvider({})];
-
-  const DEFAULT_CONTEXT_PROVIDERS_TITLES = DEFAULT_CONTEXT_PROVIDERS.map(
-    ({ description: { title } }) => title,
-  );
-
-  // Context providers
-  const contextProviders: IContextProvider[] = DEFAULT_CONTEXT_PROVIDERS;
-
-  for (const provider of config.contextProviders || []) {
-    if (isContextProviderWithParams(provider)) {
-      const cls = contextProviderClassFromName(provider.name) as any;
-      if (!cls) {
-        if (!DEFAULT_CONTEXT_PROVIDERS_TITLES.includes(provider.name)) {
-          console.warn(`Unknown context provider ${provider.name}`);
-        }
-
-        continue;
-      }
-      const instance: IContextProvider = new cls(provider.params);
-
-      // Handle continue-proxy
-      if (instance.description.title === "continue-proxy") {
-        (instance as ContinueProxyContextProvider).workOsAccessToken =
-          workOsAccessToken;
-      }
-
-      contextProviders.push(instance);
-    } else {
-      contextProviders.push(new CustomContextProviderClass(provider));
+  for (const cp of config.contextProviders ?? []) {
+    if (!isContextProviderWithParams(cp)) {
+      contextProviders.push(new CustomContextProviderClass(cp));
     }
   }
+  errors.push(...contextErrors);
 
   // Embeddings Provider
   function getEmbeddingsILLM(
@@ -525,7 +503,7 @@ async function intermediateToFinalConfig({
   const continueConfig: ContinueConfig = {
     ...config,
     contextProviders,
-    tools: await getToolsForIde(ide),
+    tools: getBaseToolDefinitions(),
     mcpServerStatuses: [],
     slashCommands: [],
     modelsByRole: {
@@ -569,16 +547,33 @@ async function intermediateToFinalConfig({
 
   // Trigger MCP server refreshes (Config is reloaded again once connected!)
   const mcpManager = MCPManagerSingleton.getInstance();
-  mcpManager.setConnections(
-    (config.experimental?.modelContextProtocolServers ?? []).map(
-      (server, index) => ({
-        id: `continue-mcp-server-${index + 1}`,
-        name: `MCP Server`,
-        ...server,
-      }),
-    ),
-    false,
-  );
+
+  const orgPolicy = PolicySingleton.getInstance().policy;
+  if (orgPolicy?.policy?.allowMcpServers === false) {
+    await mcpManager.shutdown();
+  } else {
+    const mcpOptions: InternalMcpOptions[] = (
+      config.experimental?.modelContextProtocolServers ?? []
+    ).map((server, index) => ({
+      id: `continue-mcp-server-${index + 1}`,
+      name: `MCP Server`,
+      requestOptions: mergeConfigYamlRequestOptions(
+        server.transport.type !== "stdio"
+          ? server.transport.requestOptions
+          : undefined,
+        config.requestOptions,
+      ),
+      ...server.transport,
+    }));
+    const { errors: jsonMcpErrors, mcpServers } = await loadJsonMcpConfigs(
+      ide,
+      true,
+      config.requestOptions,
+    );
+    errors.push(...jsonMcpErrors);
+    mcpOptions.push(...mcpServers);
+    mcpManager.setConnections(mcpOptions, false);
+  }
 
   // Handle experimental modelRole config values for apply and edit
   const inlineEditModel = getModelByRole(continueConfig, "inlineEdit")?.title;
@@ -652,6 +647,8 @@ function llmToSerializedModelDescription(llm: ILLM): ModelDescription {
     configurationStatus: llm.getConfigurationStatus(),
     apiKeyLocation: llm.apiKeyLocation,
     envSecretLocations: llm.envSecretLocations,
+    sourceFile: llm.sourceFile,
+    isFromAutoDetect: llm.isFromAutoDetect,
   };
 }
 
@@ -674,7 +671,7 @@ async function finalToBrowserConfig(
     experimental: final.experimental,
     rules: final.rules,
     docs: final.docs,
-    tools: final.tools,
+    tools: final.tools.map(serializeTool),
     mcpServerStatuses: final.mcpServerStatuses,
     tabAutocompleteOptions: final.tabAutocompleteOptions,
     usePlatform: await useHub(ide.getIdeSettings()),
@@ -698,102 +695,43 @@ function escapeSpacesInPath(p: string): string {
   return p.replace(/ /g, "\\ ");
 }
 
-async function handleEsbuildInstallation(ide: IDE, ideType: IdeType) {
-  // JetBrains is currently the only IDE that we've reached the plugin size limit and
-  // therefore need to install esbuild manually to reduce the size
-  if (ideType !== "jetbrains") {
-    return;
-  }
+async function handleEsbuildInstallation(
+  ide: IDE,
+  _ideType: IdeType,
+): Promise<boolean> {
+  // Only check when config.ts is going to be used; never auto-install.
+  const installCmd = "npm i esbuild@x.x.x --prefix ~/.continue";
 
-  const globalContext = new GlobalContext();
-  if (globalContext.get("hasDismissedConfigTsNoticeJetBrains")) {
-    return;
-  }
-
-  const esbuildPath = getEsbuildBinaryPath();
-
-  if (fs.existsSync(esbuildPath)) {
-    return;
-  }
-
-  console.debug("No esbuild binary detected");
-
-  const shouldInstall = await promptEsbuildInstallation(ide);
-
-  if (shouldInstall) {
-    await downloadAndInstallEsbuild(ide);
-  }
-}
-
-async function promptEsbuildInstallation(ide: IDE): Promise<boolean> {
-  const installMsg = "Install esbuild";
-  const dismissMsg = "Dismiss";
-
-  const res = await ide.showToast(
-    "warning",
-    "You're using a custom 'config.ts' file, which requires 'esbuild' to be installed. Would you like to install it now?",
-    dismissMsg,
-    installMsg,
-  );
-
-  if (res === dismissMsg) {
-    const globalContext = new GlobalContext();
-    globalContext.update("hasDismissedConfigTsNoticeJetBrains", true);
-    return false;
-  }
-
-  return res === installMsg;
-}
-
-/**
- * The download logic is adapted from here: https://esbuild.github.io/getting-started/#download-a-build
- */
-async function downloadAndInstallEsbuild(ide: IDE) {
-  const esbuildPath = getEsbuildBinaryPath();
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "esbuild-"));
-
+  // Try to detect a user-installed esbuild (normal resolution)
   try {
-    const target = `${os.platform()}-${os.arch()}`;
-    const version = "0.19.11";
-    const url = `https://registry.npmjs.org/@esbuild/${target}/-/${target}-${version}.tgz`;
-    const tgzPath = path.join(tempDir, `esbuild-${version}.tgz`);
-
-    console.debug(`Downloading esbuild from: ${url}`);
-    execSync(`curl -fo "${tgzPath}" "${url}"`);
-
-    console.debug(`Extracting tgz file to: ${tempDir}`);
-    await tar.x({
-      file: tgzPath,
-      cwd: tempDir,
-      strip: 2, // Remove the top two levels of directories
-    });
-
-    // Ensure the destination directory exists
-    const destDir = path.dirname(esbuildPath);
-    if (!fs.existsSync(destDir)) {
-      fs.mkdirSync(destDir, { recursive: true });
+    await import("esbuild");
+    return true; // available
+  } catch {
+    // Try resolving from ~/.continue/node_modules as a courtesy
+    try {
+      const userEsbuild = path.join(
+        os.homedir(),
+        ".continue",
+        "node_modules",
+        "esbuild",
+      );
+      const candidate = require.resolve("esbuild", { paths: [userEsbuild] });
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require(candidate);
+      return true; // available via ~/.continue
+    } catch {
+      // Not available → show friendly instructions and opt out of building
+      await ide.showToast(
+        "error",
+        [
+          "config.ts has been deprecated and esbuild is no longer automatically installed by Continue.",
+          "To use config.ts, install esbuild manually:",
+          "",
+          `    ${installCmd}`,
+        ].join("\n"),
+      );
+      return false;
     }
-
-    // Move the file
-    const extractedBinaryPath = path.join(tempDir, "esbuild");
-    fs.renameSync(extractedBinaryPath, esbuildPath);
-
-    // Ensure the binary is executable (not needed on Windows)
-    if (os.platform() !== "win32") {
-      fs.chmodSync(esbuildPath, 0o755);
-    }
-
-    // Clean up
-    fs.unlinkSync(tgzPath);
-    fs.rmSync(tempDir, { recursive: true });
-
-    await ide.showToast(
-      "info",
-      `'esbuild' successfully installed to ${esbuildPath}`,
-    );
-  } catch (error) {
-    console.error("Error downloading or saving esbuild binary:", error);
-    throw error;
   }
 }
 
@@ -868,15 +806,21 @@ async function buildConfigTsandReadConfigJs(ide: IDE, ideType: IdeType) {
     return;
   }
 
-  await handleEsbuildInstallation(ide, ideType);
-  await tryBuildConfigTs();
+  // Only bother with esbuild if config.ts is actually customized
+  if (currentContent.trim() !== DEFAULT_CONFIG_TS_CONTENTS.trim()) {
+    const ok = await handleEsbuildInstallation(ide, ideType);
+    if (!ok) {
+      // esbuild not available → we already showed a friendly message; skip building
+      return;
+    }
+    await tryBuildConfigTs();
+  }
 
   return readConfigJs();
 }
 
 async function loadContinueConfigFromJson(
   ide: IDE,
-  workspaceConfigs: ContinueRcJson[],
   ideSettings: IdeSettings,
   ideInfo: IdeInfo,
   uniqueId: string,
@@ -884,6 +828,7 @@ async function loadContinueConfigFromJson(
   workOsAccessToken: string | undefined,
   overrideConfigJson: SerializedContinueConfig | undefined,
 ): Promise<ConfigResult<ContinueConfig>> {
+  const workspaceConfigs = await getWorkspaceRcConfigs(ide);
   // Serialized config
   let {
     config: serialized,

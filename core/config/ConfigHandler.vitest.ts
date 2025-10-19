@@ -10,7 +10,7 @@ import { defaultConfig } from "./default";
 
 describe.skip("Test the ConfigHandler and E2E config loading", () => {
   test("should show only local profile", () => {
-    const profiles = testConfigHandler.currentOrg.profiles;
+    const profiles = testConfigHandler.currentOrg?.profiles;
     expect(profiles?.length).toBe(1);
     expect(profiles?.[0].profileDescription.id).toBe("local");
 
@@ -32,7 +32,7 @@ describe.skip("Test the ConfigHandler and E2E config loading", () => {
 }`;
     fs.writeFileSync(getConfigTsPath(), configTs);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    const config = await testConfigHandler.reloadConfig();
+    const config = await testConfigHandler.reloadConfig("test");
     /**
      * @ts-ignore is applied because this test is skipped
      */
@@ -45,7 +45,7 @@ describe.skip("Test the ConfigHandler and E2E config loading", () => {
       path.join(TEST_DIR, ".continuerc.json"),
       JSON.stringify({ systemMessage: "SYSTEM2" }),
     );
-    const config = await testConfigHandler.reloadConfig();
+    const config = await testConfigHandler.reloadConfig("test");
     /**
      * @ts-ignore is applied because this test is skipped
      */

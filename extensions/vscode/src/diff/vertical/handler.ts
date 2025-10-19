@@ -76,6 +76,39 @@ export class VerticalDiffHandler implements vscode.Disposable {
     this.disposables.push(disposable);
   }
 
+  /**  ensures the current target file is open and focused before performing edits*/
+  private async ensureCurrentFileIsFocused() {
+    const targetUri = this.editor.document.uri;
+    const active = vscode.window.activeTextEditor;
+    if (
+      active &&
+      URI.equal(active.document.uri.toString(), targetUri.toString())
+    ) {
+      this.editor = active;
+      return;
+    }
+
+    const visible = vscode.window.visibleTextEditors.find((foundEditor) =>
+      URI.equal(foundEditor.document.uri.toString(), targetUri.toString()),
+    );
+    if (visible) {
+      await vscode.window.showTextDocument(visible.document, {
+        preview: false,
+        preserveFocus: false,
+        viewColumn: visible.viewColumn,
+      });
+      this.editor = vscode.window.activeTextEditor ?? visible;
+      return;
+    }
+
+    const doc = await vscode.workspace.openTextDocument(targetUri);
+    const editor = await vscode.window.showTextDocument(doc, {
+      preview: false,
+      preserveFocus: false,
+    });
+    this.editor = editor;
+  }
+
   public get range(): vscode.Range {
     const startLine = Math.min(this.startLine, this.endLine);
     const endLine = Math.max(this.startLine, this.endLine);
@@ -296,6 +329,8 @@ export class VerticalDiffHandler implements vscode.Disposable {
     // Diff is messed up without this delay.
     await new Promise((resolve) => setTimeout(resolve, 100));
 
+    await this.ensureCurrentFileIsFocused();
+
     // First, we reset the original diff by rejecting all pending diff blocks
     const blocks = this.editorToVerticalDiffCodeLens.get(this.fileUri) ?? [];
     for (const block of blocks.reverse()) {
@@ -315,11 +350,12 @@ export class VerticalDiffHandler implements vscode.Disposable {
     // newline separated, because myersDiff() would consider
     // ["A"] => "A" and ["A", ""] => "A\n" to be the same single line.
     // "A\n" and "A\n\n" are unambiguous.
-    const oldFileContent =
-      diffLines
-        .filter((line) => line.type === "same" || line.type === "old")
-        .map((line) => line.line)
-        .join("\n") + "\n";
+    const oldContentWithoutTrailingNewline = diffLines
+      .filter((line) => line.type === "same" || line.type === "old")
+      .map((line) => line.line)
+      .join("\n");
+
+    const oldFileContent = oldContentWithoutTrailingNewline + "\n";
 
     const newFileContent =
       diffLines
@@ -329,9 +365,16 @@ export class VerticalDiffHandler implements vscode.Disposable {
 
     const myersDiffs = myersDiff(oldFileContent, newFileContent);
 
-    const replaceContent = myersDiffs
-      .map((diff) => (diff.type === "old" ? "" : diff.line))
-      .join("\n");
+    // Preserve the trailing newline behavior by checking the original document content
+    const originalDocumentContent = this.editor.document.getText(this.range);
+    const originalContentEndsWithNewline =
+      originalDocumentContent.endsWith("\n");
+
+    // Add trailing newline only if the original file had one to prevent line count discrepancies
+    const replaceContent =
+      myersDiffs
+        .map((diff) => (diff.type === "old" ? "" : diff.line))
+        .join("\n") + (originalContentEndsWithNewline ? "\n" : "");
 
     // Then, we insert our diff lines
     await this.editor.edit((editBuilder) => {
@@ -435,6 +478,7 @@ export class VerticalDiffHandler implements vscode.Disposable {
   }
 
   private async insertTextAboveLine(index: number, text: string) {
+    await this.ensureCurrentFileIsFocused();
     await this.editor.edit(
       (editBuilder) => {
         const lineCount = this.editor.document.lineCount;
@@ -463,6 +507,7 @@ export class VerticalDiffHandler implements vscode.Disposable {
 
   private async deleteLinesAt(index: number, numLines = 1) {
     const startLine = new vscode.Position(index, 0);
+    await this.ensureCurrentFileIsFocused();
     await this.editor.edit(
       (editBuilder) => {
         editBuilder.delete(
@@ -474,6 +519,7 @@ export class VerticalDiffHandler implements vscode.Disposable {
   }
 
   private async deleteRangeLines(ranges: vscode.Range[]) {
+    await this.ensureCurrentFileIsFocused();
     await this.editor.edit(
       (editBuilder) => {
         for (const range of ranges) {

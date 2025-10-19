@@ -3,10 +3,15 @@ import { exec } from "node:child_process";
 
 import { Range } from "core";
 import { EXTENSION_NAME } from "core/control-plane/env";
+import { DEFAULT_IGNORES, defaultIgnoresGlob } from "core/indexing/ignore";
 import * as URI from "uri-js";
 import * as vscode from "vscode";
 
-import { executeGotoProvider } from "./autocomplete/lsp";
+import {
+  executeGotoProvider,
+  executeSignatureHelpProvider,
+  executeSymbolProvider,
+} from "./autocomplete/lsp";
 import { Repository } from "./otherExtensions/git";
 import { SecretStorage } from "./stubs/SecretStorage";
 import { VsCodeIdeUtils } from "./util/ideUtils";
@@ -14,7 +19,7 @@ import { getExtensionUri, openEditorAndRevealRange } from "./util/vscode";
 import { VsCodeWebviewProtocol } from "./webviewProtocol";
 
 import type {
-  ContinueRcJson,
+  DocumentSymbol,
   FileStatsMap,
   FileType,
   IDE,
@@ -24,9 +29,11 @@ import type {
   Location,
   Problem,
   RangeInFile,
+  SignatureHelp,
   TerminalOptions,
   Thread,
 } from "core";
+import { getExtensionVersion, isExtensionPrerelease } from "./util/util";
 
 class VsCodeIde implements IDE {
   ideUtils: VsCodeIdeUtils;
@@ -81,6 +88,50 @@ class VsCodeIde implements IDE {
       line: location.position.line,
       character: location.position.character,
       name: "vscode.executeDefinitionProvider",
+    });
+
+    return result;
+  }
+
+  async gotoTypeDefinition(location: Location): Promise<RangeInFile[]> {
+    const result = await executeGotoProvider({
+      uri: vscode.Uri.parse(location.filepath),
+      line: location.position.line,
+      character: location.position.character,
+      name: "vscode.executeTypeDefinitionProvider",
+    });
+
+    return result;
+  }
+
+  async getSignatureHelp(location: Location): Promise<SignatureHelp | null> {
+    const result = await executeSignatureHelpProvider({
+      uri: vscode.Uri.parse(location.filepath),
+      line: location.position.line,
+      character: location.position.character,
+      name: "vscode.executeSignatureHelpProvider",
+    });
+
+    return result;
+  }
+
+  async getReferences(location: Location): Promise<RangeInFile[]> {
+    const result = await executeGotoProvider({
+      uri: vscode.Uri.parse(location.filepath),
+      line: location.position.line,
+      character: location.position.character,
+      name: "vscode.executeReferenceProvider",
+    });
+
+    return result;
+  }
+
+  async getDocumentSymbols(
+    textDocumentIdentifier: string, // uri
+  ): Promise<DocumentSymbol[]> {
+    const result = await executeSymbolProvider({
+      uri: vscode.Uri.parse(textDocumentIdentifier),
+      name: "vscode.executeDocumentSymbolProvider",
     });
 
     return result;
@@ -153,9 +204,8 @@ class VsCodeIde implements IDE {
       name: vscode.env.appName,
       version: vscode.version,
       remoteName: vscode.env.remoteName || "local",
-      extensionVersion:
-        vscode.extensions.getExtension("Amarsoft.kodemate-ai")?.packageJSON
-          .version,
+      extensionVersion: getExtensionVersion(),
+      isPrerelease: isExtensionPrerelease(),
     });
   }
 
@@ -213,10 +263,10 @@ class VsCodeIde implements IDE {
   }
 
   async getClipboardContent() {
-    return this.context.workspaceState.get("continue.copyBuffer", {
-      text: "",
-      copiedAt: new Date("1900-01-01").toISOString(),
-    });
+    return {
+      text: await vscode.env.clipboard.readText(),
+      copiedAt: new Date().toISOString(),
+    };
   }
 
   async getTerminalContents(): Promise<string> {
@@ -238,32 +288,6 @@ class VsCodeIde implements IDE {
   }
   async getAvailableThreads(): Promise<Thread[]> {
     return await this.ideUtils.getAvailableThreads();
-  }
-
-  async getWorkspaceConfigs() {
-    const workspaceDirs =
-      vscode.workspace.workspaceFolders?.map((folder) => folder.uri) || [];
-    const configs: ContinueRcJson[] = [];
-    for (const workspaceDir of workspaceDirs) {
-      const files = await this.ideUtils.readDirectory(workspaceDir);
-      if (files === null) {
-        //Unlikely, but just in case...
-        continue;
-      }
-      for (const [filename, type] of files) {
-        if (
-          (type === vscode.FileType.File ||
-            type === vscode.FileType.SymbolicLink) &&
-          filename === ".continuerc.json"
-        ) {
-          const contents = await this.readFile(
-            vscode.Uri.joinPath(workspaceDir, filename).toString(),
-          );
-          configs.push(JSON.parse(contents));
-        }
-      }
-    }
-    return configs;
   }
 
   async getWorkspaceDirs(): Promise<string[]> {
@@ -384,6 +408,12 @@ class VsCodeIde implements IDE {
     await vscode.env.openExternal(vscode.Uri.parse(url));
   }
 
+  async getExternalUri(uri: string): Promise<string> {
+    const vsCodeUri = vscode.Uri.parse(uri);
+    const externalUri = await vscode.env.asExternalUri(vsCodeUri);
+    return externalUri.toString(true);
+  }
+
   async getOpenFiles(): Promise<string[]> {
     return this.ideUtils.getOpenFiles().map((uri) => uri.toString());
   }
@@ -429,7 +459,9 @@ class VsCodeIde implements IDE {
           resolve(output);
         } else if (code === 1) {
           // No matches
-          resolve("No matches found");
+          resolve(
+            "No matches found. Build, secrets, etc. dirs and files are not included.",
+          );
         } else {
           reject(new Error(`Process exited with code ${code}`));
         }
@@ -441,6 +473,8 @@ class VsCodeIde implements IDE {
     pattern: string,
     maxResults?: number,
   ): Promise<string[]> {
+    // Create a single combined ignore pattern for ripgrep (calculated once)
+
     if (vscode.env.remoteName) {
       // TODO better tests for this remote search implementation
       // throw new Error("Ripgrep not supported, this workspace is remote");
@@ -452,6 +486,11 @@ class VsCodeIde implements IDE {
       );
 
       const ignoreGlobs: Set<string> = new Set();
+      // Add default ignores from core
+      for (const pattern of DEFAULT_IGNORES) {
+        ignoreGlobs.add(pattern);
+      }
+
       for (const file of ignoreFiles) {
         const content = await this.ideUtils.readFile(file);
         if (content === null) {
@@ -512,6 +551,7 @@ class VsCodeIde implements IDE {
       return results.map((result) => vscode.workspace.asRelativePath(result));
     } else {
       const results: string[] = [];
+      // Create a single combined ignore pattern using glob brace expansion
       for (const dir of await this.getWorkspaceDirs()) {
         const dirResults = await this.runRipgrepQuery(dir, [
           "--files",
@@ -521,6 +561,8 @@ class VsCodeIde implements IDE {
           ".continueignore",
           "--ignore-file",
           ".gitignore",
+          "--glob",
+          defaultIgnoresGlob,
           ...(maxResults ? ["--max-count", String(maxResults)] : []),
         ]);
 
@@ -543,6 +585,7 @@ class VsCodeIde implements IDE {
       throw new Error("Ripgrep not supported, this workspace is remote");
     }
     const results: string[] = [];
+
     for (const dir of await this.getWorkspaceDirs()) {
       const dirResults = await this.runRipgrepQuery(dir, [
         "-i", // Case-insensitive search
@@ -553,6 +596,9 @@ class VsCodeIde implements IDE {
         "-C",
         "2", // Show 2 lines of context
         "--heading", // Only show filepath once per result
+        // Use a single glob with all default ignores
+        "--glob",
+        defaultIgnoresGlob,
         ...(maxResults ? ["-m", maxResults.toString()] : []),
         "-e",
         query, // Pattern to search for

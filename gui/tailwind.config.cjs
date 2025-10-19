@@ -29,6 +29,9 @@ module.exports = {
       borderRadius: {
         default: "0.5rem",
       },
+      fontSize: {
+        "2xs": "0.6875rem", // 11px
+      },
       outlineOffset: {
         0.5: "0.5px",
       },
@@ -78,11 +81,13 @@ module.exports = {
           DEFAULT: varWithFallback("badge-background"),
           foreground: varWithFallback("badge-foreground"),
         },
+        info: varWithFallback("info"),
         success: varWithFallback("success"),
         warning: varWithFallback("warning"),
         error: varWithFallback("error"),
         link: varWithFallback("link"),
         accent: varWithFallback("accent"),
+        terminal: varWithFallback("terminal"),
         findMatch: {
           DEFAULT: THEME_COLORS["find-match"].default,
           selected: varWithFallback("find-match-selected"),

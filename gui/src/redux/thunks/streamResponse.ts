@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from "uuid";
 import { resolveEditorContent } from "../../components/mainInput/TipTapEditor/utils/resolveEditorContent";
 import { selectSelectedChatModel } from "../slices/configSlice";
 import {
+  resetNextCodeBlockToApplyIndex,
   submitEditorAndInitAtIndex,
   updateHistoryItemAtIndex,
 } from "../slices/sessionSlice";
 import { ThunkApiType } from "../store";
-import { resetStateForNewMessage } from "./resetStateForNewMessage";
 import { streamNormalInput } from "./streamNormalInput";
 import { streamThunkWrapper } from "./streamThunkWrapper";
 import { updateFileSymbolsFromFiles } from "./updateFileSymbols";
@@ -35,21 +35,14 @@ export const streamResponseThunk = createAsyncThunk<
         if (!selectedChatModel) {
           throw new Error("No chat model selected");
         }
-
         dispatch(
           submitEditorAndInitAtIndex({ index: inputIndex, editorState }),
         );
-        resetStateForNewMessage();
+
+        dispatch(resetNextCodeBlockToApplyIndex());
 
         const defaultContextProviders =
           state.config.config.experimental?.defaultContext ?? [];
-
-        if (!selectedChatModel) {
-          console.error(
-            "gatherContext thunk: Cannot gather context, no model selected",
-          );
-          throw new Error("No chat model selected");
-        }
 
         // Resolve context providers and construct new history
         const {

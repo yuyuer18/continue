@@ -16,7 +16,7 @@ class CodeContextProvider extends BaseContextProvider {
     displayTitle: "代码片段",
     description: "输入搜索",
     type: "submenu",
-    dependsOnIndexing: true,
+    dependsOnIndexing: ["chunk", "codeSnippets"],
   };
 
   async getContextItems(

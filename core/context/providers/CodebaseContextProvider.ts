@@ -13,6 +13,7 @@ class CodebaseContextProvider extends BaseContextProvider {
     description: "自动找到相关文件",
     type: "normal",
     renderInlineAs: "",
+    dependsOnIndexing: ["embeddings", "fullTextSearch", "chunk"],
   };
 
   async getContextItems(

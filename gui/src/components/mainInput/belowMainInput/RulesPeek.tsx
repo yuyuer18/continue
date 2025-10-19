@@ -1,5 +1,6 @@
 import { DocumentTextIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
-import { RuleSource, RuleWithSource } from "core";
+import { RuleWithSource } from "core";
+import { getRuleSourceDisplayName } from "core/llm/rules/rules-utils";
 import { ComponentType, useMemo, useState } from "react";
 import ToggleDiv from "../../ToggleDiv";
 
@@ -11,30 +12,6 @@ interface RulesPeekProps {
 interface RulesPeekItemProps {
   rule: RuleWithSource;
 }
-
-// Convert technical source to user-friendly text
-const getSourceLabel = (source: RuleSource): string => {
-  switch (source) {
-    case "default-chat":
-      return "Default Chat";
-    case "default-agent":
-      return "Default Agent";
-    case "model-options-chat":
-      return "Model Chat Options";
-    case "model-options-plan":
-      return "Model Plan Options";
-    case "model-options-agent":
-      return "Model Agent Options";
-    case "rules-block":
-      return "Rules Block";
-    case "json-systemMessage":
-      return "System Message";
-    case ".continuerules":
-      return "Project Rules";
-    default:
-      return source;
-  }
-};
 
 export function RulesPeekItem({ rule }: RulesPeekItemProps) {
   const isGlobal = rule.alwaysApply ?? !rule.globs;
@@ -71,7 +48,7 @@ export function RulesPeekItem({ rule }: RulesPeekItemProps) {
 
         <div className="flex min-w-0 flex-1 gap-2 text-xs">
           <div className="max-w-[50%] flex-shrink-0 truncate font-medium">
-            {rule.name || "Assistant rule"}
+            {rule.name || "Agent rule"}
           </div>
 
           <div className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap text-xs text-gray-500">
@@ -95,7 +72,7 @@ export function RulesPeekItem({ rule }: RulesPeekItemProps) {
         )}
       </div>
       <div className="mt-1 pl-6 pr-2 text-xs text-gray-500">
-        Source: {getSourceLabel(rule.source)}
+        Source: {getRuleSourceDisplayName(rule)}
       </div>
     </div>
   );

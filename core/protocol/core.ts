@@ -4,6 +4,7 @@ import {
   DevDataLogEvent,
   ModelRole,
 } from "@continuedev/config-yaml";
+import { ToolPolicy } from "@continuedev/terminal-security";
 
 import {
   AutocompleteInput,
@@ -13,8 +14,10 @@ import { SharedConfigSchema } from "../config/sharedConfig";
 import { GlobalContextModelSelections } from "../util/GlobalContext";
 
 import {
+  BaseSessionMetadata,
   BrowserSerializedContinueConfig,
   ChatMessage,
+  CompiledMessagesResult,
   CompleteOnboardingPayload,
   ContextItem,
   ContextItemWithId,
@@ -25,13 +28,13 @@ import {
   FileSymbolMap,
   IdeSettings,
   LLMFullCompletionOptions,
+  MessageOption,
   ModelDescription,
   PromptLog,
   RangeInFile,
   RangeInFileWithNextEditInfo,
   SerializedContinueConfig,
   Session,
-  SessionMetadata,
   SiteIndexingConfig,
   SlashCommandDescWithSource,
   StreamDiffLinesPayload,
@@ -41,8 +44,14 @@ import { AutocompleteCodeSnippet } from "../autocomplete/snippets/types";
 import { GetLspDefinitionsFunction } from "../autocomplete/types";
 import { ConfigHandler } from "../config/ConfigHandler";
 import { SerializedOrgWithProfiles } from "../config/ProfileLifecycleManager";
-import { ControlPlaneSessionInfo } from "../control-plane/AuthTypes";
-import { FreeTrialStatus } from "../control-plane/client";
+import {
+  ControlPlaneEnv,
+  ControlPlaneSessionInfo,
+} from "../control-plane/AuthTypes";
+import { CreditStatus, RemoteSessionMetadata } from "../control-plane/client";
+import { ProcessedItem } from "../nextEdit/NextEditPrefetchQueue";
+import { NextEditOutcome } from "../nextEdit/types";
+import { ContinueErrorReason } from "../util/errors";
 
 export enum OnboardingModes {
   API_KEY = "API Key",
@@ -62,10 +71,15 @@ export type ToCoreFromIdeOrWebviewProtocol = {
   cancelApply: [undefined, void];
 
   // History
-  "history/list": [ListHistoryOptions, SessionMetadata[]];
+  "history/list": [
+    ListHistoryOptions,
+    (BaseSessionMetadata | RemoteSessionMetadata)[],
+  ];
   "history/delete": [{ id: string }, void];
   "history/load": [{ id: string }, Session];
+  "history/loadRemote": [{ remoteId: string }, Session];
   "history/save": [Session, void];
+  "history/share": [{ id: string; outputDir?: string }, void];
   "history/clear": [undefined, void];
   "devdata/log": [DevDataLogEvent, void];
   "config/addOpenAiKey": [string, void];
@@ -77,7 +91,9 @@ export type ToCoreFromIdeOrWebviewProtocol = {
     void,
   ];
   "config/addLocalWorkspaceBlock": [{ blockType: BlockType }, void];
+  "config/addGlobalRule": [undefined, void];
   "config/newPromptFile": [undefined, void];
+  "config/newAssistantFile": [undefined, void];
   "config/ideSettingsUpdate": [IdeSettings, void];
   "config/getSerializedProfileInfo": [
     undefined,
@@ -85,15 +101,15 @@ export type ToCoreFromIdeOrWebviewProtocol = {
       result: ConfigResult<BrowserSerializedContinueConfig>;
       profileId: string | null;
       organizations: SerializedOrgWithProfiles[];
-      selectedOrgId: string;
+      selectedOrgId: string | null;
     },
   ];
   "config/deleteModel": [{ title: string }, void];
-  "config/reload": [undefined, ConfigResult<BrowserSerializedContinueConfig>];
   "config/refreshProfiles": [
     (
       | undefined
       | {
+          reason?: string;
           selectOrgId?: string;
           selectProfileId?: string;
         }
@@ -120,12 +136,14 @@ export type ToCoreFromIdeOrWebviewProtocol = {
     },
     ContextItemWithId[],
   ];
+
   "mcp/reloadServer": [
     {
       id: string;
     },
     void,
   ];
+  "mcp/setServerEnabled": [{ id: string; enabled: boolean }, void];
   "mcp/getPrompt": [
     {
       serverName: string;
@@ -137,6 +155,20 @@ export type ToCoreFromIdeOrWebviewProtocol = {
       description: string | undefined;
     },
   ];
+  "mcp/startAuthentication": [
+    {
+      serverId: string;
+      serverUrl: string;
+    },
+    void,
+  ];
+  "mcp/removeAuthentication": [
+    {
+      serverId: string;
+      serverUrl: string;
+    },
+    void,
+  ];
   "context/getSymbolsForFiles": [{ uris: string[] }, FileSymbolMap];
   "context/loadSubmenuItems": [{ title: string }, ContextSubmenuItem[]];
   "autocomplete/complete": [AutocompleteInput, string[]];
@@ -145,6 +177,44 @@ export type ToCoreFromIdeOrWebviewProtocol = {
   "context/indexDocs": [{ reIndex: boolean }, void];
   "autocomplete/cancel": [undefined, void];
   "autocomplete/accept": [{ completionId: string }, void];
+  "nextEdit/predict": [
+    {
+      input: AutocompleteInput;
+      options?: {
+        withChain?: boolean;
+        usingFullFileDiff?: boolean;
+      };
+    },
+    NextEditOutcome | undefined,
+  ];
+  "nextEdit/reject": [{ completionId: string }, void];
+  "nextEdit/accept": [{ completionId: string }, void];
+  "nextEdit/startChain": [undefined, void];
+  "nextEdit/deleteChain": [undefined, void];
+  "nextEdit/isChainAlive": [undefined, boolean];
+  "nextEdit/queue/getProcessedCount": [undefined, number];
+  "nextEdit/queue/dequeueProcessed": [undefined, ProcessedItem | null];
+  "nextEdit/queue/processOne": [
+    {
+      ctx: {
+        completionId: string;
+        manuallyPassFileContents?: string;
+        manuallyPassPrefix?: string;
+        selectedCompletionInfo?: {
+          text: string;
+          range: Range;
+        };
+        isUntitledFile: boolean;
+        recentlyVisitedRanges: AutocompleteCodeSnippet[];
+        recentlyEditedRanges: RecentlyEditedRange[];
+      };
+      recentlyVisitedRanges: AutocompleteCodeSnippet[];
+      recentlyEditedRanges: RecentlyEditedRange[];
+    },
+    void,
+  ];
+  "nextEdit/queue/clear": [undefined, void];
+  "nextEdit/queue/abort": [undefined, void];
   "llm/complete": [
     {
       prompt: string;
@@ -159,6 +229,7 @@ export type ToCoreFromIdeOrWebviewProtocol = {
       messages: ChatMessage[];
       completionOptions: LLMFullCompletionOptions;
       title: string;
+      messageOptions?: MessageOption;
       legacySlashCommandData?: {
         command: SlashCommandDescWithSource;
         input: string;
@@ -170,9 +241,20 @@ export type ToCoreFromIdeOrWebviewProtocol = {
     AsyncGenerator<ChatMessage, PromptLog>,
   ];
   streamDiffLines: [StreamDiffLinesPayload, AsyncGenerator<DiffLine>];
+  "llm/compileChat": [
+    { messages: ChatMessage[]; options: LLMFullCompletionOptions },
+    CompiledMessagesResult,
+  ];
   "chatDescriber/describe": [
     {
       text: string;
+    },
+    string | undefined,
+  ];
+  "conversation/compact": [
+    {
+      index: number;
+      sessionId: string;
     },
     string | undefined,
   ];
@@ -219,20 +301,34 @@ export type ToCoreFromIdeOrWebviewProtocol = {
   "docs/getSuggestedDocs": [undefined, void];
   "docs/initStatuses": [undefined, void];
   "docs/getDetails": [{ startUrl: string }, DocsIndexingDetails];
+  "docs/getIndexedPages": [{ startUrl: string }, string[]];
   addAutocompleteModel: [{ model: ModelDescription }, void];
 
   "auth/getAuthUrl": [{ useOnboarding: boolean }, { url: string }];
   "tools/call": [
     { toolCall: ToolCall },
-    { contextItems: ContextItem[]; errorMessage?: string },
+    {
+      contextItems: ContextItem[];
+      errorMessage?: string;
+      errorReason?: ContinueErrorReason;
+    },
+  ];
+  "tools/evaluatePolicy": [
+    { toolName: string; basePolicy: ToolPolicy; args: Record<string, unknown> },
+    { policy: ToolPolicy; displayValue?: string },
+  ];
+  "tools/preprocessArgs": [
+    { toolName: string; args: Record<string, unknown> },
+    {
+      preprocessedArgs?: Record<string, unknown>;
+      errorReason?: ContinueErrorReason;
+      errorMessage?: string;
+    },
   ];
   "clipboardCache/add": [{ content: string }, void];
   "controlPlane/openUrl": [{ path: string; orgSlug?: string }, void];
-  "controlPlane/getFreeTrialStatus": [undefined, FreeTrialStatus | null];
-  "controlPlane/getModelsAddOnUpgradeUrl": [
-    { vsCodeUriScheme?: string },
-    { url: string } | null,
-  ];
+  "controlPlane/getEnvironment": [undefined, ControlPlaneEnv];
+  "controlPlane/getCreditStatus": [undefined, CreditStatus | null];
   isItemTooBig: [{ item: ContextItemWithId }, boolean];
   didChangeControlPlaneSessionInfo: [
     { sessionInfo: ControlPlaneSessionInfo | undefined },
@@ -240,5 +336,6 @@ export type ToCoreFromIdeOrWebviewProtocol = {
   ];
   "process/markAsBackgrounded": [{ toolCallId: string }, void];
   "process/isBackgrounded": [{ toolCallId: string }, boolean];
+  "process/killTerminalProcess": [{ toolCallId: string }, void];
   "mdm/setLicenseKey": [{ licenseKey: string }, boolean];
 };
