@@ -50,7 +50,6 @@ export interface IIdeMessenger {
     GeneratorYieldType<FromWebviewProtocol[T][1]>[],
     GeneratorReturnType<FromWebviewProtocol[T][1]> | undefined
   >;
-
   llmStreamChat(
     msg: ToCoreProtocol["llm/streamChat"][0],
     cancelToken: AbortSignal,
