@@ -43,106 +43,106 @@ function KeyboardShortcut(props: KeyboardShortcutProps) {
 const vscodeShortcuts: Omit<KeyboardShortcutProps, "isEven">[] = [
   {
     shortcut: "cmd '",
-    description: "Toggle Selected Model",
+    description: "切换选定的模型",
   },
   {
     shortcut: "cmd I",
-    description: "Edit highlighted code",
+    description: "编辑高亮代码",
   },
   {
     shortcut: "cmd L",
     description:
-      "New Chat / New Chat With Selected Code / Close Continue Sidebar If Chat Already In Focus",
+      "新聊天 / 使用选定代码的新聊天 / 如果聊天已聚焦则关闭 Continue 侧边栏",
   },
   {
     shortcut: "cmd backspace",
-    description: "Cancel response",
+    description: "取消响应",
   },
   {
     shortcut: "cmd shift I",
-    description: "Toggle inline edit focus",
+    description: "切换内联编辑焦点",
   },
   {
     shortcut: "cmd shift L",
     description:
-      "Focus Current Chat / Add Selected Code To Current Chat / Close Continue Sidebar If Chat Already In Focus",
+      "聚焦当前聊天 / 将选定代码添加到当前聊天 / 如果聊天已聚焦则关闭 Continue 侧边栏",
   },
   {
     shortcut: "cmd shift R",
-    description: "Debug Terminal",
+    description: "调试终端",
   },
   {
     shortcut: "cmd shift backspace",
-    description: "Reject Diff",
+    description: "拒绝差异",
   },
   {
     shortcut: "cmd shift enter",
-    description: "Accept Diff",
+    description: "接受差异",
   },
   {
     shortcut: "alt cmd N",
-    description: "Reject Top Change in Diff",
+    description: "拒绝差异中的顶部更改",
   },
   {
     shortcut: "alt cmd Y",
-    description: "Accept Top Change in Diff",
+    description: "接受差异中的顶部更改",
   },
   {
     shortcut: "cmd K cmd A",
-    description: "Toggle Autocomplete Enabled",
+    description: "切换自动补全启用状态",
   },
   {
     shortcut: "cmd alt space",
-    description: "Force an Autocomplete Trigger",
+    description: "强制触发自动补全",
   },
   {
     shortcut: "cmd K cmd M",
-    description: "Toggle Full Screen",
+    description: "切换全屏",
   },
 ];
 
 const jetbrainsShortcuts: Omit<KeyboardShortcutProps, "isEven">[] = [
   {
     shortcut: "cmd '",
-    description: "Toggle Selected Model",
+    description: "切换选定的模型",
   },
   {
     shortcut: "cmd I",
-    description: "Edit highlighted code",
+    description: "编辑高亮代码",
   },
   {
     shortcut: "cmd J",
     description:
-      "New Chat / New Chat With Selected Code / Close Continue Sidebar If Chat Already In Focus",
+      "新聊天 / 使用选定代码的新聊天 / 如果聊天已聚焦则关闭 Continue 侧边栏",
   },
   {
     shortcut: "cmd backspace",
-    description: "Cancel response",
+    description: "取消响应",
   },
   {
     shortcut: "cmd shift I",
-    description: "Toggle inline edit focus",
+    description: "切换内联编辑焦点",
   },
   {
     shortcut: "cmd shift J",
     description:
-      "Focus Current Chat / Add Selected Code To Current Chat / Close Continue Sidebar If Chat Already In Focus",
+      "聚焦当前聊天 / 将选定代码添加到当前聊天 / 如果聊天已聚焦则关闭 Continue 侧边栏",
   },
   {
     shortcut: "cmd shift backspace",
-    description: "Reject Diff",
+    description: "拒绝差异",
   },
   {
     shortcut: "cmd shift enter",
-    description: "Accept Diff",
+    description: "接受差异",
   },
   {
     shortcut: "alt shift J",
-    description: "Quick Input",
+    description: "快速输入",
   },
   {
     shortcut: "alt cmd J",
-    description: "Toggle Sidebar",
+    description: "切换侧边栏",
   },
 ];
 
@@ -172,16 +172,16 @@ export function HelpSection() {
 
   return (
     <div className="flex flex-col">
-      <ConfigHeader title="Help Center" />
+      <ConfigHeader title="帮助中心" />
       <div className="space-y-6">
         {/* Resources */}
         <div>
-          <h3 className="mb-3 text-base font-medium">Resources</h3>
+          <h3 className="mb-3 text-base font-medium">资源</h3>
           <Card className="!p-0">
             <div className="flex flex-col">
               <ConfigRow
                 title="Continue Hub"
-                description="Visit hub.continue.dev to explore custom agents and blocks"
+                description="访问 hub.continue.dev 探索自定义代理和模块"
                 icon={LinkIcon}
                 onClick={() =>
                   ideMessenger.post("openUrl", "https://hub.continue.dev/")
@@ -189,8 +189,8 @@ export function HelpSection() {
               />
 
               <ConfigRow
-                title="Documentation"
-                description="Learn how to configure and use Continue"
+                title="文档"
+                description="学习如何配置和使用 Continue"
                 icon={LinkIcon}
                 onClick={() =>
                   ideMessenger.post("openUrl", "https://docs.continue.dev/")
@@ -198,8 +198,8 @@ export function HelpSection() {
               />
 
               <ConfigRow
-                title="Have an issue?"
-                description="Let us know on GitHub and we'll do our best to resolve it"
+                title="遇到问题？"
+                description="在 GitHub 上告诉我们，我们会尽力解决"
                 icon={LinkIcon}
                 onClick={() =>
                   ideMessenger.post(
@@ -210,8 +210,8 @@ export function HelpSection() {
               />
 
               <ConfigRow
-                title="Join the community!"
-                description="Join us on Discord to stay up-to-date on the latest developments"
+                title="加入社区！"
+                description="加入我们的 Discord，了解最新动态"
                 icon={LinkIcon}
                 onClick={() =>
                   ideMessenger.post("openUrl", "https://discord.gg/vapESyrFmJ")
@@ -223,12 +223,12 @@ export function HelpSection() {
 
         {/* Tools */}
         <div>
-          <h3 className="mb-3 text-base font-medium">Tools</h3>
+          <h3 className="mb-3 text-base font-medium">工具</h3>
           <Card className="!p-0">
             <div className="flex flex-col">
               <ConfigRow
-                title="Token usage"
-                description="Daily token usage across models"
+                title="令牌使用情况"
+                description="各模型的每日令牌使用情况"
                 icon={TableCellsIcon}
                 onClick={() => navigate(ROUTES.STATS)}
               />
@@ -244,8 +244,8 @@ export function HelpSection() {
                 )}
 
               <ConfigRow
-                title="Quickstart"
-                description="Reopen the quickstart and tutorial file"
+                title="快速入门"
+                description="重新打开快速入门和教程文件"
                 icon={DocumentArrowUpIcon}
                 onClick={async () => {
                   navigate("/");
@@ -282,7 +282,7 @@ export function HelpSection() {
 
         {/* Keyboard Shortcuts */}
         <div>
-          <h3 className="mb-3 text-base font-medium">Keyboard Shortcuts</h3>
+          <h3 className="mb-3 text-base font-medium">键盘快捷键</h3>
           <Card className="!p-0">
             <div className="overflow-hidden rounded-md border border-gray-600">
               {shortcuts.map((shortcut, i) => {

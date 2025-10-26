@@ -24,9 +24,9 @@ export function ConfigsSection() {
   return (
     <>
       <ConfigHeader
-        title="Configs"
+        title="配置"
         onAddClick={handleAddConfig}
-        addButtonTooltip="Add config"
+        addButtonTooltip="添加配置"
       />
 
       <Card>
@@ -82,7 +82,7 @@ export function ConfigsSection() {
                       )}
                     </div>
                   </div>
-                  <ToolTip content="Open configuration">
+                  <ToolTip content="打开配置">
                     <Button
                       onClick={() => handleConfigureAgent(profile.id)}
                       variant="ghost"
@@ -98,7 +98,7 @@ export function ConfigsSection() {
             );
           })
         ) : (
-          <EmptyState message="No agents configured. Click the + button to add your first agent." />
+          <EmptyState message="未配置代理。点击 + 按钮添加您的第一个代理。" />
         )}
       </Card>
     </>

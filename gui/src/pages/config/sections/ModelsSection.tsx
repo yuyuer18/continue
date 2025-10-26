@@ -65,15 +65,15 @@ export function ModelsSection() {
   return (
     <div className="space-y-4">
       <ConfigHeader
-        title="Models"
+        title="模型"
         onAddClick={handleAddModel}
-        addButtonTooltip="Add model"
+        addButtonTooltip="添加模型"
       />
 
       <Card>
         <ModelRoleRow
           role="chat"
-          displayName="Chat"
+          displayName="对话"
           shortcut={
             <span className="text-2xs text-description-muted">
               (<Shortcut>{`cmd ${jetbrains ? "J" : "L"}`}</Shortcut>)
@@ -81,14 +81,14 @@ export function ModelsSection() {
           }
           description={
             <span>
-              Used in Chat, Plan, Agent mode (
+              用于对话、规划和代理模式 (
               <a
                 href="https://docs.continue.dev/features/chat/quick-start"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-inherit underline hover:brightness-125"
               >
-                Learn more
+                了解更多
               </a>
               )
             </span>
@@ -104,17 +104,17 @@ export function ModelsSection() {
 
         <ModelRoleRow
           role="autocomplete"
-          displayName="Autocomplete"
+          displayName="自动补全"
           description={
             <span>
-              Used in inline code completions as you type (
+              用于输入时的内联代码补全 (
               <a
                 href="https://docs.continue.dev/features/autocomplete/quick-start"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-inherit underline hover:brightness-125"
               >
-                Learn more
+                了解更多
               </a>
               )
             </span>
@@ -132,7 +132,7 @@ export function ModelsSection() {
             <Divider />
             <ModelRoleRow
               role="edit"
-              displayName="Edit"
+              displayName="编辑"
               shortcut={
                 <span className="text-2xs text-description-muted">
                   (<Shortcut>cmd I</Shortcut>)
@@ -166,14 +166,14 @@ export function ModelsSection() {
         <Toggle
           isOpen={showAdditionalRoles}
           onToggle={() => setShowAdditionalRoles(!showAdditionalRoles)}
-          title="Additional model roles"
-          subtitle="Apply, Embed, Rerank"
+          title="附加模型角色"
+          subtitle="应用、嵌入、重排序"
         >
           <div className="flex flex-col">
             <ModelRoleRow
               role="apply"
               displayName="Apply"
-              description="Used to apply generated codeblocks to files"
+              description="用于将生成的代码块应用到文件"
               models={config.modelsByRole.apply}
               selectedModel={config.selectedModelByRole.apply ?? undefined}
               onSelect={(model) => handleRoleUpdate("apply", model)}
@@ -186,7 +186,7 @@ export function ModelsSection() {
             <ModelRoleRow
               role="embed"
               displayName="Embed"
-              description="Used to generate and query embeddings for the @codebase and @docs context providers"
+              description="用于为 @codebase 和 @docs 上下文提供程序生成和查询嵌入"
               models={config.modelsByRole.embed}
               selectedModel={config.selectedModelByRole.embed ?? undefined}
               onSelect={(model) => handleRoleUpdate("embed", model)}
@@ -199,7 +199,7 @@ export function ModelsSection() {
             <ModelRoleRow
               role="rerank"
               displayName="Rerank"
-              description="Used for reranking results from the @codebase and @docs context providers"
+              description="用于对 @codebase 和 @docs 上下文提供程序的结果进行重排序"
               models={config.modelsByRole.rerank}
               selectedModel={config.selectedModelByRole.rerank ?? undefined}
               onSelect={(model) => handleRoleUpdate("rerank", model)}

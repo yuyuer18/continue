@@ -20,14 +20,14 @@ function CodebaseSubSection() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="mb-0 text-sm font-semibold">@codebase index</h3>
+        <h3 className="mb-0 text-sm font-semibold">@codebase 索引</h3>
       </div>
 
       <Card>
         <div className="py-2">
           {config.disableIndexing ? (
             <div className="p-1">
-              <p className="text-center font-semibold">Indexing is disabled</p>
+              <p className="text-center font-semibold">索引已禁用</p>
             </div>
           ) : (
             <IndexingProgress />
@@ -61,12 +61,10 @@ function EnableIndexingSetting() {
         type="toggle"
         description={
           <div className="text-foreground">
-            Allows indexing of your codebase for search and context
-            understanding.
+            允许对您的代码库进行索引，以便搜索和上下文理解。
             <br />
             <br />
-            Note that indexing can consume significant system resources,
-            especially on larger codebases.
+            请注意，索引可能会消耗大量系统资源，尤其是在较大的代码库上。
           </div>
         }
         value={!disableIndexing}
@@ -83,23 +81,21 @@ export function IndexingSettingsSection() {
 
   return (
     <>
-      <ConfigHeader title="Indexing" />
+      <ConfigHeader title="索引" />
 
       <Alert type="warning" className="mb-6">
         <div className="space-y-4">
           <div>
-            <div className="-mt-0.5 text-sm font-medium">
-              Indexing has been deprecated
-            </div>
+            <div className="-mt-0.5 text-sm font-medium">索引功能已弃用</div>
             <div className="mt-1 text-xs">
-              Learn how to{" "}
+              了解如何{" "}
               <a
                 href="https://docs.continue.dev/guides/codebase-documentation-awareness"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-inherit underline hover:brightness-125"
               >
-                make your agent aware of your codebase and documentation
+                让您的代理了解您的代码库和文档
               </a>
             </div>
           </div>

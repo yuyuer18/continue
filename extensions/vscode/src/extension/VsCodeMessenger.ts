@@ -24,7 +24,6 @@ import * as vscode from "vscode";
 
 import { ApplyManager } from "../apply";
 import { VerticalDiffManager } from "../diff/vertical/manager";
-import { A3Prompt } from "../kodemate/A3Prompt";
 import { addCurrentSelectionToEdit } from "../quickEdit/AddCurrentSelection";
 import EditDecorationManager from "../quickEdit/EditDecorationManager";
 import {
@@ -124,9 +123,9 @@ export class VsCodeMessenger {
       vscode.commands.executeCommand("continue.openInNewWindow");
     });
 
-    this.onWebview("handleGeneratePrompt", (selectedService: any) => {
-      new A3Prompt("selectedService", selectedService.data.serverUrl).createTemplateFile(selectedService);
-    });
+    // this.onWebview("handleGeneratePrompt", (selectedService: any) => {
+    //   new A3Prompt("selectedService", selectedService.data.serverUrl).createTemplateFile(selectedService);
+    // });
 
     this.onWebview("acceptDiff", async ({ data: { filepath, streamId } }) => {
       await vscode.commands.executeCommand(

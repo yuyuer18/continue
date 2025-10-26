@@ -55,7 +55,7 @@ let fullScreenPanel: vscode.WebviewPanel | undefined;
 function getFullScreenTab() {
   const tabs = vscode.window.tabGroups.all.flatMap((tabGroup) => tabGroup.tabs);
   return tabs.find((tab) =>
-    (tab.input as any)?.viewType?.endsWith("continue.continueGUIView"),
+    (tab.input as any)?.viewType?.endsWith("Amarsoft.kodemate-aiGUIView"),
   );
 }
 
@@ -78,7 +78,7 @@ function focusGUI() {
     fullScreenPanel?.reveal();
   } else {
     // focus sidebar
-    vscode.commands.executeCommand("continue.continueGUIView.focus");
+    vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
     // vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar");
   }
 }
@@ -226,7 +226,7 @@ const getCommandsMap: (
 
       addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
     },
     // Passthrough for telemetry purposes
     "continue.defaultQuickAction": async (args: QuickEditShowParams) => {
@@ -241,7 +241,7 @@ const getCommandsMap: (
 
       addCodeToContextFromRange(range, sidebar.webviewProtocol, prompt);
 
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
     },
     "continue.customQuickActionStreamInlineEdit": async (
       prompt: string,
@@ -360,7 +360,7 @@ const getCommandsMap: (
 
       streamInlineEdit(
         "comment",
-        "Write comments for this code. Do not change anything about the code itself.",
+        "为这段代码编写注释。不要对代码本身做任何修改。",
       );
     },
     "continue.writeDocstringForCode": async () => {
@@ -368,7 +368,7 @@ const getCommandsMap: (
 
       void streamInlineEdit(
         "docstring",
-        "Write a docstring for this code. Do not change anything about the code itself.",
+        "为这段代码编写文档字符串。不要对代码本身做任何修改。",
       );
     },
     "continue.fixCode": async () => {
@@ -376,7 +376,7 @@ const getCommandsMap: (
 
       streamInlineEdit(
         "fix",
-        "Fix this code. If it is already 100% correct, simply rewrite the code.",
+        "修复这段代码。如果代码已经是100%正确的，只需重写代码。",
       );
     },
     "continue.optimizeCode": async () => {
@@ -387,7 +387,7 @@ const getCommandsMap: (
       captureCommandTelemetry("fixGrammar");
       streamInlineEdit(
         "fixGrammar",
-        "If there are any grammar or spelling mistakes in this writing, fix them. Do not make other large changes to the writing.",
+        "如果这篇文章中有任何语法或拼写错误，请修复它们。不要对文章进行其他大的修改。",
       );
     },
     "continue.clearConsole": async () => {
@@ -402,10 +402,10 @@ const getCommandsMap: (
 
       const terminalContents = await ide.getTerminalContents();
 
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
       sidebar.webviewProtocol?.request("userInput", {
-        input: `I got the following error, can you please help explain how to fix it?\n\n${terminalContents.trim()}`,
+        input: `我遇到了以下错误，你能帮我解释如何修复它吗？\n\n${terminalContents.trim()}`,
       });
     },
     "continue.hideInlineTip": () => {
@@ -418,7 +418,7 @@ const getCommandsMap: (
     "continue.addModel": () => {
       captureCommandTelemetry("addModel");
 
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
       sidebar.webviewProtocol?.request("addModel", undefined);
     },
     "continue.newSession": () => {
@@ -434,7 +434,7 @@ const getCommandsMap: (
       }
       if (!sessionId) {
         void vscode.window.showErrorMessage(
-          "No session ID found. Please start a new session first.",
+          "未找到会话ID。请先开始一个新的会话。",
         );
         return;
       }
@@ -443,7 +443,7 @@ const getCommandsMap: (
         canSelectFolders: true,
         canSelectFiles: false,
         canSelectMany: false,
-        openLabel: "Select Destination Folder",
+        openLabel: "选择目标文件夹",
       });
       if (!destinationFolder || destinationFolder.length === 0) {
         return;
@@ -457,7 +457,7 @@ const getCommandsMap: (
           outputDir: destinationFolder[0].fsPath,
         });
       } catch (error) {
-        const errorMessage = `Failed to save session: ${error instanceof Error ? error.message : String(error)}`;
+        const errorMessage = `保存会话失败: ${error instanceof Error ? error.message : String(error)}`;
         void vscode.window.showErrorMessage(errorMessage);
       }
     },
@@ -469,7 +469,7 @@ const getCommandsMap: (
     ) => {
       if (!sessionId) {
         sessionId = await vscode.window.showInputBox({
-          prompt: "Enter the Session ID",
+          prompt: "请输入会话ID",
         });
       }
       void sidebar.webviewProtocol?.request("focusContinueSessionId", {
@@ -490,7 +490,7 @@ const getCommandsMap: (
         throw new Error("No files were selected");
       }
 
-      vscode.commands.executeCommand("continue.continueGUIView.focus");
+      vscode.commands.executeCommand("Amarsoft.kodemate-aiGUIView.focus");
 
       for (const uri of uris) {
         // If it's a folder, add the entire folder contents recursively by using walkDir (to ignore ignored files)
@@ -621,14 +621,14 @@ const getCommandsMap: (
 
       quickPick.items = [
         {
-          label: "$(gear) Open settings",
+          label: "$(gear) 打开设置",
         },
         {
-          label: "$(comment) Open chat",
+          label: "$(comment) 打开聊天",
           description: getMetaKeyLabel() + " + L",
         },
         {
-          label: "$(screen-full) Open full screen chat",
+          label: "$(screen-full) 打开全屏聊天",
           description:
             getMetaKeyLabel() + " + K, " + getMetaKeyLabel() + " + M",
         },
@@ -640,7 +640,7 @@ const getCommandsMap: (
         ...getNextEditMenuItems(currentStatus, nextEditEnabled),
         {
           kind: vscode.QuickPickItemKind.Separator,
-          label: "Switch model",
+          label: "切换模型",
         },
         ...autocompleteModels.map((model) => ({
           label: getAutocompleteStatusBarTitle(selected, model),
@@ -672,11 +672,11 @@ const getCommandsMap: (
               title: selectedOption,
             });
           }
-        } else if (selectedOption === "$(comment) Open chat") {
+        } else if (selectedOption === "$(comment) 打开聊天") {
           vscode.commands.executeCommand("continue.focusContinueInput");
-        } else if (selectedOption === "$(screen-full) Open full screen chat") {
+        } else if (selectedOption === "$(screen-full) 打开全屏聊天") {
           vscode.commands.executeCommand("continue.openInNewWindow");
-        } else if (selectedOption === "$(gear) Open settings") {
+        } else if (selectedOption === "$(gear) 打开设置") {
           vscode.commands.executeCommand("continue.navigateTo", "/config");
         }
 
@@ -732,11 +732,11 @@ const getCommandsMap: (
 
       void vscode.window
         .showInformationMessage(
-          "Your config.json has been converted to the new config.yaml format. If you need to switch back to config.json, you can delete or rename config.yaml.",
-          "Read the docs",
+          "您的config.json已转换为新的config.yaml格式。如果您需要切换回config.json，可以删除或重命名config.yaml。",
+          "阅读文档",
         )
         .then(async (selection) => {
-          if (selection === "Read the docs") {
+          if (selection === "阅读文档") {
             await vscode.env.openExternal(
               vscode.Uri.parse("https://docs.continue.dev/yaml-migration"),
             );
@@ -747,10 +747,10 @@ const getCommandsMap: (
       captureCommandTelemetry("enterEnterpriseLicenseKey");
 
       const licenseKey = await vscode.window.showInputBox({
-        prompt: "Enter your enterprise license key",
+        prompt: "请输入您的企业许可证密钥",
         password: true,
         ignoreFocusOut: true,
-        placeHolder: "License key",
+        placeHolder: "许可证密钥",
       });
 
       if (!licenseKey) {
@@ -764,7 +764,7 @@ const getCommandsMap: (
 
         if (isValid) {
           void vscode.window.showInformationMessage(
-            "Enterprise license key successfully validated and saved. Reloading window.",
+            "企业许可证密钥已成功验证并保存。正在重新加载窗口。",
           );
           await new Promise((resolve) => setTimeout(resolve, 1000));
           await vscode.commands.executeCommand("workbench.action.reloadWindow");
@@ -789,7 +789,7 @@ const getCommandsMap: (
 
       if (!tabAutocompleteEnabled) {
         vscode.window.showInformationMessage(
-          "Please enable tab autocomplete first to use Next Edit",
+          "请先启用Tab自动补全以使用Next Edit功能",
         );
         return;
       }
@@ -802,6 +802,12 @@ const getCommandsMap: (
         !nextEditEnabled,
         vscode.ConfigurationTarget.Global,
       );
+    },
+    "continue.toggleFullScreen": async () => {
+      vscode.commands.executeCommand("continue.openInNewWindow");
+    },
+    "continue.a3Help": async () => {
+      vscode.commands.executeCommand("continue.navigateTo", "/a3Help", false);
     },
     "continue.openInNewWindow": async () => {
       focusGUI();
@@ -827,7 +833,7 @@ const getCommandsMap: (
 
       // Create the full screen panel
       let panel = vscode.window.createWebviewPanel(
-        "continue.continueGUIView",
+        "Amarsoft.kodemate-aiGUIView",
         "Continue",
         vscode.ViewColumn.One,
         {

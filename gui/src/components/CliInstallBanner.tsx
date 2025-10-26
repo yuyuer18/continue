@@ -111,15 +111,14 @@ export function CliInstallBanner({
           <div>
             <div className="text-foreground flex items-center gap-2 font-medium">
               <CommandLineIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
-              Try out the Continue CLI
+              试用 Continue CLI
             </div>
             <div className="text-description mt-1 text-sm">
-              Use{" "}
+              在终端中使用{" "}
               <code className="bg-vsc-background rounded px-1.5 py-0.5">
                 cn
               </code>{" "}
-              in your terminal interactively and then deploy Continuous AI
-              workflows.{" "}
+              进行交互式操作，然后部署连续 AI 工作流。{" "}
               <span
                 onClick={() =>
                   ideMessenger.post(
@@ -129,7 +128,7 @@ export function CliInstallBanner({
                 }
                 className="cursor-pointer underline hover:brightness-125"
               >
-                Learn more.
+                了解更多。
               </span>
             </div>
           </div>
@@ -146,7 +145,7 @@ export function CliInstallBanner({
                 </span>
                 {showCopiedMessage && (
                   <span className="bg-editor rounded-l-default absolute inset-0 flex items-center justify-center px-2 text-xs font-medium">
-                    Copied!
+                    已复制！
                   </span>
                 )}
               </div>

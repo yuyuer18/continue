@@ -16,9 +16,9 @@ export function DocsSection() {
   return (
     <div>
       <ConfigHeader
-        title="Documentation"
+        title="文档"
         onAddClick={handleAddDocs}
-        addButtonTooltip="Add documentation"
+        addButtonTooltip="添加文档"
         variant="sm"
       />
 

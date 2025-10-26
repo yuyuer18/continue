@@ -202,16 +202,16 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
               </div>
             )}
             <div className="flex flex-row items-start gap-1">
-              <HeaderButtonWithToolTip onClick={onClickExpand} text="Expand">
+              <HeaderButtonWithToolTip onClick={onClickExpand} text="展开">
                 <ArrowsPointingOutIcon className="h-3 w-3 text-gray-400" />
               </HeaderButtonWithToolTip>{" "}
               {rule.source === "default-chat" ||
               rule.source === "default-agent" ? (
-                <HeaderButtonWithToolTip onClick={handleOpen} text="View">
+                <HeaderButtonWithToolTip onClick={handleOpen} text="查看">
                   <EyeIcon className="h-3 w-3 text-gray-400" />
                 </HeaderButtonWithToolTip>
               ) : (
-                <HeaderButtonWithToolTip onClick={handleOpen} text="Edit">
+                <HeaderButtonWithToolTip onClick={handleOpen} text="编辑">
                   <PencilIcon className="h-3 w-3 text-gray-400" />
                 </HeaderButtonWithToolTip>
               )}
@@ -234,7 +234,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
             }}
             className="mt-1.5 flex flex-col gap-1"
           >
-            <span className="italic">Applies to files</span>
+            <span className="italic">应用于文件</span>
             <code
               className={`line-clamp-1 px-1 py-0.5 ${isDisabled ? "text-gray-500" : "text-gray-400"}`}
             >
@@ -315,10 +315,10 @@ function PromptsSubSection() {
   return (
     <div>
       <ConfigHeader
-        title="Prompts"
+        title="提示"
         variant="sm"
         onAddClick={handleAddPrompt}
-        addButtonTooltip="Add prompt"
+        addButtonTooltip="添加提示"
       />
 
       {sortedCommands.length > 0 ? (
@@ -337,7 +337,7 @@ function PromptsSubSection() {
         </Card>
       ) : (
         <Card>
-          <EmptyState message="No prompts configured. Click the + button to add your first prompt." />
+          <EmptyState message="未配置提示。点击 + 按钮添加您的第一个提示。" />
         </Card>
       )}
     </div>
@@ -389,8 +389,8 @@ function addDefaultSystemMessage(
 
 // Define dropdown options for global rules
 const globalRulesOptions = [
-  { value: "workspace", label: "Current workspace" },
-  { value: "global", label: "Global" },
+  { value: "workspace", label: "当前工作区" },
+  { value: "global", label: "全局" },
 ];
 
 function RulesSubSection() {
@@ -468,18 +468,18 @@ function RulesSubSection() {
     <div>
       {isLocal ? (
         <DropdownButton
-          title="Rules"
+          title="规则"
           variant="sm"
           options={globalRulesOptions}
           onOptionClick={handleOptionClick}
-          addButtonTooltip="Add rules"
+          addButtonTooltip="添加规则"
         />
       ) : (
         <ConfigHeader
-          title="Rules"
+          title="规则"
           variant="sm"
           onAddClick={() => handleAddRule()}
-          addButtonTooltip="Add rules"
+          addButtonTooltip="添加规则"
         />
       )}
 
@@ -491,7 +491,7 @@ function RulesSubSection() {
             ))}
           </div>
         ) : (
-          <EmptyState message="No rules configured. Click the + button to add your first rule." />
+          <EmptyState message="未配置规则。点击 + 按钮添加您的第一个规则。" />
         )}
       </Card>
     </div>
@@ -501,7 +501,7 @@ function RulesSubSection() {
 export function RulesSection() {
   return (
     <>
-      <ConfigHeader title="Rules" />
+      <ConfigHeader title="规则" />
 
       <div className="space-y-6">
         <RulesSubSection />

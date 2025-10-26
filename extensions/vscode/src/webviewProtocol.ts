@@ -126,11 +126,11 @@ export class VsCodeWebviewProtocol
             }
 
             vscode.window
-              .showInformationMessage(message, "Add API Key", "Use Local Model")
+              .showInformationMessage(message, "添加API密钥", "使用本地模型")
               .then((selection) => {
-                if (selection === "Add API Key") {
+                if (selection === "添加API密钥") {
                   this.request("setupApiKey", undefined);
-                } else if (selection === "Use Local Model") {
+                } else if (selection === "使用本地模型") {
                   this.request("setupLocalConfig", undefined);
                 }
               });

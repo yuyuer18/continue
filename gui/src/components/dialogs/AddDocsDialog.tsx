@@ -148,7 +148,7 @@ function AddDocsDialog() {
         <>
           <DocsIndexingPeeks statuses={docsIndexingStatuses} />
           <p className="mt-2 flex flex-row items-center gap-1 p-0 px-1 text-center text-xs text-stone-500">
-            Closing this dialog will not affect indexing progress
+            关闭此对话框不会影响索引进度
           </p>
         </>
       )}

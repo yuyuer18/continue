@@ -51,7 +51,7 @@ const statusBarItemText = (
     return "$(alert) Kodemate AI (配置错误)";
   }
 
-  let text: string;
+  let text: string = "";
   switch (status) {
     case undefined:
       if (loading) {
@@ -221,9 +221,8 @@ export function getAutocompleteStatusBarTitle(
   return title;
 }
 
-const USE_FIM_MENU_ITEM_LABEL = "$(export) Use FIM autocomplete over Next Edit";
-const USE_NEXT_EDIT_MENU_ITEM_LABEL =
-  "$(sparkle) Use Next Edit over FIM autocomplete";
+const USE_FIM_MENU_ITEM_LABEL = "$(export) 使用FIM自动补全而非Next Edit";
+const USE_NEXT_EDIT_MENU_ITEM_LABEL = "$(sparkle) 使用Next Edit而非FIM自动补全";
 
 // Shows what items get rendered in the autocomplete menu.
 export function getNextEditMenuItems(

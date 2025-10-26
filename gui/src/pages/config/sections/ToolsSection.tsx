@@ -42,12 +42,12 @@ interface MCPServerStatusProps {
 }
 
 const ServerStatusTooltip: Record<MCPConnectionStatus, string> = {
-  connected: "Active",
-  connecting: "Connecting",
-  "not-connected": "Inactive",
-  disabled: "Off",
-  authenticating: "Authenticating",
-  error: "Error",
+  connected: "活跃",
+  connecting: "连接中",
+  "not-connected": "未连接",
+  disabled: "已禁用",
+  authenticating: "认证中",
+  error: "错误",
 };
 
 const ServerStatusColor: Record<MCPConnectionStatus, string> = {
@@ -204,7 +204,7 @@ function MCPServerPreview({
               </div>
             ) : (
               <div className="text-xs italic text-gray-500">
-                No {title.toLowerCase()} available
+                暂无{title.toLowerCase()}可用
               </div>
             )}
           </div>
@@ -236,10 +236,10 @@ function MCPServerPreview({
               <ToolTip
                 content={
                   server.status === "error"
-                    ? "Authenticate"
+                    ? "认证"
                     : server.status === "authenticating"
-                      ? "Authenticating..."
-                      : "Remove authentication"
+                      ? "认证中..."
+                      : "移除认证"
                 }
               >
                 <Button
@@ -274,7 +274,7 @@ function MCPServerPreview({
                   onClick={onRemoveAuth}
                   className="justify-start gap-x-1.5"
                 >
-                  <UserCircleIcon className="h-4 w-4 flex-shrink-0" /> Logout
+                  <UserCircleIcon className="h-4 w-4 flex-shrink-0" /> 登出
                 </ListboxOption>
               )}
 
@@ -295,7 +295,7 @@ function MCPServerPreview({
                     "h-3.5 w-3.5 flex-shrink-0 cursor-pointer text-gray-400 text-inherit hover:brightness-125"
                   }
                 />
-                Edit
+                编辑
               </ListboxOption>
 
               {server.status === "connected" && (
@@ -304,8 +304,7 @@ function MCPServerPreview({
                   onClick={onDisconnect}
                   className="justify-start gap-x-1.5"
                 >
-                  <StopCircleIcon className="h-4 w-4 flex-shrink-0" />{" "}
-                  Disconnect
+                  <StopCircleIcon className="h-4 w-4 flex-shrink-0" /> 断开连接
                 </ListboxOption>
               )}
 
@@ -320,7 +319,7 @@ function MCPServerPreview({
                   ) : (
                     <ArrowPathIcon className="h-4 w-4 flex-shrink-0" />
                   )}
-                  Reload
+                  重新加载
                 </ListboxOption>
               )}
             </ListboxOptions>
@@ -333,7 +332,7 @@ function MCPServerPreview({
         <ToolPoliciesGroup
           showIcon={true}
           groupName={server.name}
-          displayName={"Tools"}
+          displayName={"工具"}
           allToolsOff={allToolsOff}
           duplicateDetection={duplicateDetection}
         />
@@ -472,16 +471,16 @@ export function ToolsSection() {
 
   const availableToolsMessage =
     mode === "chat"
-      ? "All tools disabled in Chat, switch to Plan or Agent mode to use tools"
+      ? "所有工具在聊天模式中已禁用，切换到计划或代理模式以使用工具"
       : mode === "plan"
-        ? "Read-only tools available in Plan mode"
+        ? "计划模式下仅提供只读工具"
         : "";
 
   return (
     <>
       <ConfigHeader
-        title="Tools"
-        subtext="Manage MCP servers and tool policies"
+        title="工具"
+        subtext="管理 MCP 服务器和工具策略"
         className="mb-2"
       />
       {!!availableToolsMessage && (
@@ -495,27 +494,26 @@ export function ToolsSection() {
         <ToolPoliciesGroup
           showIcon={false}
           groupName={BUILT_IN_GROUP_NAME}
-          displayName={"Built-in Tools"}
+          displayName={"内置工具"}
           allToolsOff={allToolsOff}
           duplicateDetection={duplicateDetection}
         />
         <ConfigHeader
           className="pr-2"
-          title="MCP Servers"
+          title="MCP 服务器"
           variant="sm"
           onAddClick={handleAddMcpServer}
-          addButtonTooltip="Add MCP server"
+          addButtonTooltip="添加 MCP 服务器"
           showAddButton={!disableMcp}
         />
         {disableMcp ? (
           <Card>
-            <EmptyState message="MCP servers are disabled in your organization" />
+            <EmptyState message="MCP 服务器在您的组织中已禁用" />
           </Card>
         ) : mode === "chat" ? (
           <Alert type="info" size="sm">
             <span className="text-2xs italic">
-              All MCPs are disabled in Chat, switch to Plan or Agent mode to use
-              MCPs
+              所有 MCP 在聊天模式中已禁用，切换到计划或代理模式以使用 MCP
             </span>
           </Alert>
         ) : mergedBlocks.length > 0 ? (
@@ -532,7 +530,7 @@ export function ToolsSection() {
           })
         ) : (
           <Card>
-            <EmptyState message="No MCP servers configured. Click the + button to add your first server." />
+            <EmptyState message="未配置 MCP 服务器。点击 + 按钮添加您的第一个服务器。" />
           </Card>
         )}
       </div>

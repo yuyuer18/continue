@@ -21,7 +21,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
 
     globalContext.update("hasShownUnsupportedPlatformWarning", true);
     void vscode.window.showInformationMessage(
-      `Continue detected that you are using ${platformTarget}. Due to native dependencies, Continue may not be able to start`,
+      `Continue检测到您正在使用${platformTarget}。由于原生依赖关系，Continue可能无法启动`,
     );
 
     void Telemetry.capture(
