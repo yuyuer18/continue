@@ -20,17 +20,17 @@ const platforms: PlatformInfo[] = [
     description:
       "安硕科技自主研发的企业级开发平台，提供完整的开发工具链和微服务架构支持",
     url: "http://192.168.65.231",
-    installation: "在 IntelliJ IDEA 插件市场中搜索 'A3Cloud' 并安装",
+    installation: "打开页面搜索 'A3Cloud' 并安装",
     tags: ["开发平台", "微服务", "企业级"],
   },
   {
     id: "A3UI",
     name: "A3UI 技术架构",
     description:
-      "基于 React + TypeScript 的前端组件库，提供丰富的 UI 组件和开发规范",
+      "基于 Vue3  + ElementPlus + TypeScript 的前端组件库，提供丰富的 UI 组件和开发规范",
     url: "http://192.168.65.227:3000",
     installation: "访问文档网站查看详细技术文档和使用指南",
-    tags: ["前端", "React", "组件库"],
+    tags: ["前端", "ElementPlus", "组件库"],
   },
 ];
 
