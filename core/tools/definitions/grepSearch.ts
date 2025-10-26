@@ -3,10 +3,10 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const grepSearchTool: Tool = {
   type: "function",
-  displayTitle: "Grep Search",
-  wouldLikeTo: 'search for "{{{ query }}}"',
-  isCurrently: 'searching for "{{{ query }}}"',
-  hasAlready: 'searched for "{{{ query }}}"',
+  displayTitle: "Grep搜索",
+  wouldLikeTo: '搜索 "{{{ query }}}"',
+  isCurrently: '正在搜索 "{{{ query }}}"',
+  hasAlready: '已搜索 "{{{ query }}}"',
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -28,7 +28,7 @@ export const grepSearchTool: Tool = {
   },
   defaultToolPolicy: "allowedWithoutPermission",
   systemMessageDescription: {
-    prefix: `To perform a grep search within the project, call the ${BuiltInToolNames.GrepSearch} tool with the query pattern to match. For example:`,
+    prefix: `要在项目内执行grep搜索，请调用 ${BuiltInToolNames.GrepSearch} 工具并提供要匹配的查询模式。例如：`,
     exampleArgs: [["query", ".*main_services.*"]],
   },
   toolCallIcon: "MagnifyingGlassIcon",

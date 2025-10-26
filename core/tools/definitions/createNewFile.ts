@@ -3,17 +3,16 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const createNewFileTool: Tool = {
   type: "function",
-  displayTitle: "Create New File",
-  wouldLikeTo: "create {{{ filepath }}}",
-  isCurrently: "creating {{{ filepath }}}",
-  hasAlready: "created {{{ filepath }}}",
+  displayTitle: "创建新文件",
+  wouldLikeTo: "创建 {{{ filepath }}}",
+  isCurrently: "正在创建 {{{ filepath }}}",
+  hasAlready: "已创建 {{{ filepath }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
   isInstant: true,
   function: {
     name: BuiltInToolNames.CreateNewFile,
-    description:
-      "创建新文件。仅在文件不存在且需要创建时使用此操作。",
+    description: "创建新文件。仅在文件不存在且需要创建时使用此操作。",
     parameters: {
       type: "object",
       required: ["filepath", "contents"],
@@ -32,10 +31,10 @@ export const createNewFileTool: Tool = {
   },
   defaultToolPolicy: "allowedWithPermission",
   systemMessageDescription: {
-    prefix: `To create a NEW file, use the ${BuiltInToolNames.CreateNewFile} tool with the relative filepath and new contents. For example, to create a file located at 'path/to/file.txt', you would respond with:`,
+    prefix: `要创建新文件，请使用 ${BuiltInToolNames.CreateNewFile} 工具，提供相对文件路径和新内容。例如，要创建位于 'path/to/file.txt' 的文件，你可以这样响应：`,
     exampleArgs: [
       ["filepath", "path/to/the_file.txt"],
-      ["contents", "Contents of the file"],
+      ["contents", "文件内容"],
     ],
   },
 };

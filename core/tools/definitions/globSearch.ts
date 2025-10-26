@@ -4,9 +4,9 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 export const globSearchTool: Tool = {
   type: "function",
   displayTitle: "全局文件搜索",
-  wouldLikeTo: 'find file matches for "{{{ pattern }}}"',
-  isCurrently: 'finding file matches for "{{{ pattern }}}"',
-  hasAlready: 'retrieved file matches for "{{{ pattern }}}"',
+  wouldLikeTo: '查找文件匹配 "{{{ pattern }}}"',
+  isCurrently: '正在查找文件匹配 "{{{ pattern }}}"',
+  hasAlready: '已检索文件匹配 "{{{ pattern }}}"',
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -27,7 +27,7 @@ export const globSearchTool: Tool = {
   },
   defaultToolPolicy: "allowedWithoutPermission",
   systemMessageDescription: {
-    prefix: `To return a list of files based on a glob search pattern, use the ${BuiltInToolNames.FileGlobSearch} tool`,
+    prefix: `要基于全局搜索模式返回文件列表，请使用 ${BuiltInToolNames.FileGlobSearch} 工具`,
     exampleArgs: [["pattern", "*.py"]],
   },
   toolCallIcon: "MagnifyingGlassIcon",

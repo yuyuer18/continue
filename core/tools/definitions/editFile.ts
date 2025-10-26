@@ -15,10 +15,10 @@ const CHANGES_DESCRIPTION =
 
 export const editFileTool: Tool = {
   type: "function",
-  displayTitle: "Edit File",
-  wouldLikeTo: "edit {{{ filepath }}}",
-  isCurrently: "editing {{{ filepath }}}",
-  hasAlready: "edited {{{ filepath }}}",
+  displayTitle: "编辑文件",
+  wouldLikeTo: "编辑 {{{ filepath }}}",
+  isCurrently: "正在编辑 {{{ filepath }}}",
+  hasAlready: "已编辑 {{{ filepath }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
   isInstant: false,
@@ -31,8 +31,7 @@ export const editFileTool: Tool = {
       properties: {
         filepath: {
           type: "string",
-          description:
-            "编辑的文件的路径，相对于工作区的根目录.",
+          description: "编辑的文件的路径，相对于工作区的根目录.",
         },
         changes: {
           type: "string",

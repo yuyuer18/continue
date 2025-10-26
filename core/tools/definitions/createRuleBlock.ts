@@ -17,10 +17,10 @@ const ALWAYS_APPLY_DESC =
 
 export const createRuleBlock: Tool = {
   type: "function",
-  displayTitle: "Create Rule Block",
-  wouldLikeTo: 'create a rule block for "{{{ name }}}"',
-  isCurrently: 'creating a rule block for "{{{ name }}}"',
-  hasAlready: 'created a rule block for "{{{ name }}}"',
+  displayTitle: "创建规则块",
+  wouldLikeTo: '为 "{{{ name }}}" 创建规则块',
+  isCurrently: '正在为 "{{{ name }}}" 创建规则块',
+  hasAlready: '已为 "{{{ name }}}" 创建规则块',
   readonly: false,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -44,44 +44,44 @@ export const createRuleBlock: Tool = {
         },
         description: {
           type: "string",
-          description: DESC_ARG_DESC,
+          description:
+            "此规则何时应用的描述。对于代理请求规则是必需的（AI决定何时应用）。对于其他类型是可选的。",
         },
         globs: {
           type: "string",
           description:
-            "此规则适用的可选文件模式 (如. ['**/*.{ts,tsx}'] 或 ['src/**/*.ts', 'tests/**/*.ts'])",
+            "此规则适用的可选文件模式（例如 ['**/*.{ts,tsx}'] 或 ['src/**/*.ts', 'tests/**/*.ts']）",
         },
         regex: {
           type: "string",
-          description: REGEX_ARG_DESC,
+          description:
+            "可选的正则表达式模式，用于匹配文件内容。规则仅适用于内容匹配模式的文件（例如，React钩子的'useEffect'或类定义的'\\bclass\\b'）",
         },
         alwaysApply: {
           type: "boolean",
-          description: ALWAYS_APPLY_DESC,
+          description:
+            "此规则是否应始终应用。对于代理请求和手动规则设置为false。对于始终和自动附加规则，省略或设置为true。",
         },
       },
     },
   },
   defaultToolPolicy: "allowedWithPermission",
   systemMessageDescription: {
-    prefix: `Sometimes the user will provide feedback or guidance on your output. If you were not aware of these "rules", consider using the ${BuiltInToolNames.CreateRuleBlock} tool to persist the rule for future interactions.
-This tool cannot be used to edit existing rules, but you can search in the ".continue/rules" folder and use the edit tool to manage rules.
-To create a rule, respond with a ${BuiltInToolNames.CreateRuleBlock} tool call and the following arguments:
-- name: ${NAME_ARG_DESC}
-- rule: ${RULE_ARG_DESC}
-- description: ${DESC_ARG_DESC}
-- globs: ${GLOB_ARG_DESC}
-- alwaysApply: ${ALWAYS_APPLY_DESC}
-For example:`,
+    prefix: `有时用户会对你的输出提供反馈或指导。如果你不知道这些"规则"，考虑使用 ${BuiltInToolNames.CreateRuleBlock} 工具将规则持久化以供未来交互使用。
+此工具不能用于编辑现有规则，但你可以搜索 ".continue/rules" 文件夹并使用编辑工具来管理规则。
+要创建规则，请使用 ${BuiltInToolNames.CreateRuleBlock} 工具调用并包含以下参数：
+- name: 简要的描述性名称，概括规则的目的（例如 "React 标准"、"类型提示"）
+- rule: 针对未来代码生成的清晰、必要指令（例如 "使用具名导出"、"添加 Python 类型提示"）。每条规则应专注于一个特定标准。
+- description: 此规则何时应用的描述。对于代理请求规则是必需的（AI决定何时应用）。对于其他类型是可选的。
+- globs: 此规则适用的可选文件模式（例如 ['**/*.{ts,tsx}'] 或 ['src/**/*.ts', 'tests/**/*.ts']）
+- alwaysApply: 此规则是否应始终应用。对于代理请求和手动规则设置为false。对于始终和自动附加规则，省略或设置为true。
+例如：`,
     exampleArgs: [
-      ["name", "Use PropTypes"],
-      [
-        "rule",
-        "Always use PropTypes when declaring React component properties",
-      ],
+      ["name", "使用 PropTypes"],
+      ["rule", "声明 React 组件属性时始终使用 PropTypes"],
       [
         "description",
-        "Ensure that all prop types are explicitly declared for better type safety and code maintainability in React components.",
+        "确保所有属性类型都明确声明，以提高 React 组件的类型安全性和代码可维护性。",
       ],
       ["globs", "**/*.js"],
       ["alwaysApply", "false"],

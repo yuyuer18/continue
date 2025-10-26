@@ -4,10 +4,10 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const lsTool: Tool = {
   type: "function",
-  displayTitle: "ls",
-  wouldLikeTo: "list files in {{{ dirPath }}}",
-  isCurrently: "listing files in {{{ dirPath }}}",
-  hasAlready: "listed files in {{{ dirPath }}}",
+  displayTitle: "列出文件",
+  wouldLikeTo: "列出 {{{ dirPath }}} 中的文件",
+  isCurrently: "正在列出 {{{ dirPath }}} 中的文件",
+  hasAlready: "已列出 {{{ dirPath }}} 中的文件",
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -32,7 +32,7 @@ export const lsTool: Tool = {
   },
   defaultToolPolicy: "allowedWithoutPermission",
   systemMessageDescription: {
-    prefix: `To list files and folders in a given directory, call the ${BuiltInToolNames.LSTool} tool with "dirPath" and "recursive". For example:`,
+    prefix: `要列出给定目录中的文件和文件夹，请调用 ${BuiltInToolNames.LSTool} 工具，提供 "dirPath" 和 "recursive" 参数。例如：`,
     exampleArgs: [
       ["dirPath", "path/to/dir"],
       ["recursive", "false"],

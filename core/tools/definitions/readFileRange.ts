@@ -3,20 +3,20 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const readFileRangeTool: Tool = {
   type: "function",
-  displayTitle: "Read File Range",
+  displayTitle: "读取文件范围",
   wouldLikeTo:
-    "read lines {{{ startLine }}}-{{{ endLine }}} of {{{ filepath }}}",
+    "读取 {{{ filepath }}} 的第 {{{ startLine }}}-{{{ endLine }}} 行",
   isCurrently:
-    "reading lines {{{ startLine }}}-{{{ endLine }}} of {{{ filepath }}}",
+    "正在读取 {{{ filepath }}} 的第 {{{ startLine }}}-{{{ endLine }}} 行",
   hasAlready:
-    "read lines {{{ startLine }}}-{{{ endLine }}} of {{{ filepath }}}",
+    "已读取 {{{ filepath }}} 的第 {{{ startLine }}}-{{{ endLine }}} 行",
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.ReadFileRange,
     description:
-      "Use this tool to read a specific range of lines from an existing file. Only supports positive line numbers (1-based from start). For reading from the end of a file, use the terminal tool with 'tail' command instead.",
+      "使用此工具从现有文件中读取特定范围的行。仅支持正行号（从开头开始，基于1）。要从文件末尾读取，请改用带有'tail'命令的终端工具。",
     parameters: {
       type: "object",
       required: ["filepath", "startLine", "endLine"],
@@ -24,12 +24,12 @@ export const readFileRangeTool: Tool = {
         filepath: {
           type: "string",
           description:
-            "The path of the file to read, relative to the root of the workspace (NOT uri or absolute path)",
+            "要读取的文件路径，相对于工作区根目录（不是uri或绝对路径）",
         },
         startLine: {
           type: "number",
           description:
-            "The starting line number (1-based from start). Must be a positive integer. Example: 1 = first line, 10 = tenth line",
+            "起始行号（从开头开始，基于1）。必须是正整数。示例：1 = 第一行，10 = 第十行",
         },
         endLine: {
           type: "number",
@@ -40,7 +40,7 @@ export const readFileRangeTool: Tool = {
     },
   },
   systemMessageDescription: {
-    prefix: `To read a specific range of lines from a file, use the ${BuiltInToolNames.ReadFileRange} tool. Only supports positive line numbers (1-based from start). For reading from the end of files, use the terminal tool with 'tail' command instead:`,
+    prefix: `要从文件中读取特定范围的行，请使用 ${BuiltInToolNames.ReadFileRange} 工具。仅支持正行号（从开头开始，基于1）。要从文件末尾读取，请改用带有'tail'命令的终端工具：`,
     exampleArgs: [
       ["filepath", "path/to/the_file.txt"],
       ["startLine", 10],

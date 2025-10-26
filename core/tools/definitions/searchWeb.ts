@@ -27,8 +27,8 @@ export const searchWebTool: Tool = {
   },
   defaultToolPolicy: "allowedWithoutPermission",
   systemMessageDescription: {
-    prefix: `To search the web, use the ${BuiltInToolNames.SearchWeb} tool with a natural language query. For example, to search for the current weather, you would respond with:`,
-    exampleArgs: [["query", "What is the current weather in San Francisco?"]],
+    prefix: `要搜索网页，请使用 ${BuiltInToolNames.SearchWeb} 工具并提供自然语言查询。例如，要搜索当前天气，你可以这样响应：`,
+    exampleArgs: [["query", "旧金山现在的天气怎么样？"]],
   },
   toolCallIcon: "GlobeAltIcon",
 };

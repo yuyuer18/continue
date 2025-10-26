@@ -12,8 +12,7 @@ export const readFileTool: Tool = {
   group: BUILT_IN_GROUP_NAME,
   function: {
     name: BuiltInToolNames.ReadFile,
-    description:
-      "使用这个工具可以查看存在文件的内容",
+    description: "使用这个工具可以查看存在文件的内容",
     parameters: {
       type: "object",
       required: ["filepath"],
@@ -27,7 +26,7 @@ export const readFileTool: Tool = {
     },
   },
   systemMessageDescription: {
-    prefix: `To read a file with a known filepath, use the ${BuiltInToolNames.ReadFile} tool. For example, to read a file located at 'path/to/file.txt', you would respond with this:`,
+    prefix: `要读取具有已知文件路径的文件，请使用 ${BuiltInToolNames.ReadFile} 工具。例如，要读取位于 'path/to/file.txt' 的文件，你可以这样响应：`,
     exampleArgs: [["filepath", "path/to/the_file.txt"]],
   },
   defaultToolPolicy: "allowedWithoutPermission",

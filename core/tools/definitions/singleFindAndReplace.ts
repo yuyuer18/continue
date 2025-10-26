@@ -23,40 +23,37 @@ export const singleFindAndReplaceTool: Tool = {
   isInstant: false,
   function: {
     name: BuiltInToolNames.SingleFindAndReplace,
-    description: `Performs exact string replacements in a file.
+    description: `在文件中执行精确的字符串替换。
 
-IMPORTANT:
-- ALWAYS use the \`${BuiltInToolNames.ReadFile}\` tool just before making edits, to understand the file's up-to-date contents and context. The user can also edit the file while you are working with it.
+重要提示：
+- 在进行编辑之前，务必使用 \`${BuiltInToolNames.ReadFile}\` 工具来了解文件的最新内容和上下文。用户可能会在你处理文件时进行编辑。
 - ${NO_PARALLEL_TOOL_CALLING_INSTRUCTION}
-- When editing text from \`${BuiltInToolNames.ReadFile}\` tool output, ensure you preserve exact whitespace/indentation.
-- Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked.
-- Use \`replace_all\` for replacing and renaming strings across the file. This parameter is useful if you want to rename a variable, for instance.
+- 编辑从 \`${BuiltInToolNames.ReadFile}\` 工具输出的文本时，确保保留精确的空格/缩进。
+- 只有在用户明确要求时才使用表情符号。除非被要求，否则避免向文件添加表情符号。
+- 使用 \`replace_all\` 参数可以在整个文件中替换和重命名字符串。例如，如果你想重命名一个变量，这个参数会很有用。
 
-WARNINGS:
-- When not using \`replace_all\`, the edit will FAIL if \`old_string\` is not unique in the file. Either provide a larger string with more surrounding context to make it unique or use \`replace_all\` to change every instance of \`old_string\`.
-- The edit will likely fail if you have not recently used the \`${BuiltInToolNames.ReadFile}\` tool to view up-to-date file contents.`,
+警告：
+- 如果不使用 \`replace_all\`，当 \`old_string\` 在文件中不唯一时，编辑将失败。要么提供包含更多周围上下文的更大字符串使其唯一，要么使用 \`replace_all\` 来更改 \`old_string\` 的所有实例。
+- 如果你最近没有使用 \`${BuiltInToolNames.ReadFile}\` 工具查看最新的文件内容，编辑很可能会失败。`,
     parameters: {
       type: "object",
       required: ["filepath", "old_string", "new_string"],
       properties: {
         filepath: {
           type: "string",
-          description:
-            "The path to the file to modify, relative to the root of the workspace",
+          description: "要修改的文件路径，相对于工作区根目录",
         },
         old_string: {
           type: "string",
-          description:
-            "The text to replace - must be exact including whitespace/indentation",
+          description: "要替换的文本 - 必须精确匹配，包括空格/缩进",
         },
         new_string: {
           type: "string",
-          description:
-            "The text to replace it with (MUST be different from old_string)",
+          description: "替换后的文本（必须与 old_string 不同）",
         },
         replace_all: {
           type: "boolean",
-          description: "Replace all occurrences of old_string (default false)",
+          description: "替换所有出现的 old_string（默认为 false）",
         },
       },
     },

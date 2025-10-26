@@ -21,8 +21,8 @@ export const readCurrentlyOpenFileTool: Tool = {
   },
   defaultToolPolicy: "allowedWithPermission",
   systemMessageDescription: {
-    prefix: `To view the user's currently open file, use the ${BuiltInToolNames.ReadCurrentlyOpenFile} tool.
-If the user is asking about a file and you don't see any code, use this to check the current file`,
+    prefix: `要查看用户当前打开的文件，请使用 ${BuiltInToolNames.ReadCurrentlyOpenFile} 工具。
+如果用户询问某个文件但你没有看到任何代码，请使用此工具检查当前文件`,
   },
   toolCallIcon: "DocumentTextIcon",
 };

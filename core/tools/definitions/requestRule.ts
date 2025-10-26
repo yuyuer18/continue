@@ -12,7 +12,7 @@ function getAvailableRules(rules: ConfigDependentToolParams["rules"]) {
   );
 
   if (agentRequestedRules.length === 0) {
-    return "No rules available.";
+    return "没有可用的规则。";
   }
 
   return agentRequestedRules
@@ -24,25 +24,25 @@ export function getRequestRuleDescription(
   rules: ConfigDependentToolParams["rules"],
 ): string {
   const prefix =
-    "Use this tool to retrieve additional 'rules' that contain more context/instructions based on their descriptions. Available rules:\n";
+    "使用此工具根据描述检索包含更多上下文/指令的附加'规则'。可用规则：\n";
   return prefix + getAvailableRules(rules);
 }
 
 function getRequestRuleSystemMessageDescription(
   rules: ConfigDependentToolParams["rules"],
 ): string {
-  const prefix = `To retrieve "rules" that contain more context/instructions based on their descriptions, use the ${BuiltInToolNames.RequestRule} tool with the name of the rule. The available rules are:\n`;
+  const prefix = `要根据描述检索包含更多上下文/指令的"规则"，请使用 ${BuiltInToolNames.RequestRule} 工具并指定规则名称。可用规则有：\n`;
   const availableRules = getAvailableRules(rules);
-  const suffix = "\n\nFor example, you might respond with:";
+  const suffix = "\n\n例如，您可以这样响应：";
   return prefix + availableRules + suffix;
 }
 
 export const requestRuleTool: GetTool = ({ rules }) => ({
   type: "function",
-  displayTitle: "Request Rules",
-  wouldLikeTo: "request rule {{{ name }}}",
-  isCurrently: "reading rule {{{ name }}}",
-  hasAlready: "read rule {{{ name }}}",
+  displayTitle: "请求规则",
+  wouldLikeTo: "请求规则 {{{ name }}}",
+  isCurrently: "正在读取规则 {{{ name }}}",
+  hasAlready: "已读取规则 {{{ name }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
   function: {
@@ -54,7 +54,7 @@ export const requestRuleTool: GetTool = ({ rules }) => ({
       properties: {
         name: {
           type: "string",
-          description: "Name of the rule",
+          description: "规则名称",
         },
       },
     },

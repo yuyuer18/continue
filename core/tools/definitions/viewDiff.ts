@@ -4,10 +4,10 @@ import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
 
 export const viewDiffTool: Tool = {
   type: "function",
-  displayTitle: "View Diff",
-  wouldLikeTo: "view the git diff",
-  isCurrently: "getting the git diff",
-  hasAlready: "viewed the git diff",
+  displayTitle: "查看差异",
+  wouldLikeTo: "查看 git 差异",
+  isCurrently: "获取 git 差异",
+  hasAlready: "已查看 git 差异",
   readonly: true,
   isInstant: true,
   group: BUILT_IN_GROUP_NAME,
@@ -20,7 +20,7 @@ export const viewDiffTool: Tool = {
     },
   },
   systemMessageDescription: {
-    prefix: `To view the current git diff, use the ${BuiltInToolNames.ViewDiff} tool. This will show you the changes made in the working directory compared to the last commit.`,
+    prefix: `要查看当前的 git 差异，请使用 ${BuiltInToolNames.ViewDiff} 工具。这将显示工作目录中与上次提交相比所做的更改。`,
   },
   defaultToolPolicy: "allowedWithoutPermission",
   toolCallIcon: "CodeBracketIcon",

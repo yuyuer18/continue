@@ -18,75 +18,70 @@ export interface MultiEditArgs {
 
 export const multiEditTool: Tool = {
   type: "function",
-  displayTitle: "Multi Edit",
-  wouldLikeTo: "edit {{{ filepath }}}",
-  isCurrently: "editing {{{ filepath }}}",
-  hasAlready: "edited {{{ filepath }}}",
+  displayTitle: "多重编辑",
+  wouldLikeTo: "编辑 {{{ filepath }}}",
+  isCurrently: "正在编辑 {{{ filepath }}}",
+  hasAlready: "已编辑 {{{ filepath }}}",
   group: BUILT_IN_GROUP_NAME,
   readonly: false,
   isInstant: false,
   function: {
     name: BuiltInToolNames.MultiEdit,
-    description: `Use this tool to make multiple edits to a single file in one operation. It allows you to perform multiple find-and-replace operations efficiently. 
+    description: `使用此工具在一次操作中对单个文件进行多次编辑。它允许你高效地执行多个查找和替换操作。
 
-To make multiple edits to a file, provide the following:
-1. filepath: The path to the file to modify, RELATIVE to the project/workspace root (verify the directory path is correct)
-2. edits: An array of edit operations to perform, where each edit contains:
-   - old_string: The text to replace (must match the old file contents exactly, including all whitespace/indentation)
-   - new_string: The edited text to replace the old_string
-   - replace_all: Replace all occurrences of old_string. This parameter is optional and defaults to false.
+要对文件进行多次编辑，请提供以下内容：
+1. filepath: 要修改的文件的路径，相对于项目/工作区根目录（验证目录路径是否正确）
+2. edits: 要执行的编辑操作数组，每个编辑包含：
+   - old_string: 要替换的文本（必须与旧文件内容完全匹配，包括所有空格/缩进）
+   - new_string: 替换old_string的编辑文本
+   - replace_all: 替换文件中所有出现的old_string。此参数是可选的，默认为false。
 
-IMPORTANT:
-- Files may be modified between tool calls by users, linters, etc, so always make all edits in one tool call where possible. For example, do not only edit imports if there are other changes in the file, as unused imports may be removed by a linter between tool calls.
-- All edits are applied in sequence, in the order they are provided
-- Each edit operates on the result of the previous edit, so plan your edits carefully to avoid conflicts between sequential operations
-- Edits are atomic - all edits must be valid for the operation to succeed - if any edit fails, none will be applied
-- This tool is ideal when you need to make several changes to different parts of the same file
+重要提示：
+- 文件可能在工具调用之间被用户、linter等修改，因此尽可能在一次工具调用中完成所有编辑。例如，如果文件中有其他更改，不要只编辑导入，因为未使用的导入可能在工具调用之间被linter删除。
+- 所有编辑按提供的顺序依次应用
+- 每个编辑都在前一个编辑的结果上操作，因此请仔细规划编辑以避免顺序操作之间的冲突
+- 编辑是原子性的 - 所有编辑必须有效才能使操作成功 - 如果任何编辑失败，都不会应用任何编辑
+- 当你需要对同一文件的不同部分进行多次更改时，此工具是理想的选择
 
-CRITICAL REQUIREMENTS:
-1. ALWAYS use the ${BuiltInToolNames.ReadFile} tool just before making edits, to understand the file's up-to-date contents and context. The user can also edit the file while you are working with it.
+关键要求：
+1. 在进行编辑之前，务必使用 ${BuiltInToolNames.ReadFile} 工具来了解文件的最新内容和上下文。用户可能会在你处理文件时进行编辑。
 2. ${NO_PARALLEL_TOOL_CALLING_INSTRUCTION}
-3. When making edits:
-- Ensure all edits result in idiomatic, correct code
-- Do not leave the code in a broken state
-- Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked
-- Use replace_all for replacing and renaming all matches for a string across the file. This parameter is useful if you want to rename a variable, for instance
+3. 进行编辑时：
+- 确保所有编辑都产生惯用的、正确的代码
+- 不要将代码留在损坏状态
+- 只有在用户明确要求时才使用表情符号。除非被要求，否则避免向文件添加表情符号
+- 使用replace_all来替换和重命名文件中字符串的所有匹配项。例如，如果你想重命名一个变量，这个参数会很有用
 
-WARNINGS:
-- If earlier edits affect the text that later edits are trying to find, files can become mangled
-- The tool will fail if edits.old_string doesn't match the file contents exactly (including whitespace)
-- The tool will fail if edits.old_string and edits.new_string are the same - they MUST be different`,
+警告：
+- 如果较早的编辑影响了较晚编辑试图查找的文本，文件可能会变得混乱
+- 如果edits.old_string与文件内容不完全匹配（包括空格），工具将失败
+- 如果edits.old_string和edits.new_string相同，工具将失败 - 它们必须不同`,
     parameters: {
       type: "object",
       required: ["filepath", "edits"],
       properties: {
         filepath: {
           type: "string",
-          description:
-            "The path to the file to modify, relative to the root of the workspace",
+          description: "要修改的文件路径，相对于工作区根目录",
         },
         edits: {
           type: "array",
-          description:
-            "Array of edit operations to perform sequentially on the file",
+          description: "要在文件上顺序执行的编辑操作数组",
           items: {
             type: "object",
             required: ["old_string", "new_string"],
             properties: {
               old_string: {
                 type: "string",
-                description:
-                  "The text to replace (exact match including whitespace/indentation)",
+                description: "要替换的文本（精确匹配，包括空格/缩进）",
               },
               new_string: {
                 type: "string",
-                description:
-                  "The text to replace it with. MUST be different than old_string.",
+                description: "替换后的文本。必须与old_string不同。",
               },
               replace_all: {
                 type: "boolean",
-                description:
-                  "Replace all occurrences of old_string (default false) in the file",
+                description: "替换文件中所有出现的old_string（默认为false）",
               },
             },
           },
@@ -95,9 +90,9 @@ WARNINGS:
     },
   },
   systemMessageDescription: {
-    prefix: `To make multiple edits to a single file, use the ${BuiltInToolNames.MultiEdit} tool with a filepath (relative to the root of the workspace) and an array of edit operations.
+    prefix: `要对单个文件进行多次编辑，请使用 ${BuiltInToolNames.MultiEdit} 工具，提供文件路径（相对于工作区根目录）和编辑操作数组。
 
-  For example, you could respond with:`,
+  例如，你可以这样响应：`,
     exampleArgs: [
       ["filepath", "path/to/file.ts"],
       [
