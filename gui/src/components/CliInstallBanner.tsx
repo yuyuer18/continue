@@ -1,12 +1,10 @@
-import { CommandLineIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useContext, useEffect, useRef, useState } from "react";
 import { CloseButton } from ".";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import useCopy from "../hooks/useCopy";
 import { getPlatform } from "../util";
 import { getLocalStorage, setLocalStorage } from "../util/localStorage";
-import { CopyButton } from "./StyledMarkdownPreview/StepContainerPreToolbar/CopyButton";
-import { RunInTerminalButton } from "./StyledMarkdownPreview/StepContainerPreToolbar/RunInTerminalButton";
 import { Card } from "./ui";
 
 interface CliInstallBannerProps {
@@ -107,7 +105,7 @@ export function CliInstallBanner({
         <CloseButton onClick={handleDismiss}>
           <XMarkIcon className="h-5 w-5 hover:brightness-125" />
         </CloseButton>
-        <div className="flex flex-col gap-3">
+        {/* <div className="flex flex-col gap-3">
           <div>
             <div className="text-foreground flex items-center gap-2 font-medium">
               <CommandLineIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
@@ -159,7 +157,7 @@ export function CliInstallBanner({
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </Card>
     </div>
   );
