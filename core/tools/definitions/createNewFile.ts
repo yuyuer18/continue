@@ -1,5 +1,8 @@
+import { ToolPolicy } from "@continuedev/terminal-security";
 import { Tool } from "../..";
+import { ResolvedPath, resolveInputPath } from "../../util/pathResolver";
 import { BUILT_IN_GROUP_NAME, BuiltInToolNames } from "../builtIn";
+import { evaluateFileAccessPolicy } from "../policies/fileAccess";
 
 export const createNewFileTool: Tool = {
   type: "function",
@@ -20,7 +23,7 @@ export const createNewFileTool: Tool = {
         filepath: {
           type: "string",
           description:
-            "文件创建位置填相对路径，从工作区根目录算起（别写全路径）",
+            "The path where the new file should be created. Can be a relative path (from workspace root), absolute path, tilde path (~/...), or file:// URI.",
         },
         contents: {
           type: "string",
@@ -36,5 +39,27 @@ export const createNewFileTool: Tool = {
       ["filepath", "path/to/the_file.txt"],
       ["contents", "文件内容"],
     ],
+  },
+  preprocessArgs: async (args, { ide }) => {
+    const filepath = args.filepath as string;
+    const resolvedPath = await resolveInputPath(ide, filepath);
+
+    // Store the resolved path info in args for policy evaluation
+    return {
+      resolvedPath,
+    };
+  },
+  evaluateToolCallPolicy: (
+    basePolicy: ToolPolicy,
+    _: Record<string, unknown>,
+    processedArgs?: Record<string, unknown>,
+  ): ToolPolicy => {
+    const resolvedPath = processedArgs?.resolvedPath as
+      | ResolvedPath
+      | null
+      | undefined;
+    if (!resolvedPath) return basePolicy;
+
+    return evaluateFileAccessPolicy(basePolicy, resolvedPath.isWithinWorkspace);
   },
 };

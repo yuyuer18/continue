@@ -24,6 +24,7 @@ import {
   ToolCallDelta,
   ToolCallState,
 } from "core";
+import { mergeReasoningDetails } from "core/llm/openaiTypeConverters";
 import type { RemoteSessionMetadata } from "core/control-plane/client";
 import { NEW_SESSION_TITLE } from "core/util/constants";
 import {
@@ -649,6 +650,29 @@ export const sessionSlice = createSlice({
           ) {
             handleStreamingToolCallUpdates(message, lastItem);
           }
+
+          // Attach Responses API output item id to the current assistant message if present
+          // fromResponsesChunk sets message.metadata.responsesOutputItemId when it sees output_item.added for messages
+          if (
+            message.role === "assistant" &&
+            lastMessage.role === "assistant" &&
+            message.metadata?.responsesOutputItemId
+          ) {
+            lastMessage.metadata = lastMessage.metadata || {};
+            lastMessage.metadata.responsesOutputItemId = message.metadata
+              .responsesOutputItemId as string;
+          }
+
+          if (
+            message.role === "thinking" &&
+            message.reasoning_details &&
+            lastMessage.role === "thinking"
+          ) {
+            lastMessage.reasoning_details = mergeReasoningDetails(
+              lastMessage.reasoning_details,
+              message.reasoning_details,
+            );
+          }
         }
       }
     },
@@ -713,9 +737,9 @@ export const sessionSlice = createSlice({
       state.allSessionMetadata = state.allSessionMetadata.map((session) =>
         session.sessionId === payload.sessionId
           ? {
-            ...session,
-            ...payload,
-          }
+              ...session,
+              ...payload,
+            }
           : session,
       );
       if (payload.title && payload.sessionId === state.id) {
@@ -750,8 +774,9 @@ export const sessionSlice = createSlice({
         payload.rangeInFileWithContents.filepath,
       );
 
-      const lineNums = `(${payload.rangeInFileWithContents.range.start.line + 1
-        }-${payload.rangeInFileWithContents.range.end.line + 1})`;
+      const lineNums = `(${
+        payload.rangeInFileWithContents.range.start.line + 1
+      }-${payload.rangeInFileWithContents.range.end.line + 1})`;
 
       contextItems.push({
         name: `${fileName} ${lineNums}`,
@@ -984,9 +1009,9 @@ function addPassthroughCases(
 ) {
   thunks.forEach((thunk) => {
     builder
-      .addCase(thunk.fulfilled, (_state, _action) => { })
-      .addCase(thunk.rejected, (_state, _action) => { })
-      .addCase(thunk.pending, (_state, _action) => { });
+      .addCase(thunk.fulfilled, (_state, _action) => {})
+      .addCase(thunk.rejected, (_state, _action) => {})
+      .addCase(thunk.pending, (_state, _action) => {});
   });
 }
 

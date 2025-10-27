@@ -18,9 +18,9 @@ import * as vscode from "vscode";
 
 import { ContinueCompletionProvider } from "../autocomplete/completionProvider";
 import {
-    monitorBatteryChanges,
-    setupStatusBar,
-    StatusBarStatus,
+  monitorBatteryChanges,
+  setupStatusBar,
+  StatusBarStatus,
 } from "../autocomplete/statusBar";
 import { registerAllCommands } from "../commands";
 import { ContinueConsoleWebviewViewProvider } from "../ContinueConsoleWebviewViewProvider";
@@ -33,8 +33,8 @@ import { QuickEdit } from "../quickEdit/QuickEditQuickPick";
 import { setupRemoteConfigSync } from "../stubs/activation";
 import { UriEventHandler } from "../stubs/uriHandler";
 import {
-    getControlPlaneSessionInfo,
-    WorkOsAuthProvider,
+  getControlPlaneSessionInfo,
+  WorkOsAuthProvider,
 } from "../stubs/WorkOsAuthProvider";
 import { Battery } from "../util/battery";
 import { FileSearch } from "../util/FileSearch";
@@ -44,13 +44,10 @@ import { VsCodeIde } from "../VsCodeIde";
 import { ConfigYamlDocumentLinkProvider } from "./ConfigYamlDocumentLinkProvider";
 import { VsCodeMessenger } from "./VsCodeMessenger";
 
-import { getAst } from "core/autocomplete/util/ast";
 import { modelSupportsNextEdit } from "core/llm/autodetect";
 import { NEXT_EDIT_MODELS } from "core/llm/constants";
-import { DocumentHistoryTracker } from "core/nextEdit/DocumentHistoryTracker";
 import { NextEditProvider } from "core/nextEdit/NextEditProvider";
 import { isNextEditTest } from "core/nextEdit/utils";
-import { localPathOrUriToPath } from "core/util/pathToUri";
 import { JumpManager } from "../activation/JumpManager";
 import setupNextEditWindowManager, {
   NextEditWindowManager,
@@ -534,16 +531,17 @@ export class VsCodeExtension {
       });
     });
 
-    vscode.workspace.onDidOpenTextDocument(async (event) => {
-      const ast = await getAst(event.fileName, event.getText());
-      if (ast) {
-        DocumentHistoryTracker.getInstance().addDocument(
-          localPathOrUriToPath(event.fileName),
-          event.getText(),
-          ast,
-        );
-      }
-    });
+    // TODO merge this and re-enable https://github.com/continuedev/continue/pull/8364
+    // vscode.workspace.onDidOpenTextDocument(async (event) => {
+    //   const ast = await getAst(event.fileName, event.getText());
+    //   if (ast) {
+    //     DocumentHistoryTracker.getInstance().addDocument(
+    //       localPathOrUriToPath(event.fileName),
+    //       event.getText(),
+    //       ast,
+    //     );
+    //   }
+    // });
 
     // When GitHub sign-in status changes, reload config
     vscode.authentication.onDidChangeSessions(async (e) => {
